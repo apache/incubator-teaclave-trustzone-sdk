@@ -1,0 +1,17 @@
+[package]
+name = "ta"
+version = "0.1.0"
+authors = ["Mingshen Sun <mssun@mesalock-linux.org>"]
+edition = "2018"
+
+[lib]
+name = "ta"
+crate-type = ["staticlib"]
+
+# [profile.dev]
+# panic = "abort"
+
+# [profile.release]
+# panic = "abort"
+
+[dependencies]

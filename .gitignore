@@ -1,0 +1,3 @@
+**/ta/Cargo.lock
+**/*.rs.bk
+examples/**/target

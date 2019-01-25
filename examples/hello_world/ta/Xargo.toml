@@ -1,0 +1,7 @@
+[dependencies.std]
+path = "../../../rust/rust/src/libstd"
+
+[patch.crates-io]
+libc =  { path = "/home/mssun/trustzone/rust-optee-trustzone-sdk/rust/libc" }
+compiler_builtins =  { path = "/home/mssun/trustzone/rust-optee-trustzone-sdk/rust/compiler-builtins" }
+rustc-std-workspace-core = { path = "/home/mssun/trustzone/rust-optee-trustzone-sdk/rust/rust/src/tools/rustc-std-workspace-core" }
