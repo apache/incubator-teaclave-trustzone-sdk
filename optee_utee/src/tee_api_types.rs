@@ -12,6 +12,6 @@ pub struct TEE_UUID {
 
 #[repr(C)]
 pub struct TEE_Identity {
-	  login: uint32_t,
-	  uuid: TEE_UUID,
+    login: uint32_t,
+    uuid: TEE_UUID,
 }
