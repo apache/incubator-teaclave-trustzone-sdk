@@ -1,4 +1,5 @@
 **/ta/Cargo.lock
 optee_utee/Cargo.lock
+optee_teec/Cargo.lock
 **/*.rs.bk
 examples/**/target
