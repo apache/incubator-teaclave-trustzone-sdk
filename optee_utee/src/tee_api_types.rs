@@ -1,14 +1,13 @@
 use libc::*;
 
-#[allow(non_camel_case_types)]
 pub type TEE_Result = uint32_t;
 
 #[repr(C)]
 pub struct TEE_UUID {
-    time_low: uint32_t,
-    time_mid: uint16_t,
-    time_hi_and_version: uint16_t,
-    clock_seq_and_node: [uint8_t; 8],
+    timeLow: uint32_t,
+    timeMid: uint16_t,
+    timeHiAndVersion: uint16_t,
+    clockSeqAndNode: [uint8_t; 8],
 }
 
 #[repr(C)]

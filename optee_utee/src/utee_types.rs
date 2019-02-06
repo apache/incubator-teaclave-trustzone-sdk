@@ -1,7 +1,6 @@
 use libc::*;
 use super::*;
 
-#[allow(non_camel_case_types)]
 #[repr(C)]
 pub enum utee_time_category {
     UTEE_TIME_CAT_SYSTEM,
@@ -9,7 +8,6 @@ pub enum utee_time_category {
     UTEE_TIME_CAT_REE
 }
 
-#[allow(non_camel_case_types)]
 #[repr(C)]
 pub enum utee_entry_func {
     UTEE_ENTRY_FUNC_OPEN_SESSION,
