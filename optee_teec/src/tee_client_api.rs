@@ -2,6 +2,23 @@ use libc::*;
 
 pub const TEEC_CONFIG_PAYLOAD_REF_COUNT: uint32_t = 4;
 
+pub const TEEC_CONFIG_SHAREDMEM_MAX_SIZE: c_ulong = -1 as c_long as c_ulong;
+
+pub const TEEC_NONE: uint32_t                  = 0x00000000;
+pub const TEEC_VALUE_INPUT: uint32_t           = 0x00000001;
+pub const TEEC_VALUE_OUTPUT: uint32_t          = 0x00000002;
+pub const TEEC_VALUE_INOUT: uint32_t           = 0x00000003;
+pub const TEEC_MEMREF_TEMP_INPUT: uint32_t     = 0x00000005;
+pub const TEEC_MEMREF_TEMP_OUTPUT: uint32_t    = 0x00000006;
+pub const TEEC_MEMREF_TEMP_INOUT: uint32_t     = 0x00000007;
+pub const TEEC_MEMREF_WHOLE: uint32_t          = 0x0000000C;
+pub const TEEC_MEMREF_PARTIAL_INPUT: uint32_t  = 0x0000000D;
+pub const TEEC_MEMREF_PARTIAL_OUTPUT: uint32_t = 0x0000000E;
+pub const TEEC_MEMREF_PARTIAL_INOUT: uint32_t  = 0x0000000F;
+
+pub const TEEC_MEM_INPUT: uint32_t  = 0x00000001;
+pub const TEEC_MEM_OUTPUT: uint32_t = 0x00000002;
+
 pub const TEEC_SUCCESS: uint32_t               = 0x00000000;
 pub const TEEC_ERROR_GENERIC: uint32_t         = 0xFFFF0000;
 pub const TEEC_ERROR_ACCESS_DENIED: uint32_t   = 0xFFFF0001;
@@ -22,6 +39,18 @@ pub const TEEC_ERROR_SECURITY: uint32_t        = 0xFFFF000F;
 pub const TEEC_ERROR_SHORT_BUFFER: uint32_t    = 0xFFFF0010;
 pub const TEEC_ERROR_EXTERNAL_CANCEL: uint32_t = 0xFFFF0011;
 pub const TEEC_ERROR_TARGET_DEAD: uint32_t     = 0xFFFF3024;
+
+pub const TEEC_ORIGIN_API: uint32_t         = 0x00000001;
+pub const TEEC_ORIGIN_COMMS: uint32_t       = 0x00000002;
+pub const TEEC_ORIGIN_TEE: uint32_t         = 0x00000003;
+pub const TEEC_ORIGIN_TRUSTED_APP: uint32_t = 0x00000004;
+
+pub const TEEC_LOGIN_PUBLIC: uint32_t            = 0x00000000;
+pub const TEEC_LOGIN_USER: uint32_t              = 0x00000001;
+pub const TEEC_LOGIN_GROUP: uint32_t             = 0x00000002;
+pub const TEEC_LOGIN_APPLICATION: uint32_t       = 0x00000004;
+pub const TEEC_LOGIN_USER_APPLICATION: uint32_t  = 0x00000005;
+pub const TEEC_LOGIN_GROUP_APPLICATION: uint32_t = 0x00000006;
 
 pub type TEEC_Result = uint32_t;
 
@@ -94,7 +123,6 @@ pub struct TEEC_Operation {
     session: *mut TEEC_Session,
 }
 
-#[link(name="teec")]
 extern "C" {
     pub fn TEEC_InitializeContext(name: *mut c_char, context: *mut TEEC_Context) -> TEEC_Result;
     pub fn TEEC_FinalizeContext(context: *mut TEEC_Context);
@@ -105,4 +133,15 @@ extern "C" {
                             connectionData: *const c_void,
                             operation: *mut TEEC_Operation,
                             returnOrigin: *mut uint32_t) -> TEEC_Result;
+    pub fn TEEC_CloseSession(session: *mut TEEC_Session);
+    pub fn TEEC_InvokeCommand(session: *mut TEEC_Session,
+                              commandID: uint32_t,
+                              operation: *mut TEEC_Operation,
+                              returnOrigin: *mut uint32_t) -> TEEC_Result;
+    pub fn TEEC_RegisterSharedMemory(context: *mut TEEC_Context,
+                                     sharedMem: *mut TEEC_SharedMemory) -> TEEC_Result;
+    pub fn TEEC_AllocateSharedMemory(context: *mut TEEC_Context,
+                                     sharedMem: *mut TEEC_SharedMemory) -> TEEC_Result;
+    pub fn TEEC_ReleaseSharedMemory(sharedMemory: *mut TEEC_SharedMemory);
+    pub fn TEEC_RequestCancellation(operation: *mut TEEC_Operation);
 }
