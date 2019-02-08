@@ -3,3 +3,4 @@ optee_utee/Cargo.lock
 optee_teec/Cargo.lock
 **/*.rs.bk
 examples/**/target
+.user_ta_header.o.d

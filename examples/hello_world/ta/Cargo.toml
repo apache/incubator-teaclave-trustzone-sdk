@@ -1,7 +1,8 @@
 [package]
 name = "ta"
 version = "0.1.0"
-authors = ["Mingshen Sun <mssun@mesalock-linux.org>"]
+authors = ["Mingshen Sun <mssun@mesalock-linux.org>",
+           "Shengye Wan <swan@email.wm.edu>"]
 edition = "2018"
 
 [lib]
@@ -15,3 +16,4 @@ crate-type = ["staticlib"]
 # panic = "abort"
 
 [dependencies]
+optee_utee = { path = "../../../optee_utee" }
