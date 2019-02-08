@@ -5,8 +5,7 @@ authors = ["Mingshen Sun <mssun@mesalock-linux.org>"]
 edition = "2018"
 
 [lib]
-name = "utee"
-crate-type = ["staticlib"]
+name = "optee_utee"
 
 [dependencies]
 libc = { path = "../rust/libc", default-features = false }
