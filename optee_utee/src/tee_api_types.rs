@@ -38,3 +38,18 @@ pub union TEE_Param {
 
 pub type ParamTypes = u32;
 pub type SessionP = *mut *mut c_void;
+
+#[repr(C)] pub struct __TEE_TASessionHandle { _unused: [u8; 0] }
+pub type TEE_TASessionHandle = *mut __TEE_TASessionHandle;
+
+#[repr(C)] pub struct __TEE_PropSetHandle { _unused: [u8; 0] }
+pub type TEE_PropSetHandle = *mut __TEE_PropSetHandle;
+
+#[repr(C)] pub struct __TEE_ObjectHandle { _unused: [u8; 0] }
+pub type TEE_ObjectHandle = *mut __TEE_ObjectHandle;
+
+#[repr(C)] pub struct __TEE_ObjectEnumHandle { _unused: [u8; 0] }
+pub type TEE_ObjectEnumHandle = *mut __TEE_ObjectEnumHandle;
+
+#[repr(C)] pub struct __TEE_OperationHandle { _unused: [u8; 0] }
+pub type TEE_OperationHandle = *mut __TEE_OperationHandle;
