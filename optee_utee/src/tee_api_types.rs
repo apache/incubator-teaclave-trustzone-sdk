@@ -10,34 +10,6 @@ pub struct TEE_UUID {
     pub clockSeqAndNode: [uint8_t; 8],
 }
 
-
-/*#[repr(C)]
-pub struct ta_head_func_ptr {
-        ptr64 : uint64_t,
-}*/
-
-
-#[repr(C)]
-pub struct ta_head {
-        pub uuid: TEE_UUID,
-        pub stack_size : c_int,
-        pub flags : uint32_t, 
-        pub entry : *mut c_void,//ta_head_func_ptr,
-}
-
-#[repr(C)]
-pub struct user_ta_property {
-        pub name : &'static str, //*mut c_char,
-        pub ta_type : i8, //original define is type, with enum user_ta_prop_type,
-        pub value : *mut c_void,
-}
-
-/**mut c_char*/
-pub fn user_ta_prop_init(c_ptr:&'static str, number:i8, desc:*mut c_void) -> user_ta_property {
-	user_ta_property {name:c_ptr, ta_type:number, value: desc,}
-}
-
-
 #[repr(C)]
 pub struct TEE_Identity {
     pub login: uint32_t,

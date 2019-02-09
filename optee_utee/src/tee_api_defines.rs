@@ -1,37 +1,5 @@
 use libc::*;
 
-//enum value for ta property entry
-pub enum user_ta_prop_type {
-        USER_TA_PROP_TYPE_BOOL,
-        USER_TA_PROP_TYPE_U32,
-        USER_TA_PROP_TYPE_UUID,
-        USER_TA_PROP_TYPE_IDENTITY,
-        USER_TA_PROP_TYPE_STRING,
-        USER_TA_PROP_TYPE_BINARY_BLOCK,
-}
-
-//core/lib/libutee/include/user_ta_header.h
-pub const TA_FLAG_SINGLE_INSTANCE:uint32_t=         (1 << 2);
-pub const TA_FLAG_MULTI_SESSION:uint32_t=           (1 << 3);
-pub const TA_FLAG_INSTANCE_KEEP_ALIVE:uint32_t=     (1 << 4); /* remains after last close */
-pub const TA_FLAG_SECURE_DATA_PATH:uint32_t=        (1 << 5); /* accesses SDP memory */
-pub const TA_FLAG_REMAP_SUPPORT:uint32_t=           (1 << 6); /* use map/unmap syscalls */
-pub const TA_FLAG_CACHE_MAINTENANCE:uint32_t=       (1 << 7); /* use cache flush syscall */
-
-
-//API TA PROPERTY STRING
-pub const TA_PROP_STR_SINGLE_INSTANCE : &str = "gpd.ta.singleInstance";
-pub const TA_PROP_STR_MULTI_SESSION : &str = "gpd.ta.multiSession";
-pub const TA_PROP_STR_KEEP_ALIVE : &str = "gpd.ta.instanceKeepAlive";
-pub const TA_PROP_STR_DATA_SIZE : &str = "gpd.ta.dataSize";
-pub const TA_PROP_STR_STACK_SIZE : &str = "gpd.ta.stackSize";
-pub const TA_PROP_STR_VERSION : &str = "gpd.ta.version";
-pub const TA_PROP_STR_DESCRIPTION : &str = "gpd.ta.description";
-pub const TA_PROP_STR_UNSAFE_PARAM : &str = "op-tee.unsafe_param";
-pub const TA_PROP_STR_REMAP : &str = "op-tee.remap";
-pub const TA_PROP_STR_CACHE_SYNC : &str = "op-tee.cache_sync";
-
-
 // API Error Codes
 pub const TEE_SUCCESS: uint32_t                       = 0x00000000;
 pub const TEE_ERROR_CORRUPT_OBJECT: uint32_t          = 0xF0100001;
