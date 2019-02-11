@@ -4,3 +4,4 @@ optee_teec/Cargo.lock
 **/*.rs.bk
 .user_ta_header.o.d
 **/target
+optee/toolchains
