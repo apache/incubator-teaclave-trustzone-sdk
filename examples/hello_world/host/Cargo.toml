@@ -1,5 +1,5 @@
 [package]
-name = "host"
+name = "hello_world"
 version = "0.1.0"
 authors = ["Mingshen Sun <mssun@mesalock-linux.org>"]
 edition = "2018"
