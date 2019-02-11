@@ -1,4 +1,5 @@
 export RUSTFLAGS="-L$(pwd)/optee/optee_os/out/arm/export-ta_arm64/lib"
 export RUST_TARGET_PATH="$(pwd)"
-export OPTEE_OS_DIR="$(pwd)/optee/optee_os"
-export OPTEE_CLIENT_DIR="$(pwd)/optee/optee_client"
+export OPTEE_DIR="$(pwd)/optee"
+export OPTEE_OS_DIR="$OPTEE_DIR/optee_os"
+export OPTEE_CLIENT_DIR="$OPTEE_DIR/optee_client"
