@@ -1,4 +1,3 @@
 [target.aarch64-unknown-optee-trustzone]
 linker = "optee/toolchains/aarch64/bin/aarch64-linux-gnu-gcc"
 ar = "optee/toolchains/aarch64/bin/aarch64-linux-gnu-gcc-ar"
-rustflags = ["-L/home/mssun/trustzone/rust-optee-trustzone-sdk/optee/optee_os/out/arm/export-ta_arm64/lib"]
