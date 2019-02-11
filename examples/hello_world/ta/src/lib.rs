@@ -28,16 +28,16 @@ pub extern "C" fn TA_CloseSessionEntryPoint(_sessionContext: SessionP) {}
 #[no_mangle]
 pub extern "C" fn TA_InvokeCommandEntryPoint(
     _sessionContext: SessionP,
-    _commandID: u32,
+    commandID: u32,
     _paramTypes: ParamTypes,
-    _params: &mut [TEE_Param; 4],
+    params: &mut [TEE_Param; 4],
 ) -> TEE_Result {
-    match _commandID {
+    match commandID {
         0 => unsafe {
-            _params[0].value.a += 121;
+            params[0].value.a += 121;
         },
         1 => unsafe {
-            _params[0].value.a -= 21;
+            params[0].value.a -= 21;
         },
         _ => {
             return TEE_ERROR_BAD_PARAMETERS;

@@ -1,7 +1,9 @@
 OPTEE_DIR ?= ../../../optee
+OPTEE_OS_DIR ?= $(OPTEE_DIR)/optee_os
 OPTEE_ARCH ?= aarch64
 UUID ?= 8abcf200-2450-11e4-abe2-0002a5d5c51b
-KEY_PATH ?= $(OPTEE_DIR)/optee_os/out/arm/export-ta_arm64/keys/default_ta.pem
+TA_SIGN_KEY ?= $(OPTEE_DIR)/optee_os/out/arm/export-ta_arm64/keys/default_ta.pem
+OPTEE_OS_TA_DEV_KIT_DIR ?= $(OPTEE_OS_DIR)/out/arm/export-ta_arm64
 
 SRC_DIR := $(CURDIR)/src
 OUT_DIR := $(CURDIR)/target/aarch64-unknown-optee-trustzone/debug
@@ -17,7 +19,7 @@ CFLAGS := -Wall -Os -fpie -std=gnu99 -nostdinc -DCFG_TEE_TA_LOG_LEVEL=4 \
 INCLUDES := -isystem $(OPTEE_TOOLCHAINS)/aarch64/lib/gcc/aarch64-linux-gnu/8.2.1/include \
             -I$(SRC_DIR) -I$(OPTEE_DIR)/optee_os/out/arm/export-ta_arm64/include
 LDFLAGS := -pie -Tta.lds -Map=$(OUT_DIR)/$(UUID).map --sort-section=alignment \
-           -L$(OUT_DIR) -L$(OPTEE_DIR)/optee_os/out/arm/export-ta_arm64/lib   \
+           -L$(OUT_DIR) -L$(OPTEE_OS_TA_DEV_KIT_DIR)/lib   \
            --start-group -lmpa -lutils -lutee -lta --end-group
 
 all: talib taheader talink tastrip tasign
@@ -26,7 +28,7 @@ talib:
 	xargo build --target aarch64-unknown-optee-trustzone
 
 taheader:
-	$(CC) $(CFLAGS) $(INCLUDES) -c $(OPTEE_DIR)/optee_os/out/arm/export-ta_arm64/src/user_ta_header.c -o $(OUT_DIR)/user_ta_header.o
+	$(CC) $(CFLAGS) $(INCLUDES) -c $(OPTEE_OS_TA_DEV_KIT_DIR)/src/user_ta_header.c -o $(OUT_DIR)/user_ta_header.o
 
 talink:
 	$(LD) $(OUT_DIR)/user_ta_header.o $(LDFLAGS) -o $(OUT_DIR)/$(UUID).elf
@@ -35,7 +37,7 @@ tastrip:
 	$(OBJCOPY) --strip-unneeded $(OUT_DIR)/$(UUID).elf $(OUT_DIR)/$(UUID).stripped.elf
 
 tasign:
-	$(SIGN) --uuid $(UUID) --key $(KEY_PATH) --in $(OUT_DIR)/$(UUID).stripped.elf --out $(OUT_DIR)/$(UUID).ta
+	$(SIGN) --uuid $(UUID) --key $(TA_SIGN_KEY) --in $(OUT_DIR)/$(UUID).stripped.elf --out $(OUT_DIR)/$(UUID).ta
 
 clean:
 	xargo clean
