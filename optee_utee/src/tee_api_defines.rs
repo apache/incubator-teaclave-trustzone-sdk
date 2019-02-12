@@ -7,6 +7,11 @@ pub const TEE_HANDLE_NULL: uint32_t = 0;
 
 pub const TEE_TIMEOUT_INFINITE: uint32_t = 0xFFFFFFFF;
 
+pub fn TEE_PARAM_TYPES(t0: uint32_t, t1: uint32_t, t2: uint32_t, t3: uint32_t) -> uint32_t {
+    let tmp:uint32_t = t1<<4 | t2 <<8 | t3 << 12;
+    return t0 | tmp;
+}
+
 // API Error Codes
 pub const TEE_SUCCESS: uint32_t                       = 0x00000000;
 pub const TEE_ERROR_CORRUPT_OBJECT: uint32_t          = 0xF0100001;

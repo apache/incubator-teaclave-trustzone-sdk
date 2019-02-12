@@ -36,6 +36,18 @@ pub union TEE_Param {
     pub value: Value
 }
 
+#[repr(C)]
+pub struct TEE_ObjectInfo {
+    pub objectType: uint32_t,
+    //remove to 2 unions here, only keep 1.1.1 spec version
+    pub objectSize: uint32_t,
+    pub maxObjectSize: uint32_t,
+    pub objectUsage: uint32_t,
+    pub dataSize: uint32_t,
+    pub dataPosition: uint32_t,
+    pub handleFlags: uint32_t,
+}
+
 pub type ParamTypes = u32;
 pub type SessionP = *mut *mut c_void;
 
