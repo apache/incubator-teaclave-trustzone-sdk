@@ -1,0 +1,14 @@
+language: rust
+rust: nightly-2019-02-01
+
+install:
+  - sudo apt-get install -y curl make gcc python python-crypto xz-utils
+  - rustup component add rust-src
+  - cargo install --git https://github.com/mssun/xargo.git --branch mssun/relative-patch-path --force
+
+script:
+  - make
+  - source environment
+  - cd $TRAVIS_BUILD_DIR/optee_utee && xargo build --target aarch64-unknown-optee-trustzone -vv
+  - cd $TRAVIS_BUILD_DIR/optee_teec && xargo build --target aarch64-unknown-optee-trustzone -vv
+  - cd $TRAVIS_BUILD_DIR && for e in examples/*; do make -C $e/ta; done
