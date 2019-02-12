@@ -22,5 +22,5 @@ $ rustup default nightly-2019-02-01 && rustup component add rust-src
 $ cargo install --git https://github.com/mssun/xargo.git --branch mssun/relative-patch-path --force
 
 # setup environment variables
-$ source env
+$ source environment
 ```
