@@ -48,9 +48,6 @@ pub struct TEE_ObjectInfo {
     pub handleFlags: uint32_t,
 }
 
-pub type ParamTypes = u32;
-pub type SessionP = *mut *mut c_void;
-
 #[repr(C)] pub struct __TEE_TASessionHandle { _unused: [u8; 0] }
 pub type TEE_TASessionHandle = *mut __TEE_TASessionHandle;
 

@@ -2,8 +2,10 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
+extern crate libc;
 extern crate optee_utee;
 pub use libc::*;
+use libc::{c_void, uint32_t};
 pub use optee_utee::*;
 use std::ptr;
 
@@ -21,24 +23,24 @@ pub extern "C" fn TA_DestroyEntryPoint() {}
 
 #[no_mangle]
 pub extern "C" fn TA_OpenSessionEntryPoint(
-    _paramTypes: ParamTypes,
+    _param_types: uint32_t,
     _params: TEE_Param,
-    _sessionContext: SessionP,
+    _sess_ctx: *mut *mut c_void,
 ) -> TEE_Result {
     return TEE_SUCCESS;
 }
 
 #[no_mangle]
-pub extern "C" fn TA_CloseSessionEntryPoint(_sessionContext: SessionP) {}
+pub extern "C" fn TA_CloseSessionEntryPoint(_sess_ctx: *mut *mut c_void) {}
 
-pub fn delete_object(paramTypes: uint32_t, params: &mut [TEE_Param; 4]) -> TEE_Result {
-    let exp_paramTypes: uint32_t = TEE_PARAM_TYPES(
+pub fn delete_object(param_types: uint32_t, params: &mut [TEE_Param; 4]) -> TEE_Result {
+    let exp_param_types: uint32_t = TEE_PARAM_TYPES(
         TEE_PARAM_TYPE_MEMREF_INPUT,
         TEE_PARAM_TYPE_NONE,
         TEE_PARAM_TYPE_NONE,
         TEE_PARAM_TYPE_NONE,
     );
-    if paramTypes != exp_paramTypes {
+    if param_types != exp_param_types {
         return TEE_ERROR_BAD_PARAMETERS;
     }
 
@@ -67,14 +69,14 @@ pub fn delete_object(paramTypes: uint32_t, params: &mut [TEE_Param; 4]) -> TEE_R
     }
 }
 
-pub fn create_raw_object(paramTypes: uint32_t, params: &mut [TEE_Param; 4]) -> TEE_Result {
-    let exp_paramTypes: uint32_t = TEE_PARAM_TYPES(
+pub fn create_raw_object(param_types: uint32_t, params: &mut [TEE_Param; 4]) -> TEE_Result {
+    let exp_param_types: uint32_t = TEE_PARAM_TYPES(
         TEE_PARAM_TYPE_MEMREF_INPUT,
         TEE_PARAM_TYPE_MEMREF_INPUT,
         TEE_PARAM_TYPE_NONE,
         TEE_PARAM_TYPE_NONE,
     );
-    if paramTypes != exp_paramTypes {
+    if param_types != exp_param_types {
         return TEE_ERROR_BAD_PARAMETERS;
     }
 
@@ -121,14 +123,14 @@ pub fn create_raw_object(paramTypes: uint32_t, params: &mut [TEE_Param; 4]) -> T
     }
 }
 
-pub fn read_raw_object(paramTypes: uint32_t, params: &mut [TEE_Param; 4]) -> TEE_Result {
-    let exp_paramTypes: uint32_t = TEE_PARAM_TYPES(
+pub fn read_raw_object(param_types: uint32_t, params: &mut [TEE_Param; 4]) -> TEE_Result {
+    let exp_param_types: uint32_t = TEE_PARAM_TYPES(
         TEE_PARAM_TYPE_MEMREF_INPUT,
         TEE_PARAM_TYPE_MEMREF_OUTPUT,
         TEE_PARAM_TYPE_NONE,
         TEE_PARAM_TYPE_NONE,
     );
-    if paramTypes != exp_paramTypes {
+    if param_types != exp_param_types {
         return TEE_ERROR_BAD_PARAMETERS;
     }
 
@@ -195,20 +197,20 @@ pub fn read_raw_object(paramTypes: uint32_t, params: &mut [TEE_Param; 4]) -> TEE
 
 #[no_mangle]
 pub extern "C" fn TA_InvokeCommandEntryPoint(
-    _sessionContext: SessionP,
-    commandID: u32,
-    paramTypes: ParamTypes,
+    _sess_ctx: *mut c_void,
+    cmd_id: u32,
+    param_types: uint32_t,
     params: &mut [TEE_Param; 4],
 ) -> TEE_Result {
-    match commandID {
+    match cmd_id {
         TA_SECURE_STORAGE_CMD_WRITE_RAW => {
-            return create_raw_object(paramTypes, params);
+            return create_raw_object(param_types, params);
         }
         TA_SECURE_STORAGE_CMD_READ_RAW => {
-            return read_raw_object(paramTypes, params);
+            return read_raw_object(param_types, params);
         }
         TA_SECURE_STORAGE_CMD_DELETE => {
-            return delete_object(paramTypes, params);
+            return delete_object(param_types, params);
         }
         _ => {
             return TEE_ERROR_NOT_SUPPORTED;

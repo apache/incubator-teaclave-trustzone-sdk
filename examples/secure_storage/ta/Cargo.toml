@@ -9,12 +9,6 @@ edition = "2018"
 name = "ta"
 crate-type = ["staticlib"]
 
-# [profile.dev]
-# panic = "abort"
-
-# [profile.release]
-# panic = "abort"
-
 [dependencies]
-libc = { path = "../../../rust/libc", default-features = false }
+libc = { path = "../../../rust/libc" }
 optee_utee = { path = "../../../optee_utee" }
