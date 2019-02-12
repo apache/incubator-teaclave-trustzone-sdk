@@ -16,7 +16,7 @@ $ make
 # install Rust and select a proper version
 $ curl https://sh.rustup.rs -sSf | sh
 $ source $HOME/.cargo/env
-$ rustup default nightly-2019-01-29 && rustup component add rust-src
+$ rustup default nightly-2019-02-01 && rustup component add rust-src
 
 # install patched Xargo
 $ cargo install --git https://github.com/mssun/xargo.git --branch mssun/relative-patch-path --force
