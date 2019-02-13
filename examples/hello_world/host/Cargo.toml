@@ -1,16 +1,10 @@
 [package]
-name = "hello_world_host"
+name = "hello_world"
 version = "0.1.0"
 authors = ["Mingshen Sun <mssun@mesalock-linux.org>",
            "Shengye Wan <swan@email.wm.edu>"]
 edition = "2018"
 
-# [profile.dev]
-# panic = "abort"
-
-# [profile.release]
-# panic = "abort"
-
 [dependencies]
-libc = { path = "../../../rust/libc", default-features = false }
+libc = "0.2.48"
 optee_teec = { path = "../../../optee_teec" }

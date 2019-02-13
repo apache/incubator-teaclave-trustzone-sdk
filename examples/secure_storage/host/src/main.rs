@@ -20,7 +20,7 @@ pub fn read_secure_object(
     data: *mut c_char,
     data_len: uint32_t,
 ) -> TEEC_Result {
-    let mut res: TEEC_Result;
+    let res: TEEC_Result;
     let mut err_origin: uint32_t = 0;
     let param1: TEEC_Parameter = TEEC_Parameter {
         value: TEEC_Value { a: 0, b: 0 },
@@ -70,7 +70,7 @@ pub fn write_secure_object(
     data: *mut c_char,
     data_len: uint32_t,
 ) -> TEEC_Result {
-    let mut res: TEEC_Result;
+    let res: TEEC_Result;
     let mut err_origin: uint32_t = 0;
     let param1: TEEC_Parameter = TEEC_Parameter {
         value: TEEC_Value { a: 0, b: 0 },
@@ -115,7 +115,7 @@ pub fn write_secure_object(
 }
 
 pub fn delete_secure_object(sess_ptr: *mut TEEC_Session, id: *mut c_char) -> TEEC_Result {
-    let mut res: TEEC_Result;
+    let res: TEEC_Result;
     let mut err_origin: uint32_t = 0;
     let param1: TEEC_Parameter = TEEC_Parameter {
         value: TEEC_Value { a: 0, b: 0 },
@@ -162,7 +162,7 @@ pub fn check_equal(array_1: [c_char; TEST_OBJECT_SIZE], array_2: [c_char; TEST_O
             return;
         }
     }
-    println!("Arrays equal now!\0");
+    println!("Arrays equal now!");
     return;
 }
 
@@ -192,7 +192,7 @@ pub fn main() {
 
         res = TEEC_InitializeContext(ptr::null_mut() as *mut c_char, &mut ctx);
         if res != TEEC_SUCCESS {
-            println!("Init error.\0");
+            println!("Init error.");
             return;
         }
         res = TEEC_OpenSession(
@@ -205,7 +205,7 @@ pub fn main() {
             &mut err_origin,
         );
         if res != TEEC_SUCCESS {
-            println!("Open session error.\0");
+            println!("Open session error.");
             return;
         }
 
@@ -216,10 +216,10 @@ pub fn main() {
             mem::size_of::<[c_char; TEST_OBJECT_SIZE]>() as uint32_t,
         );
         if res != TEEC_SUCCESS {
-            println!("Write command error.\0");
+            println!("Write command error.");
             return;
         }
-        println!("Create and load object in the TA secure storage success.\0");
+        println!("Create and load object in the TA secure storage success.");
         check_equal(obj1_data, read_data);
 
         res = read_secure_object(
@@ -229,18 +229,18 @@ pub fn main() {
             mem::size_of::<[c_char; TEST_OBJECT_SIZE]>() as uint32_t,
         );
         if res != TEEC_SUCCESS {
-            println!("Read command error.\0");
+            println!("Read command error.");
             return;
         }
-        println!("Read back object success. \0");
+        println!("Read back object success.");
         check_equal(obj1_data, read_data);
 
         res = delete_secure_object(&mut sess, obj1_id);
         if res != TEEC_SUCCESS {
-            println!("Delete command error.\0");
+            println!("Delete command error.");
             return;
         }
-        println!("Delete object sucess.\0");
+        println!("Delete object success.");
 
         TEEC_CloseSession(&mut sess);
         TEEC_FinalizeContext(&mut ctx);

@@ -52,7 +52,7 @@ pub fn main() {
     unsafe {
         res = TEEC_InitializeContext(ptr::null_mut() as *mut c_char, &mut ctx);
         if res != TEEC_SUCCESS {
-            println!("Init error.\0");
+            println!("Init error.");
             return;
         }
 
@@ -66,7 +66,7 @@ pub fn main() {
             &mut err_origin,
         );
         if res != TEEC_SUCCESS {
-            println!("Open session error.\0");
+            println!("Open session error.");
             return;
         }
 
@@ -80,7 +80,7 @@ pub fn main() {
             &mut err_origin,
         );
         if res != TEEC_SUCCESS {
-            println!("Execute command error.\0");
+            println!("Execute command error.");
             return;
         }
         println!("update value is {}", op.params[0].value.a);
