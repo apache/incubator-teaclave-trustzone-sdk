@@ -1,6 +1,14 @@
 language: rust
 rust: nightly-2019-02-01
 
+git:
+  submodules: false
+
+before_install:
+  - git submodule update --init
+  - (cd rust/compiler-builtins && git submodule update --init libm compiler-rt)
+  - (cd rust/rust && git submodule update --init src/stdsimd)
+
 install:
   - sudo apt-get install -y curl make gcc python python-crypto xz-utils
   - rustup component add rust-src
@@ -10,9 +18,9 @@ install:
 script:
   - make optee
   - source environment
-  - cd $TRAVIS_BUILD_DIR/optee-utee && xargo build --target aarch64-unknown-optee-trustzone -vv
-  - cd $TRAVIS_BUILD_DIR/optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv
-  - cd $TRAVIS_BUILD_DIR && make examples
+  - (cd optee-utee && xargo build --target aarch64-unknown-optee-trustzone -vv)
+  - (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
+  - make examples
 
 cache:
   timeout: 1000
