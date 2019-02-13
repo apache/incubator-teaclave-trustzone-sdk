@@ -11,7 +11,7 @@ all: toolchains optee-os optee-client examples
 optee: toolchains optee-os optee-client
 
 toolchains:
-	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) toolchains
+	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) aarch64
 
 optee-os:
 	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) optee-os
