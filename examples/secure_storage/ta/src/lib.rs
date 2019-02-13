@@ -3,10 +3,9 @@
 #![allow(non_snake_case)]
 
 extern crate libc;
-extern crate optee_utee;
-pub use libc::*;
-use libc::{c_void, uint32_t};
-pub use optee_utee::*;
+extern crate optee_utee_sys;
+use libc::*;
+pub use optee_utee_sys::*;
 use std::ffi::CString;
 use std::ptr;
 

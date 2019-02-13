@@ -1,11 +1,8 @@
 [package]
-name = "optee_utee"
+name = "optee-utee-sys"
 version = "0.1.0"
 authors = ["Mingshen Sun <mssun@mesalock-linux.org>"]
 edition = "2018"
 
-[lib]
-name = "optee_utee"
-
 [dependencies]
-libc = { path = "../rust/libc", default-features = false }
+libc = { path = "../../rust/libc" }
