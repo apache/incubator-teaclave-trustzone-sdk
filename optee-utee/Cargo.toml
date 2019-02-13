@@ -1,2 +1,2 @@
 [workspace]
-members = ["optee-utee-sys"]
+members = ["optee-utee", "optee-utee-sys"]
