@@ -10,6 +10,6 @@ install:
 script:
   - make optee
   - source environment
-  - cd $TRAVIS_BUILD_DIR/optee_utee && xargo build --target aarch64-unknown-optee-trustzone -vv
-  - cd $TRAVIS_BUILD_DIR/optee_teec && cargo build --target aarch64-unknown-linux-gnu -vv
+  - cd $TRAVIS_BUILD_DIR/optee-utee && xargo build --target aarch64-unknown-optee-trustzone -vv
+  - cd $TRAVIS_BUILD_DIR/optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv
   - cd $TRAVIS_BUILD_DIR && make examples
