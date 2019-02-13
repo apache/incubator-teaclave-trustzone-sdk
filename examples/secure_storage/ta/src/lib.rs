@@ -7,6 +7,7 @@ extern crate optee_utee;
 pub use libc::*;
 use libc::{c_void, uint32_t};
 pub use optee_utee::*;
+use std::ffi::CString;
 use std::ptr;
 
 pub const TA_SECURE_STORAGE_CMD_READ_RAW: u32 = 0;
@@ -27,6 +28,13 @@ pub extern "C" fn TA_OpenSessionEntryPoint(
     _params: TEE_Param,
     _sess_ctx: *mut *mut c_void,
 ) -> TEE_Result {
+    //TEE print example
+    unsafe {
+        let output =
+            CString::new("Secure world session is opening now!\n").expect("CString::new failed");
+        let print_ptr: *const c_char = output.as_ptr() as *const c_char;
+        trace_ext_puts(print_ptr);
+    }
     return TEE_SUCCESS;
 }
 
