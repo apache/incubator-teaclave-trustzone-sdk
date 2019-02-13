@@ -13,3 +13,8 @@ script:
   - cd $TRAVIS_BUILD_DIR/optee-utee && xargo build --target aarch64-unknown-optee-trustzone -vv
   - cd $TRAVIS_BUILD_DIR/optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv
   - cd $TRAVIS_BUILD_DIR && make examples
+
+cache:
+  timeout: 1000
+  directories:
+    - optee/toolchains
