@@ -1,2 +1,8 @@
-[workspace]
-members = ["optee-utee", "optee-utee-sys"]
+[package]
+name = "optee-utee"
+version = "0.1.0"
+authors = ["Mingshen Sun <mssun@mesalock-linux.org>"]
+edition = "2018"
+
+[dependencies]
+optee-utee-sys = { path = "optee-utee-sys" }

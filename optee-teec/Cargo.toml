@@ -1,2 +1,8 @@
-[workspace]
-members = ["optee-teec", "optee-teec-sys"]
+[package]
+name = "optee-teec"
+version = "0.1.0"
+authors = ["Mingshen Sun <mssun@mesalock-linux.org>"]
+edition = "2018"
+
+[dependencies]
+optee-teec-sys = { path = "optee-teec-sys" }
