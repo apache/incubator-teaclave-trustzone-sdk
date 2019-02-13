@@ -8,6 +8,7 @@ EXAMPLES = $(wildcard examples/*)
 EXAMPLES_CLEAN  = $(EXAMPLES:%=%-clean)
 
 all: toolchains optee-os optee-client examples
+optee: toolchains optee-os optee-client
 
 toolchains:
 	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) toolchains

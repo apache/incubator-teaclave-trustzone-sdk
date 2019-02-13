@@ -11,7 +11,7 @@ $ cd rust-optee-trustzone-sdk
 $ sudo apt-get install curl make gcc python python-crypto xz-utils
 
 # make toolchains and OPTEE libraries
-$ make
+$ make optee
 
 # install Rust and select a proper version
 $ curl https://sh.rustup.rs -sSf | sh
@@ -24,4 +24,7 @@ $ cargo install --git https://github.com/mssun/xargo.git --branch mssun/relative
 
 # setup environment variables
 $ source environment
+
+# make all examples
+$ make examples
 ```
