@@ -2,8 +2,6 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
-extern crate optee_utee_sys;
-extern crate libc;
 use optee_utee_sys::*;
 use libc::{c_void, uint32_t};
 

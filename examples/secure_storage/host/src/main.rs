@@ -2,7 +2,6 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
-extern crate optee_teec_sys;
 use libc::*;
 use optee_teec_sys::*;
 use std::ffi::CString;
