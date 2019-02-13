@@ -5,4 +5,4 @@ authors = ["Mingshen Sun <mssun@mesalock-linux.org>"]
 edition = "2018"
 
 [dependencies]
-libc = { path = "../rust/libc", default-features = false }
+libc = "0.2.48" 

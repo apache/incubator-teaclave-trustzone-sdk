@@ -7,6 +7,9 @@ extern crate libc;
 use optee_utee::*;
 use libc::{c_void, uint32_t};
 
+pub const TA_HELLO_WORLD_CMD_INC_VALUE: u32 = 0;
+pub const TA_HELLO_WORLD_CMD_DEC_VALUE: u32 = 1;
+
 #[no_mangle]
 pub extern "C" fn TA_CreateEntryPoint() -> TEE_Result {
     TEE_SUCCESS
@@ -35,10 +38,10 @@ pub extern "C" fn TA_InvokeCommandEntryPoint(
     params: &mut [TEE_Param; 4],
 ) -> TEE_Result {
     match cmd_id {
-        0 => unsafe {
+        TA_HELLO_WORLD_CMD_INC_VALUE => unsafe {
             params[0].value.a += 121;
         },
-        1 => unsafe {
+        TA_HELLO_WORLD_CMD_DEC_VALUE => unsafe {
             params[0].value.a -= 21;
         },
         _ => {

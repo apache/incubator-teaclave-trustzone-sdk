@@ -1,5 +1,5 @@
 [package]
-name = "hello_world_host"
+name = "secure_storage_host"
 version = "0.1.0"
 authors = ["Mingshen Sun <mssun@mesalock-linux.org>",
            "Shengye Wan <swan@email.wm.edu>"]

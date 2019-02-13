@@ -1,5 +1,10 @@
 use libc::*;
 
+pub fn TEEC_PARAM_TYPES(p0:uint32_t, p1:uint32_t, p2:uint32_t, p3:uint32_t) -> uint32_t {
+    let tmp = p1 << 4 | p2 << 8 | p3 << 12;
+    return p0 | tmp;
+}
+
 pub const TEEC_CONFIG_PAYLOAD_REF_COUNT: uint32_t = 4;
 
 pub const TEEC_CONFIG_SHAREDMEM_MAX_SIZE: c_ulong = -1 as c_long as c_ulong;
@@ -56,71 +61,71 @@ pub type TEEC_Result = uint32_t;
 
 #[repr(C)]
 pub struct TEEC_Context {
-    fd: c_int,
-    reg_mem: bool,
+    pub fd: c_int,
+    pub reg_mem: bool,
 }
 
 #[repr(C)]
 pub struct TEEC_UUID {
-    time_low: uint32_t,
-    time_mid: uint16_t,
-    time_hi_and_version: uint16_t,
-    clock_seq_and_node: [uint8_t; 8],
+    pub time_low: uint32_t,
+    pub time_mid: uint16_t,
+    pub time_hi_and_version: uint16_t,
+    pub clock_seq_and_node: [uint8_t; 8],
 }
 
 #[repr(C)]
 pub struct TEEC_Session {
-    ctx: *mut TEEC_Context,
-    session_id: uint32_t,
+    pub ctx: *mut TEEC_Context,
+    pub session_id: uint32_t,
 }
 
 #[repr(C)]
 pub struct TEEC_SharedMemory {
-    buffer: *mut c_void,
-    size: size_t,
-    flags: uint32_t,
-    id: c_int,
-    alloced_size: size_t,
-    shadow_buffer: *mut c_void,
-    registered_fd: c_int,
-    buffer_allocated: bool,
+    pub buffer: *mut c_void,
+    pub size: size_t,
+    pub flags: uint32_t,
+    pub id: c_int,
+    pub alloced_size: size_t,
+    pub shadow_buffer: *mut c_void,
+    pub registered_fd: c_int,
+    pub buffer_allocated: bool,
 }
 
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct TEEC_TempMemoryReference {
-    buffer: *mut c_void,
-    size: size_t,
+    pub buffer: *mut c_void,
+    pub size: size_t,
 }
 
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct TEEC_RegisteredMemoryReference {
-    parent: *mut TEEC_SharedMemory,
-    size: size_t,
-    offset: size_t,
+    pub parent: *mut TEEC_SharedMemory,
+    pub size: size_t,
+    pub offset: size_t,
 }
 
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct TEEC_Value {
-    a: uint32_t,
-    b: uint32_t,
+    pub a: uint32_t,
+    pub b: uint32_t,
 }
 
 #[repr(C)]
 pub union TEEC_Parameter {
-    tmpref: TEEC_TempMemoryReference,
-    memref: TEEC_RegisteredMemoryReference,
-    value: TEEC_Value,
+    pub tmpref: TEEC_TempMemoryReference,
+    pub memref: TEEC_RegisteredMemoryReference,
+    pub value: TEEC_Value,
 }
 
 #[repr(C)]
 pub struct TEEC_Operation {
-    started: uint32_t,
-    param_types: uint32_t,
-    params: [TEEC_Parameter; TEEC_CONFIG_PAYLOAD_REF_COUNT as usize],
-    session: *mut TEEC_Session,
+    pub started: uint32_t,
+    pub param_types: uint32_t,
+    pub params: [TEEC_Parameter; TEEC_CONFIG_PAYLOAD_REF_COUNT as usize],
+    pub session: *mut TEEC_Session,
 }
 
 extern "C" {
