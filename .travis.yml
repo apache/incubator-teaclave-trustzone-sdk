@@ -5,7 +5,7 @@ git:
   submodules: false
 
 before_install:
-  - git submodule update --init
+  - travis_wait git submodule update --init
   - (cd rust/compiler-builtins && git submodule update --init libm compiler-rt)
   - (cd rust/rust && git submodule update --init src/stdsimd)
 
