@@ -3,9 +3,12 @@
 ## Getting started
 
 ``` shell
-# clone the project recursively
-$ git clone --recursive git@github.com:mesalock-linux/rust-optee-trustzone-sdk.git
+# clone the project and initialize related submodules
+$ git clone git@github.com:mesalock-linux/rust-optee-trustzone-sdk.git
 $ cd rust-optee-trustzone-sdk
+$ git submodule update --init
+$ (cd rust/compiler-builtins && git submodule update --init libm compiler-rt)
+$ (cd rust/rust && git submodule update --init src/stdsimd)
 
 # install dependencies
 $ sudo apt-get install curl make gcc python python-crypto xz-utils
