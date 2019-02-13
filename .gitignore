@@ -1,6 +1,6 @@
 **/ta/Cargo.lock
 optee_utee/Cargo.lock
-optee_teec/Cargo.lock
+optee-teec/Cargo.lock
 **/*.rs.bk
 .user_ta_header.o.d
 **/target

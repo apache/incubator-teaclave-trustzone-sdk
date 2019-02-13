@@ -6,7 +6,7 @@ version = "0.2.48"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
-name = "optee_teec"
+name = "optee-teec-sys"
 version = "0.1.0"
 dependencies = [
  "libc 0.2.48 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -17,7 +17,7 @@ name = "secure_storage"
 version = "0.1.0"
 dependencies = [
  "libc 0.2.48 (registry+https://github.com/rust-lang/crates.io-index)",
- "optee_teec 0.1.0",
+ "optee-teec-sys 0.1.0",
 ]
 
 [metadata]

@@ -1,5 +1,5 @@
 [package]
-name = "optee_teec"
+name = "optee-teec-sys"
 version = "0.1.0"
 authors = ["Mingshen Sun <mssun@mesalock-linux.org>"]
 edition = "2018"
