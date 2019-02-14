@@ -1,3 +1,4 @@
+export PATH=$PATH:$(pwd)/optee/toolchains/aarch64/bin
 export RUSTFLAGS="-L$(pwd)/optee/optee_os/out/arm/export-ta_arm64/lib -L$(pwd)/optee/optee_client/out/export/lib"
 export RUST_TARGET_PATH="$(pwd)"
 export OPTEE_DIR="$(pwd)/optee"
