@@ -1,11 +1,12 @@
 [package]
-name = "optee-teec"
+name = "systest"
 version = "0.1.0"
 authors = ["Mingshen Sun <mssun@mesalock-linux.org>"]
 edition = "2018"
 
 [dependencies]
-optee-teec-sys = { path = "optee-teec-sys" }
+optee-teec-sys = { path = "../optee-teec-sys" }
+libc = "0.2"
 
-[workspace]
-members = ['systest']
+[build-dependencies]
+ctest = "0.2"

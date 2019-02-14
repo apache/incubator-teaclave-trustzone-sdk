@@ -36,16 +36,16 @@ pub fn main() {
 
     let mut op = TEEC_Operation {
         started: 0,
-        param_types: 0,
+        paramTypes: 0,
         params: param_g,
         session: &mut sess,
     };
     let mut err_origin: uint32_t = 0;
     let mut uuid = TEEC_UUID {
-        time_low: 0x8abcf200,
-        time_mid: 0x2450,
-        time_hi_and_version: 0x11e4,
-        clock_seq_and_node: [0xab, 0xe2, 0x00, 0x02, 0xa5, 0xd5, 0xc5, 0x1b],
+        timeLow: 0x8abcf200,
+        timeMid: 0x2450,
+        timeHiAndVersion: 0x11e4,
+        clockSeqAndNode: [0xab, 0xe2, 0x00, 0x02, 0xa5, 0xd5, 0xc5, 0x1b],
     };
 
     unsafe {
@@ -69,7 +69,7 @@ pub fn main() {
             return;
         }
 
-        op.param_types = TEEC_PARAM_TYPES(TEEC_VALUE_INOUT, TEEC_NONE, TEEC_NONE, TEEC_NONE);
+        op.paramTypes = TEEC_PARAM_TYPES(TEEC_VALUE_INOUT, TEEC_NONE, TEEC_NONE, TEEC_NONE);
         op.params[0].value.a = 29;
         println!("original value is {}", op.params[0].value.a);
         res = TEEC_InvokeCommand(

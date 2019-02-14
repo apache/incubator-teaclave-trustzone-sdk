@@ -67,10 +67,10 @@ pub struct TEEC_Context {
 
 #[repr(C)]
 pub struct TEEC_UUID {
-    pub time_low: uint32_t,
-    pub time_mid: uint16_t,
-    pub time_hi_and_version: uint16_t,
-    pub clock_seq_and_node: [uint8_t; 8],
+    pub timeLow: uint32_t,
+    pub timeMid: uint16_t,
+    pub timeHiAndVersion: uint16_t,
+    pub clockSeqAndNode: [uint8_t; 8],
 }
 
 #[repr(C)]
@@ -123,13 +123,13 @@ pub union TEEC_Parameter {
 #[repr(C)]
 pub struct TEEC_Operation {
     pub started: uint32_t,
-    pub param_types: uint32_t,
+    pub paramTypes: uint32_t,
     pub params: [TEEC_Parameter; TEEC_CONFIG_PAYLOAD_REF_COUNT as usize],
     pub session: *mut TEEC_Session,
 }
 
 extern "C" {
-    pub fn TEEC_InitializeContext(name: *mut c_char, context: *mut TEEC_Context) -> TEEC_Result;
+    pub fn TEEC_InitializeContext(name: *const c_char, context: *mut TEEC_Context) -> TEEC_Result;
     pub fn TEEC_FinalizeContext(context: *mut TEEC_Context);
     pub fn TEEC_OpenSession(context: *mut TEEC_Context,
                             session: *mut TEEC_Session,

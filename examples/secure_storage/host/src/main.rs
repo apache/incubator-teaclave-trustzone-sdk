@@ -36,13 +36,13 @@ pub fn read_secure_object(
     let param_g: [TEEC_Parameter; 4] = [param1, param2, param3, param4];
     let mut op = TEEC_Operation {
         started: 0,
-        param_types: 0,
+        paramTypes: 0,
         params: param_g,
         session: sess_ptr,
     };
 
     unsafe {
-        op.param_types = TEEC_PARAM_TYPES(
+        op.paramTypes = TEEC_PARAM_TYPES(
             TEEC_MEMREF_TEMP_INPUT,
             TEEC_MEMREF_TEMP_OUTPUT,
             TEEC_NONE,
@@ -86,13 +86,13 @@ pub fn write_secure_object(
     let param_g: [TEEC_Parameter; 4] = [param1, param2, param3, param4];
     let mut op = TEEC_Operation {
         started: 0,
-        param_types: 0,
+        paramTypes: 0,
         params: param_g,
         session: sess_ptr,
     };
 
     unsafe {
-        op.param_types = TEEC_PARAM_TYPES(
+        op.paramTypes = TEEC_PARAM_TYPES(
             TEEC_MEMREF_TEMP_INPUT,
             TEEC_MEMREF_TEMP_INPUT,
             TEEC_NONE,
@@ -131,13 +131,13 @@ pub fn delete_secure_object(sess_ptr: *mut TEEC_Session, id: *mut c_char) -> TEE
     let param_g: [TEEC_Parameter; 4] = [param1, param2, param3, param4];
     let mut op = TEEC_Operation {
         started: 0,
-        param_types: 0,
+        paramTypes: 0,
         params: param_g,
         session: sess_ptr,
     };
 
     unsafe {
-        op.param_types = TEEC_PARAM_TYPES(TEEC_MEMREF_TEMP_INPUT, TEEC_NONE, TEEC_NONE, TEEC_NONE);
+        op.paramTypes = TEEC_PARAM_TYPES(TEEC_MEMREF_TEMP_INPUT, TEEC_NONE, TEEC_NONE, TEEC_NONE);
         op.params[0].tmpref.buffer = id as *mut c_void;
         op.params[0].tmpref.size = strlen(id) as size_t;
 
@@ -176,10 +176,10 @@ pub fn main() {
     };
     let mut err_origin: uint32_t = 0;
     let mut uuid = TEEC_UUID {
-        time_low: 0xf4e750bb,
-        time_mid: 0x1437,
-        time_hi_and_version: 0x4fbf,
-        clock_seq_and_node: [0x87, 0x85, 0x8d, 0x35, 0x80, 0xc3, 0x49, 0x94],
+        timeLow: 0xf4e750bb,
+        timeMid: 0x1437,
+        timeHiAndVersion: 0x4fbf,
+        clockSeqAndNode: [0x87, 0x85, 0x8d, 0x35, 0x80, 0xc3, 0x49, 0x94],
     };
 
     unsafe {
