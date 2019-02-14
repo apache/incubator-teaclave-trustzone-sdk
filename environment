@@ -3,5 +3,6 @@ export RUSTFLAGS="-L$(pwd)/optee/optee_os/out/arm/export-ta_arm64/lib -L$(pwd)/o
 export RUST_TARGET_PATH="$(pwd)"
 export OPTEE_DIR="$(pwd)/optee"
 export OPTEE_OS_DIR="$OPTEE_DIR/optee_os"
+export OPTEE_OS_INCLUDE="$OPTEE_DIR/optee_os/out/arm/export-ta_arm64/include"
 export OPTEE_CLIENT_DIR="$OPTEE_DIR/optee_client"
 export OPTEE_CLIENT_INCLUDE="$OPTEE_DIR/optee_client/out/export/include"

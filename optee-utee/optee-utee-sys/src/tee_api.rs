@@ -9,7 +9,7 @@ extern "C" {
     pub fn TEE_GetPropertyAsU32(propsetOrEnumerator: TEE_PropSetHandle, name: *const c_char, value: *mut uint32_t) -> TEE_Result;
     pub fn TEE_GetPropertyAsBinaryBlock(propsetOrEnumerator: TEE_PropSetHandle, name: *const c_char, valueBuffer: *mut c_void, valueBufferLen: *mut uint32_t) -> TEE_Result;
     pub fn TEE_GetPropertyAsUUID(propsetOrEnumerator: TEE_PropSetHandle, name: *const c_char, value: *mut TEE_UUID) -> TEE_Result;
-    pub fn TEE_GetPropertyAsIdentity(propsetOrEnumerator: TEE_PropSetHandle, name: *const c_char, value: TEE_Identity) -> TEE_Result;
+    pub fn TEE_GetPropertyAsIdentity(propsetOrEnumerator: TEE_PropSetHandle, name: *const c_char, value: *mut TEE_Identity) -> TEE_Result;
     pub fn TEE_AllocatePropertyEnumerator(enumerator: *mut TEE_PropSetHandle) -> TEE_Result;
     pub fn TEE_FreePropertyEnumerator(enumerator: TEE_PropSetHandle);
     pub fn TEE_StartPropertyEnumerator(enumerator: TEE_PropSetHandle, propSet: TEE_PropSetHandle);

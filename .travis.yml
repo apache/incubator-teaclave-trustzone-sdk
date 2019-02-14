@@ -19,6 +19,7 @@ script:
   - make optee
   - source environment
   - (cd optee-utee && xargo build --target aarch64-unknown-optee-trustzone -vv)
+  - (cd optee-utee && cargo build --manifest-path systest/Cargo.toml --target aarch64-unknown-linux-gnu)
   - (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
   - (cd optee-teec && cargo build --manifest-path systest/Cargo.toml --target aarch64-unknown-linux-gnu)
   - make examples
