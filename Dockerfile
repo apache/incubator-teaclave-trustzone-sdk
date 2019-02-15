@@ -17,3 +17,5 @@ RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
   rustup component add rust-src && \
   rustup target install aarch64-unknown-linux-gnu && \
   cargo install --git https://github.com/mssun/xargo.git --branch mssun/relative-patch-path --force
+
+ENV PATH="/root/.cargo/bin:$PATH"
