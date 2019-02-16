@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 optee-teec-sys = { path = "optee-teec-sys" }
+libc = { version = "0.2" }
 
 [workspace]
 members = ['systest']
