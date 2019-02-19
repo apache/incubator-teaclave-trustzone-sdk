@@ -10,8 +10,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
     let param1 = Parameter::none();
     let param2 = Parameter::none();
     let param3 = Parameter::none();
-    let params: [Parameter; 4] = [param0, param1, param2, param3];
-    let mut operation = Operation::new(params);
+    let mut operation = Operation::new(0, param0, param1, param2, param3);
 
     let uuid = Uuid::parse_str("8aaaf200-2450-11e4-abe2-0002a5d5c51b")?;
     let mut session = ctx.open_session(uuid)?;
