@@ -1,247 +1,85 @@
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
-
 use libc::*;
-use optee_teec_sys::*;
+use optee_teec::{Context, Operation, ParamTypeFlags, Parameter, Session, Uuid};
 use std::ffi::CString;
-use std::mem;
-use std::ptr;
 
-pub const TA_SECURE_STORAGE_CMD_READ_RAW: u32 = 0;
-pub const TA_SECURE_STORAGE_CMD_WRITE_RAW: u32 = 1;
-pub const TA_SECURE_STORAGE_CMD_DELETE: u32 = 2;
-pub const TEST_OBJECT_SIZE: usize = 7000;
+const TA_SECURE_STORAGE_CMD_READ_RAW: u32 = 0;
+const TA_SECURE_STORAGE_CMD_WRITE_RAW: u32 = 1;
+const TA_SECURE_STORAGE_CMD_DELETE: u32 = 2;
+const TEST_OBJECT_SIZE: usize = 7000;
 
-pub fn read_secure_object(
-    sess_ptr: *mut TEEC_Session,
-    id: *mut c_char,
-    data: *mut c_char,
-    data_len: uint32_t,
-) -> TEEC_Result {
-    let res: TEEC_Result;
-    let mut err_origin: uint32_t = 0;
-    let param1: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param2: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param3: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param4: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param_g: [TEEC_Parameter; 4] = [param1, param2, param3, param4];
-    let mut op = TEEC_Operation {
-        started: 0,
-        paramTypes: 0,
-        params: param_g,
-        session: sess_ptr,
-    };
-
-    unsafe {
-        op.paramTypes = TEEC_PARAM_TYPES(
-            TEEC_MEMREF_TEMP_INPUT,
-            TEEC_MEMREF_TEMP_OUTPUT,
-            TEEC_NONE,
-            TEEC_NONE,
-        );
-        op.params[0].tmpref.buffer = id as *mut c_void;
-        op.params[0].tmpref.size = strlen(id) as size_t;
-        op.params[1].tmpref.buffer = data as *mut c_void;
-        op.params[1].tmpref.size = data_len as size_t;
-
-        res = TEEC_InvokeCommand(
-            sess_ptr,
-            TA_SECURE_STORAGE_CMD_READ_RAW,
-            &mut op,
-            &mut err_origin,
-        );
-        return res;
+fn write_secure_object(session: &mut Session, obj_id: &mut CString, obj_data: &mut [c_char]) {
+    let param0 = Parameter::tmpref(
+        obj_id.as_ptr() as *mut c_char,
+        obj_id.as_bytes_with_nul().len(),
+        ParamTypeFlags::MemrefTempInput,
+    );
+    let param1 = Parameter::tmpref(
+        obj_data.as_mut_ptr(),
+        TEST_OBJECT_SIZE,
+        ParamTypeFlags::MemrefTempInput,
+    );
+    let param2 = Parameter::none();
+    let param3 = Parameter::none();
+    let params: [Parameter; 4] = [param0, param1, param2, param3];
+    let mut operation = Operation::new(params);
+    match session.invoke_command(TA_SECURE_STORAGE_CMD_WRITE_RAW, &mut operation) {
+        Ok(_) => println!("Write object to secure storage success."),
+        Err(e) => println!("{:?}", e),
     }
 }
 
-pub fn write_secure_object(
-    sess_ptr: *mut TEEC_Session,
-    id: *mut c_char,
-    data: *mut c_char,
-    data_len: uint32_t,
-) -> TEEC_Result {
-    let res: TEEC_Result;
-    let mut err_origin: uint32_t = 0;
-    let param1: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param2: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param3: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param4: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param_g: [TEEC_Parameter; 4] = [param1, param2, param3, param4];
-    let mut op = TEEC_Operation {
-        started: 0,
-        paramTypes: 0,
-        params: param_g,
-        session: sess_ptr,
-    };
-
-    unsafe {
-        op.paramTypes = TEEC_PARAM_TYPES(
-            TEEC_MEMREF_TEMP_INPUT,
-            TEEC_MEMREF_TEMP_INPUT,
-            TEEC_NONE,
-            TEEC_NONE,
-        );
-        op.params[0].tmpref.buffer = id as *mut c_void;
-        op.params[0].tmpref.size = strlen(id) as size_t;
-        op.params[1].tmpref.buffer = data as *mut c_void;
-        op.params[1].tmpref.size = data_len as size_t;
-
-        res = TEEC_InvokeCommand(
-            sess_ptr,
-            TA_SECURE_STORAGE_CMD_WRITE_RAW,
-            &mut op,
-            &mut err_origin,
-        );
-        return res;
+fn read_secure_object(session: &mut Session, obj_id: &mut CString, obj_data: &mut [c_char]) {
+    let param0 = Parameter::tmpref(
+        obj_id.as_ptr() as *mut c_char,
+        obj_id.as_bytes_with_nul().len(),
+        ParamTypeFlags::MemrefTempInput,
+    );
+    let param1 = Parameter::tmpref(
+        obj_data.as_mut_ptr(),
+        TEST_OBJECT_SIZE,
+        ParamTypeFlags::MemrefTempOutput,
+    );
+    let param2 = Parameter::none();
+    let param3 = Parameter::none();
+    let params: [Parameter; 4] = [param0, param1, param2, param3];
+    let mut operation = Operation::new(params);
+    match session.invoke_command(TA_SECURE_STORAGE_CMD_READ_RAW, &mut operation) {
+        Ok(_) => println!("Read back object success."),
+        Err(e) => println!("{:?}", e),
     }
 }
 
-pub fn delete_secure_object(sess_ptr: *mut TEEC_Session, id: *mut c_char) -> TEEC_Result {
-    let res: TEEC_Result;
-    let mut err_origin: uint32_t = 0;
-    let param1: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param2: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param3: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param4: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param_g: [TEEC_Parameter; 4] = [param1, param2, param3, param4];
-    let mut op = TEEC_Operation {
-        started: 0,
-        paramTypes: 0,
-        params: param_g,
-        session: sess_ptr,
-    };
-
-    unsafe {
-        op.paramTypes = TEEC_PARAM_TYPES(TEEC_MEMREF_TEMP_INPUT, TEEC_NONE, TEEC_NONE, TEEC_NONE);
-        op.params[0].tmpref.buffer = id as *mut c_void;
-        op.params[0].tmpref.size = strlen(id) as size_t;
-
-        res = TEEC_InvokeCommand(
-            sess_ptr,
-            TA_SECURE_STORAGE_CMD_DELETE,
-            &mut op,
-            &mut err_origin,
-        );
-        return res;
+fn delete_secure_object(session: &mut Session, obj_id: &mut CString) {
+    let param0 = Parameter::tmpref(
+        obj_id.as_ptr() as *mut c_char,
+        obj_id.as_bytes_with_nul().len(),
+        ParamTypeFlags::MemrefTempInput,
+    );
+    let param1 = Parameter::none();
+    let param2 = Parameter::none();
+    let param3 = Parameter::none();
+    let params: [Parameter; 4] = [param0, param1, param2, param3];
+    let mut operation = Operation::new(params);
+    match session.invoke_command(TA_SECURE_STORAGE_CMD_DELETE, &mut operation) {
+        Ok(_) => println!("Delete object success."),
+        Err(e) => println!("{:?}", e),
     }
 }
 
-pub fn check_equal(array_1: [c_char; TEST_OBJECT_SIZE], array_2: [c_char; TEST_OBJECT_SIZE]) {
-    for var in 0..TEST_OBJECT_SIZE {
-        if array_1[var] != array_2[var] {
-            println!(
-                "Two arrays not equal, first: {}, second: {}",
-                array_1[var], array_2[var]
-            );
-            return;
-        }
+fn main() -> Result<(), Box<std::error::Error>> {
+    let mut obj_id = CString::new("object#1")?;
+    let mut obj_data = [0xA1u8; TEST_OBJECT_SIZE];
+    let mut read_data = [0x00u8; TEST_OBJECT_SIZE];
+
+    let uuid = Uuid::parse_str("f4e750bb-1437-4fbf-8785-8d3580c34994")?;
+    let mut ctx = Context::new()?;
+    let mut session = ctx.open_session(uuid)?;
+    write_secure_object(&mut session, &mut obj_id, &mut obj_data);
+    read_secure_object(&mut session, &mut obj_id, &mut read_data);
+
+    if obj_data.iter().zip(read_data.iter()).all(|(a, b)| a == b) {
+        println!("obj_data == read_data");
     }
-    println!("Arrays equal now!");
-    return;
-}
-
-pub fn main() {
-    let mut ctx: TEEC_Context = TEEC_Context {
-        fd: 0,
-        reg_mem: true,
-    };
-    let mut sess: TEEC_Session = TEEC_Session {
-        ctx: &mut ctx,
-        session_id: 0,
-    };
-    let mut err_origin: uint32_t = 0;
-    let mut uuid = TEEC_UUID {
-        timeLow: 0xf4e750bb,
-        timeMid: 0x1437,
-        timeHiAndVersion: 0x4fbf,
-        clockSeqAndNode: [0x87, 0x85, 0x8d, 0x35, 0x80, 0xc3, 0x49, 0x94],
-    };
-
-    unsafe {
-        let obj1_local = CString::new("object#1").expect("CString::new failed");
-        let obj1_id: *mut c_char = obj1_local.as_ptr() as *mut c_char;
-        let mut obj1_data: [c_char; TEST_OBJECT_SIZE] = [0xA1 as c_char; TEST_OBJECT_SIZE];
-        let mut read_data: [c_char; TEST_OBJECT_SIZE] = ['\0' as c_char; TEST_OBJECT_SIZE];
-        let mut res: TEEC_Result;
-
-        res = TEEC_InitializeContext(ptr::null_mut() as *mut c_char, &mut ctx);
-        if res != TEEC_SUCCESS {
-            println!("Init error.");
-            return;
-        }
-        res = TEEC_OpenSession(
-            &mut ctx,
-            &mut sess,
-            &mut uuid,
-            TEEC_LOGIN_PUBLIC,
-            ptr::null() as *const c_void,
-            ptr::null_mut() as *mut TEEC_Operation,
-            &mut err_origin,
-        );
-        if res != TEEC_SUCCESS {
-            println!("Open session error.");
-            return;
-        }
-
-        res = write_secure_object(
-            &mut sess,
-            obj1_id,
-            &mut obj1_data[0],
-            mem::size_of::<[c_char; TEST_OBJECT_SIZE]>() as uint32_t,
-        );
-        if res != TEEC_SUCCESS {
-            println!("Write command error.");
-            return;
-        }
-        println!("Create and load object in the TA secure storage success.");
-        check_equal(obj1_data, read_data);
-
-        res = read_secure_object(
-            &mut sess,
-            obj1_id,
-            &mut read_data[0],
-            mem::size_of::<[c_char; TEST_OBJECT_SIZE]>() as uint32_t,
-        );
-        if res != TEEC_SUCCESS {
-            println!("Read command error.");
-            return;
-        }
-        println!("Read back object success.");
-        check_equal(obj1_data, read_data);
-
-        res = delete_secure_object(&mut sess, obj1_id);
-        if res != TEEC_SUCCESS {
-            println!("Delete command error.");
-            return;
-        }
-        println!("Delete object success.");
-
-        TEEC_CloseSession(&mut sess);
-        TEEC_FinalizeContext(&mut ctx);
-    }
+    delete_secure_object(&mut session, &mut obj_id);
+    Ok(())
 }

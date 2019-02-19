@@ -1,90 +1,31 @@
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
+use optee_teec::{Context, Operation, ParamTypeFlags, Parameter, Uuid};
 
-use libc::*;
-use optee_teec_sys::*;
-use std::ptr;
+const TA_HELLO_WORLD_CMD_INC_VALUE: u32 = 0;
+const TA_HELLO_WORLD_CMD_DEC_VALUE: u32 = 1;
 
-pub const TA_HELLO_WORLD_CMD_INC_VALUE: u32 = 0;
-pub const TA_HELLO_WORLD_CMD_DEC_VALUE: u32 = 1;
+fn main() -> Result<(), Box<std::error::Error>> {
+    let mut ctx = Context::new()?;
 
-pub fn main() {
-    let mut res: TEEC_Result;
-    let mut ctx: TEEC_Context = TEEC_Context {
-        fd: 0,
-        reg_mem: true,
-    };
-    let mut sess: TEEC_Session = TEEC_Session {
-        ctx: &mut ctx,
-        session_id: 0,
-    };
+    let param0 = Parameter::value(29, 0, ParamTypeFlags::ValueInout);
+    let param1 = Parameter::none();
+    let param2 = Parameter::none();
+    let param3 = Parameter::none();
+    let params: [Parameter; 4] = [param0, param1, param2, param3];
+    let mut operation = Operation::new(params);
 
-    let param1: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param2: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param3: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param4: TEEC_Parameter = TEEC_Parameter {
-        value: TEEC_Value { a: 0, b: 0 },
-    };
-    let param_g: [TEEC_Parameter; 4] = [param1, param2, param3, param4];
+    let uuid = Uuid::parse_str("8aaaf200-2450-11e4-abe2-0002a5d5c51b")?;
+    let mut session = ctx.open_session(uuid)?;
 
-    let mut op = TEEC_Operation {
-        started: 0,
-        paramTypes: 0,
-        params: param_g,
-        session: &mut sess,
-    };
-    let mut err_origin: uint32_t = 0;
-    let mut uuid = TEEC_UUID {
-        timeLow: 0x8abcf200,
-        timeMid: 0x2450,
-        timeHiAndVersion: 0x11e4,
-        clockSeqAndNode: [0xab, 0xe2, 0x00, 0x02, 0xa5, 0xd5, 0xc5, 0x1b],
-    };
-
-    unsafe {
-        res = TEEC_InitializeContext(ptr::null_mut() as *mut c_char, &mut ctx);
-        if res != TEEC_SUCCESS {
-            println!("Init error.");
-            return;
-        }
-
-        res = TEEC_OpenSession(
-            &mut ctx,
-            &mut sess,
-            &mut uuid,
-            TEEC_LOGIN_PUBLIC,
-            ptr::null() as *const c_void,
-            ptr::null_mut() as *mut TEEC_Operation,
-            &mut err_origin,
-        );
-        if res != TEEC_SUCCESS {
-            println!("Open session error.");
-            return;
-        }
-
-        op.paramTypes = TEEC_PARAM_TYPES(TEEC_VALUE_INOUT, TEEC_NONE, TEEC_NONE, TEEC_NONE);
-        op.params[0].value.a = 29;
-        println!("original value is {}", op.params[0].value.a);
-        res = TEEC_InvokeCommand(
-            &mut sess,
-            TA_HELLO_WORLD_CMD_INC_VALUE,
-            &mut op,
-            &mut err_origin,
-        );
-        if res != TEEC_SUCCESS {
-            println!("Execute command error.");
-            return;
-        }
-        println!("update value is {}", op.params[0].value.a);
-
-        TEEC_CloseSession(&mut sess);
-        TEEC_FinalizeContext(&mut ctx);
-    }
+    println!("original value is {}", unsafe {
+        operation.raw.params[0].value.a
+    });
+    let _ = session.invoke_command(TA_HELLO_WORLD_CMD_INC_VALUE, &mut operation)?;
+    println!("inc value is {}", unsafe {
+        operation.raw.params[0].value.a
+    });
+    let _ = session.invoke_command(TA_HELLO_WORLD_CMD_DEC_VALUE, &mut operation)?;
+    println!("dec value is {}", unsafe {
+        operation.raw.params[0].value.a
+    });
+    Ok(())
 }
