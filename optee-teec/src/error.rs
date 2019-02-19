@@ -11,25 +11,25 @@ pub struct Error {
 
 #[derive(PartialEq, Eq, Clone, Debug, Copy)]
 pub enum ErrorCode {
-    Generic,
-    AccessDenied,
-    Cancel,
-    AccessConflict,
-    ExcessData,
-    BadFormat,
-    BadParameters,
-    BadState,
-    ItemNotFound,
-    NotImplemented,
-    NotSupported,
-    NoData,
-    OutOfMEmory,
-    Busy,
-    Communication,
-    Security,
-    ShortBuffer,
-    ExternalCancel,
-    TargetDead,
+    Generic = 0xFFFF0000,
+    AccessDenied = 0xFFFF0001,
+    Cancel = 0xFFFF0002,
+    AccessConflict = 0xFFFF0003,
+    ExcessData = 0xFFFF0004,
+    BadFormat = 0xFFFF0005,
+    BadParameters = 0xFFFF0006,
+    BadState = 0xFFFF0007,
+    ItemNotFound = 0xFFFF0008,
+    NotImplemented = 0xFFFF0009,
+    NotSupported = 0xFFFF000A,
+    NoData = 0xFFFF000B,
+    OutOfMEmory = 0xFFFF000C,
+    Busy = 0xFFFF000D,
+    Communication = 0xFFFF000E,
+    Security = 0xFFFF000F,
+    ShortBuffer = 0xFFFF0010,
+    ExternalCancel = 0xFFFF0011,
+    TargetDead = 0xFFFF3024,
     Unknown,
 }
 
@@ -66,7 +66,7 @@ impl ErrorCode {
 
 impl Error {
     pub fn from_raw_error(code: u32) -> Error {
-        Error { code: code }
+        Error { code }
     }
 
     pub fn code(&self) -> ErrorCode {
@@ -97,10 +97,16 @@ impl Error {
     pub fn raw_code(&self) -> libc::uint32_t {
         self.code as libc::uint32_t
     }
+
+    pub fn message(&self) -> &str { self.code().as_str() }
+}
+
+impl std::error::Error for Error {
+    fn description(&self) -> &str { self.message() }
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        write!(fmt, "{}", self.code().as_str())
+        write!(fmt, "{}", self.message())
     }
 }

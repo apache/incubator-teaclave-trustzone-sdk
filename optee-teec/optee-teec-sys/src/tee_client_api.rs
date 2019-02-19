@@ -114,6 +114,7 @@ pub struct TEEC_Value {
 }
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub union TEEC_Parameter {
     pub tmpref: TEEC_TempMemoryReference,
     pub memref: TEEC_RegisteredMemoryReference,
