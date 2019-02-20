@@ -6,6 +6,7 @@ edition = "2018"
 
 [dependencies]
 optee-utee-sys = { path = "optee-utee-sys" }
+libc = { path = "../rust/libc" }
 
 [workspace]
 members = ['systest']
