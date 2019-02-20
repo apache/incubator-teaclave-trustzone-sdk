@@ -4,10 +4,14 @@ macro_rules! trace_print {
 }
 
 #[macro_export]
-#[allow_internal_unstable]
 macro_rules! trace_println {
-    () => (trace!("\n"));
-    ($($arg:tt)*) => ({
-        $crate::Trace::_print(format_args_nl!($($arg)*));
-    })
+    () => {
+        $crate::Trace::_print(format_args!("\n"));
+    };
+    ($s:expr) => {
+        $crate::Trace::_print(format_args!(concat!($s, "\n")));
+    };
+    ($s:expr, $($tt:tt)*) => {
+        $crate::Trace::_print(format_args!(concat!($s, "\n"), $($tt)*));
+    };
 }
