@@ -3,6 +3,7 @@
 #![allow(non_snake_case)]
 
 use optee_utee_sys::*;
+use optee_utee;
 use libc::{c_void, uint32_t};
 
 pub const TA_HELLO_WORLD_CMD_INC_VALUE: u32 = 0;
@@ -22,11 +23,14 @@ pub extern "C" fn TA_OpenSessionEntryPoint(
     _params: TEE_Param,
     _sess_ctx: *mut *mut c_void,
 ) -> TEE_Result {
+    optee_utee::trace_println!("[+] TA_OpenSessionEntryPoint: Hello, World!");
     TEE_SUCCESS
 }
 
 #[no_mangle]
-pub extern "C" fn TA_CloseSessionEntryPoint(_sess_ctx: *mut *mut c_void) {}
+pub extern "C" fn TA_CloseSessionEntryPoint(_sess_ctx: *mut *mut c_void) {
+    optee_utee::trace_println!("[+] TA_CloseSessionEntryPoint: Goodbye!");
+}
 
 #[no_mangle]
 pub extern "C" fn TA_InvokeCommandEntryPoint(

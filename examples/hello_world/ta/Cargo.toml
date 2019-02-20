@@ -12,3 +12,4 @@ crate-type = ["staticlib"]
 [dependencies]
 libc = { path = "../../../rust/libc" }
 optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys" }
+optee-utee = { path = "../../../optee-utee" }
