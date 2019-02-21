@@ -1,5 +1,6 @@
 use libc::*;
 use super::tee_api_types::*;
+use super::utee_types::*;
 
 pub const TA_FLAG_SINGLE_INSTANCE: uint32_t     = (1 << 2);
 pub const TA_FLAG_MULTI_SESSION: uint32_t       = (1 << 3);
@@ -13,8 +14,10 @@ pub struct ta_head {
     pub uuid: TEE_UUID,
     pub stack_size : uint32_t,
     pub flags : uint32_t,
-    pub entry : uint64_t,
+    pub entry : unsafe extern "C" fn(c_ulong, c_ulong, *mut utee_params, c_ulong),
 }
+
+unsafe impl Sync for ta_head  {}
 
 pub const TA_PROP_STR_SINGLE_INSTANCE: *const c_char = "gpd.ta.singleInstance\0".as_ptr();
 pub const TA_PROP_STR_MULTI_SESSION: *const c_char   = "gpd.ta.multiSession\0".as_ptr();
@@ -39,7 +42,9 @@ pub enum user_ta_prop_type {
 
 #[repr(C)]
 pub struct user_ta_property {
-    name: *const c_char,
-    prop_type: user_ta_prop_type,
-    value: *mut c_void,
+    pub name: *const c_char,
+    pub prop_type: user_ta_prop_type,
+    pub value: *mut c_void,
 }
+
+unsafe impl Sync for user_ta_property {}

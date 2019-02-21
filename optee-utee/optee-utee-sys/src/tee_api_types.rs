@@ -5,6 +5,7 @@ use libc::*;
 pub type TEE_Result = uint32_t;
 
 #[repr(C)]
+#[derive(Copy, Clone)]
 pub struct TEE_UUID {
     pub timeLow: uint32_t,
     pub timeMid: uint16_t,
