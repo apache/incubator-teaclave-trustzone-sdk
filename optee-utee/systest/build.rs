@@ -21,7 +21,7 @@ fn main() {
             }
             s.to_string()
         });
-    cfg.skip_struct(|s| s == "Memref" || s == "Value" || s == "content" || s.ends_with("Handle"));
+    cfg.skip_struct(|s| s == "Memref" || s == "Value" || s == "content" || s.ends_with("Handle") || s == "ta_prop" || s == "user_ta_property");
     cfg.skip_field(|s, field| {
         (s == "ta_head" && field == "entry")
             || field == "content"
@@ -31,6 +31,7 @@ fn main() {
     });
     cfg.skip_type(|s| s == "Memref" || s == "Value");
     cfg.skip_fn(|s| s == "TEE_BigIntFMMConvertToBigInt");
+    cfg.skip_const(|s| s.starts_with("TA_PROP_STR"));
     cfg.generate("../optee-utee-sys/src/lib.rs", "all.rs");
     println!("cargo:rustc-link-lib=static=mpa");
     println!("cargo:rustc-link-lib=static=utee");
