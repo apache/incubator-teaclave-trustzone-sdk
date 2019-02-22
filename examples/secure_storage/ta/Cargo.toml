@@ -5,10 +5,10 @@ authors = ["Mingshen Sun <mssun@mesalock-linux.org>",
            "Shengye Wan <swan@email.wm.edu>"]
 edition = "2018"
 
-[lib]
-name = "ta"
-crate-type = ["staticlib"]
-
 [dependencies]
 libc = { path = "../../../rust/libc" }
 optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys" }
+optee-utee = { path = "../../../optee-utee" }
+
+[build_dependencies]
+uuid = "0.7"

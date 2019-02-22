@@ -1,0 +1,2 @@
+pub const TA_HELLO_WORLD_CMD_INC_VALUE: u32 = 0;
+pub const TA_HELLO_WORLD_CMD_DEC_VALUE: u32 = 1;

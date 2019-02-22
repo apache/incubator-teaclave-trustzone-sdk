@@ -1,11 +1,11 @@
-use libc::*;
 use super::*;
+use libc::*;
 
 #[repr(C)]
 pub enum utee_time_category {
     UTEE_TIME_CAT_SYSTEM,
     UTEE_TIME_CAT_TA_PERSISTENT,
-    UTEE_TIME_CAT_REE
+    UTEE_TIME_CAT_REE,
 }
 
 #[repr(C)]
@@ -33,5 +33,5 @@ pub struct utee_params {
 pub struct utee_attribute {
     a: uint64_t,
     b: uint64_t,
-    attribute_id: uint32_t
+    attribute_id: uint32_t,
 }

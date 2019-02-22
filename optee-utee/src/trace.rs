@@ -1,9 +1,9 @@
+use libc;
 use optee_utee_sys as raw;
 use std::ffi::CString;
 use std::fmt;
 use std::io;
 use std::io::Write;
-use libc;
 
 pub struct Trace;
 

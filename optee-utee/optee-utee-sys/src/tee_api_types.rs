@@ -36,22 +36,37 @@ pub struct Value {
 #[repr(C)]
 pub union TEE_Param {
     pub memref: Memref,
-    pub value: Value
+    pub value: Value,
 }
 
-#[repr(C)] pub struct __TEE_TASessionHandle { _unused: [u8; 0] }
+#[repr(C)]
+pub struct __TEE_TASessionHandle {
+    _unused: [u8; 0],
+}
 pub type TEE_TASessionHandle = *mut __TEE_TASessionHandle;
 
-#[repr(C)] pub struct __TEE_PropSetHandle { _unused: [u8; 0] }
+#[repr(C)]
+pub struct __TEE_PropSetHandle {
+    _unused: [u8; 0],
+}
 pub type TEE_PropSetHandle = *mut __TEE_PropSetHandle;
 
-#[repr(C)] pub struct __TEE_ObjectHandle { _unused: [u8; 0] }
+#[repr(C)]
+pub struct __TEE_ObjectHandle {
+    _unused: [u8; 0],
+}
 pub type TEE_ObjectHandle = *mut __TEE_ObjectHandle;
 
-#[repr(C)] pub struct __TEE_ObjectEnumHandle { _unused: [u8; 0] }
+#[repr(C)]
+pub struct __TEE_ObjectEnumHandle {
+    _unused: [u8; 0],
+}
 pub type TEE_ObjectEnumHandle = *mut __TEE_ObjectEnumHandle;
 
-#[repr(C)] pub struct __TEE_OperationHandle { _unused: [u8; 0] }
+#[repr(C)]
+pub struct __TEE_OperationHandle {
+    _unused: [u8; 0],
+}
 pub type TEE_OperationHandle = *mut __TEE_OperationHandle;
 
 // Storage Definitions
@@ -71,7 +86,7 @@ pub struct TEE_ObjectInfo {
 }
 
 #[repr(C)]
-pub enum TEE_Whence{
+pub enum TEE_Whence {
     TEE_DATA_SEEK_SET,
     TEE_DATA_SEEK_CUR,
     TEE_DATA_SEEK_END,
@@ -86,7 +101,7 @@ pub union content {
 #[repr(C)]
 pub struct TEE_Attribute {
     pub attributeID: uint32_t,
-    pub content: content
+    pub content: content,
 }
 
 // Cryptographic Operations API
@@ -99,7 +114,7 @@ pub enum TEE_OperationMode {
     TEE_MODE_VERIFY,
     TEE_MODE_MAC,
     TEE_MODE_DIGEST,
-    TEE_MODE_DERIVE
+    TEE_MODE_DERIVE,
 }
 
 #[repr(C)]
@@ -149,13 +164,25 @@ pub type TEE_BigIntFMMContext = uint32_t;
 
 // Tee Secure Element APIs
 
-#[repr(C)] pub struct __TEE_SEServiceHandle { _unused: [u8; 0] }
+#[repr(C)]
+pub struct __TEE_SEServiceHandle {
+    _unused: [u8; 0],
+}
 pub type TEE_SEServiceHandle = *mut __TEE_SEServiceHandle;
-#[repr(C)] pub struct __TEE_SEReaderHandle { _unused: [u8; 0] }
+#[repr(C)]
+pub struct __TEE_SEReaderHandle {
+    _unused: [u8; 0],
+}
 pub type TEE_SEReaderHandle = *mut __TEE_SEReaderHandle;
-#[repr(C)] pub struct __TEE_SESessionHandle { _unused: [u8; 0] }
+#[repr(C)]
+pub struct __TEE_SESessionHandle {
+    _unused: [u8; 0],
+}
 pub type TEE_SESessionHandle = *mut __TEE_SESessionHandle;
-#[repr(C)] pub struct __TEE_SEChannelHandle { _unused: [u8; 0] }
+#[repr(C)]
+pub struct __TEE_SEChannelHandle {
+    _unused: [u8; 0],
+}
 pub type TEE_SEChannelHandle = *mut __TEE_SEChannelHandle;
 
 #[repr(C)]
@@ -181,4 +208,4 @@ pub const TEE_MEMREF_0_USED: uint32_t = 0x00000001;
 pub const TEE_MEMREF_1_USED: uint32_t = 0x00000002;
 pub const TEE_MEMREF_2_USED: uint32_t = 0x00000004;
 pub const TEE_MEMREF_3_USED: uint32_t = 0x00000008;
-pub const TEE_SE_READER_NAME_MAX: uint32_t =20;
+pub const TEE_SE_READER_NAME_MAX: uint32_t = 20;

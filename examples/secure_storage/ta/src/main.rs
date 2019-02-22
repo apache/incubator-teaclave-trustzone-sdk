@@ -1,19 +1,19 @@
+#![no_main]
 #![allow(non_upper_case_globals)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 
 use libc::*;
-pub use optee_utee_sys::*;
-use std::ffi::CString;
+use optee_utee;
+use optee_utee::trace_println;
+use optee_utee_sys::*;
+use std::mem;
 use std::ptr;
-
-pub const TA_SECURE_STORAGE_CMD_READ_RAW: u32 = 0;
-pub const TA_SECURE_STORAGE_CMD_WRITE_RAW: u32 = 1;
-pub const TA_SECURE_STORAGE_CMD_DELETE: u32 = 2;
 
 #[no_mangle]
 pub extern "C" fn TA_CreateEntryPoint() -> TEE_Result {
-    return TEE_SUCCESS;
+    trace_println!("[+] TA_CreateEntryPoint: Secure storage.");
+    TEE_SUCCESS
 }
 
 #[no_mangle]
@@ -25,18 +25,14 @@ pub extern "C" fn TA_OpenSessionEntryPoint(
     _params: TEE_Param,
     _sess_ctx: *mut *mut c_void,
 ) -> TEE_Result {
-    //TEE print example
-    unsafe {
-        let output =
-            CString::new("Secure world session is opening now!\n").expect("CString::new failed");
-        let print_ptr: *const c_char = output.as_ptr() as *const c_char;
-        trace_ext_puts(print_ptr);
-    }
-    return TEE_SUCCESS;
+    trace_println!("[+] TA_OpenSessionEntryPoint: Secure, storage!");
+    TEE_SUCCESS
 }
 
 #[no_mangle]
-pub extern "C" fn TA_CloseSessionEntryPoint(_sess_ctx: *mut *mut c_void) {}
+pub extern "C" fn TA_CloseSessionEntryPoint(_sess_ctx: *mut *mut c_void) {
+    trace_println!("[+] TA_CloseSessionEntryPoint: Goodbye.");
+}
 
 pub fn delete_object(param_types: uint32_t, params: &mut [TEE_Param; 4]) -> TEE_Result {
     let exp_param_types: uint32_t = TEE_PARAM_TYPES(
@@ -207,6 +203,7 @@ pub extern "C" fn TA_InvokeCommandEntryPoint(
     param_types: uint32_t,
     params: &mut [TEE_Param; 4],
 ) -> TEE_Result {
+    trace_println!("[+] TA_InvokeCommandEntryPoint: Invoke.");
     match cmd_id {
         TA_SECURE_STORAGE_CMD_WRITE_RAW => {
             return create_raw_object(param_types, params);
@@ -222,3 +219,11 @@ pub extern "C" fn TA_InvokeCommandEntryPoint(
         }
     }
 }
+
+const TA_FLAGS: uint32_t = TA_FLAG_EXEC_DDR;
+const TA_STACK_SIZE: uint32_t = 2 * 1024;
+const TA_DATA_SIZE: uint32_t = 32 * 1024;
+const EXT_PROP_VALUE_1: &[u8] = b"Secure Storage TA\0";
+const EXT_PROP_VALUE_2: uint32_t = 0x0010;
+
+include!(concat!(env!("OUT_DIR"), "/user_ta_header.rs"));

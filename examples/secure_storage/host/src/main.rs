@@ -2,9 +2,7 @@ use libc::*;
 use optee_teec::{Context, Operation, ParamTypeFlags, Parameter, Session, Uuid};
 use std::ffi::CString;
 
-const TA_SECURE_STORAGE_CMD_READ_RAW: u32 = 0;
-const TA_SECURE_STORAGE_CMD_WRITE_RAW: u32 = 1;
-const TA_SECURE_STORAGE_CMD_DELETE: u32 = 2;
+include!(concat!(env!("OUT_DIR"), "/host_header.rs"));
 const TEST_OBJECT_SIZE: usize = 7000;
 
 fn write_secure_object(session: &mut Session, obj_id: &mut CString, obj_data: &mut [c_char]) {
@@ -68,7 +66,8 @@ fn main() -> Result<(), Box<std::error::Error>> {
     let mut obj_data = [0xA1u8; TEST_OBJECT_SIZE];
     let mut read_data = [0x00u8; TEST_OBJECT_SIZE];
 
-    let uuid = Uuid::parse_str("f4e750bb-1437-4fbf-8785-8d3580c34994")?;
+    let uuid =
+        Uuid::parse_str(&include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../uuid.txt")).trim())?;
     let mut ctx = Context::new()?;
     let mut session = ctx.open_session(uuid)?;
     write_secure_object(&mut session, &mut obj_id, &mut obj_data);
