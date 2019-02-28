@@ -21,7 +21,7 @@ pub extern "C" fn TA_DestroyEntryPoint() {}
 #[no_mangle]
 pub extern "C" fn TA_OpenSessionEntryPoint(
     _param_types: uint32_t,
-    _params: TEE_Param,
+    _params: &mut [TEE_Param; 4],
     _sess_ctx: *mut *mut c_void,
 ) -> TEE_Result {
     trace_println!("[+] TA_OpenSessionEntryPoint: Hello, World!");
