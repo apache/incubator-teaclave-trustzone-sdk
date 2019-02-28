@@ -24,12 +24,8 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     println!("Invoking TA to generate random UUID...");
     let _ = session.invoke_command(TA_RANDOM_CMD_GENERATE, &mut operation)?;
-    println!("TA generated UUID value = {:x}{:x}{:x}{:x}-{:x}{:x}-{:x}{:x}-{:x}{:x}-{:x}{:x}{:x}{:x}{:x}{:x}", 
-        random_uuid[0], random_uuid[1], random_uuid[2], random_uuid[3], 
-        random_uuid[4], random_uuid[5], 
-        random_uuid[6], random_uuid[7], 
-        random_uuid[8], random_uuid[9], 
-        random_uuid[10], random_uuid[11], random_uuid[12], random_uuid[13], random_uuid[14], random_uuid[15]
-    );
+    let generate_uuid = Uuid::from_bytes(random_uuid);
+    println!("Generate random UUID: {}", generate_uuid);
+
     Ok(())
 }
