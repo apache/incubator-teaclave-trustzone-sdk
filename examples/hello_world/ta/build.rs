@@ -9,29 +9,28 @@ fn main() {
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
 
     let mut m_file = File::create(out.join("user_ta_header.rs")).unwrap();
-    let _ = m_file.write_all(include_bytes!("ta_static.rs")).unwrap();
+    m_file.write_all(include_bytes!("ta_static.rs")).unwrap();
 
-    let _ = m_file.write_fmt(format_args!("\n"));
-    let _ = m_file.write_all(include_bytes!("../command_id.rs"));
+    m_file.write(b"\n").unwrap();
+    m_file
+        .write_all(include_bytes!("../command_id.rs"))
+        .unwrap();
 
-    macro_rules! uuid_str {
-        () => {
+    let tee_uuid = Uuid::parse_str(&include_str!("../uuid.txt").trim()).unwrap();
+    let (time_low, time_mid, time_hi_and_version, clock_seq_and_node) = tee_uuid.as_fields();
+
+    m_file.write(b"\n").unwrap();
+    m_file
+        .write_fmt(format_args!(
             "const TA_UUID: TEE_UUID = TEE_UUID {{
     timeLow: {:#x},
     timeMid: {:#x},
     timeHiAndVersion: {:#x},
     clockSeqAndNode: {:#x?},
-}};"
-        };
-    };
-
-    let tee_uuid = Uuid::parse_str(&include_str!("../uuid.txt").trim()).unwrap();
-    let (time_low, time_mid, time_hi_and_version, clock_seq_and_node) = tee_uuid.as_fields();
-    let _ = m_file.write_fmt(format_args!("\n"));
-    let _ = m_file.write_fmt(format_args!(
-        uuid_str!(),
-        time_low, time_mid, time_hi_and_version, clock_seq_and_node
-    ));
+}};",
+            time_low, time_mid, time_hi_and_version, clock_seq_and_node
+        ))
+        .unwrap();
 
     File::create(out.join("ta.lds"))
         .unwrap()

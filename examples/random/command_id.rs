@@ -1,1 +1,1 @@
-pub const TA_RANDOM_CMD_GENERATE: u32 = 0; 
+pub const TA_RANDOM_CMD_GENERATE: u32 = 0;
