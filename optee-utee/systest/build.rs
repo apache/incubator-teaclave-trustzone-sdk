@@ -38,7 +38,7 @@ fn main() {
     });
     cfg.skip_type(|s| s == "Memref" || s == "Value");
     cfg.skip_fn(|s| s == "TEE_BigIntFMMConvertToBigInt");
-    cfg.skip_const(|s| s.starts_with("TA_PROP_STR"));
+    cfg.skip_const(|s| s.starts_with("TA_PROP_STR") || s == "TEE_HANDLE_NULL");
     cfg.generate("../optee-utee-sys/src/lib.rs", "all.rs");
     println!("cargo:rustc-link-lib=static=mpa");
     println!("cargo:rustc-link-lib=static=utee");
