@@ -1,4 +1,3 @@
-**/ta/Cargo.lock
 optee-utee/Cargo.lock
 optee-teec/Cargo.lock
 **/*.rs.bk
