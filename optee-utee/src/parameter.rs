@@ -12,24 +12,28 @@ pub struct Parameters {
 impl Parameters {
     pub fn new(tee_params: &mut [raw::TEE_Param; 4], param_types: u32) -> Self {
         let mut param_mask: u32 = 0xf;
+        param_mask = param_mask & param_types;
         let param_0 = Parameter::new(
             &mut ((*tee_params)[0]),
-            ParamTypeFlags::map_back(param_mask & param_types),
+            ParamTypeFlags::map_back(param_mask),
         );
         param_mask = 0xf0;
+        param_mask = (param_mask & param_types) >> 4;
         let param_1 = Parameter::new(
             &mut ((*tee_params)[1]),
-            ParamTypeFlags::map_back(param_mask & param_types),
+            ParamTypeFlags::map_back(param_mask),
         );
         param_mask = 0xf00;
+        param_mask = (param_mask & param_types) >> 8;
         let param_2 = Parameter::new(
             &mut ((*tee_params)[2]),
-            ParamTypeFlags::map_back(param_mask & param_types),
+            ParamTypeFlags::map_back(param_mask),
         );
         param_mask = 0xf000;
+        param_mask = (param_mask & param_types) >> 12;
         let param_3 = Parameter::new(
             &mut ((*tee_params)[3]),
-            ParamTypeFlags::map_back(param_mask & param_types),
+            ParamTypeFlags::map_back(param_mask),
         );
 
         Parameters {
