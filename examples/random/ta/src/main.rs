@@ -5,68 +5,59 @@
 
 use libc::{c_int, c_ulong, c_void, size_t, uint32_t};
 use optee_utee;
-use optee_utee::trace_println;
+use optee_utee::{trace_println, Error, ParamTypeFlags, Parameters, Result};
 use optee_utee_sys::*;
-use std::mem;
+use std::{mem, str};
 
-#[no_mangle]
-pub extern "C" fn TA_CreateEntryPoint() -> TEE_Result {
-    trace_println!("[+] TA_CreateEntryPoint: Random generator.");
-    TEE_SUCCESS
+fn MESA_CreateEntryPoint() -> Result<()> {
+    Ok(())
 }
 
-#[no_mangle]
-pub extern "C" fn TA_DestroyEntryPoint() {}
-
-#[no_mangle]
-pub extern "C" fn TA_OpenSessionEntryPoint(
-    _param_types: uint32_t,
-    _params: &mut [TEE_Param; 4],
-    _sess_ctx: *mut *mut c_void,
-) -> TEE_Result {
-    trace_println!("[+] TA_OpenSessionEntryPoint: Random, generator!");
-    TEE_SUCCESS
+fn MESA_OpenSessionEntryPoint(_params: &mut Parameters, _sess_ctx: *mut *mut c_void) -> Result<()> {
+    Ok(())
 }
 
-#[no_mangle]
-pub extern "C" fn TA_CloseSessionEntryPoint(_sess_ctx: *mut *mut c_void) {
-    trace_println!("[+] TA_CloseSessionEntryPoint: Goodbye.");
+fn MESA_CloseSessionEntryPoint(_sess_ctx: *mut *mut c_void) -> Result<()> {
+    Ok(())
 }
 
-pub fn random_number_generate(param_types: uint32_t, params: &mut [TEE_Param; 4]) -> TEE_Result {
-    let exp_param_types: uint32_t = TEE_PARAM_TYPES(
-        TEE_PARAM_TYPE_MEMREF_OUTPUT,
-        TEE_PARAM_TYPE_NONE,
-        TEE_PARAM_TYPE_NONE,
-        TEE_PARAM_TYPE_NONE,
-    );
-    if param_types != exp_param_types {
-        return TEE_ERROR_BAD_PARAMETERS;
-    }
-
-    unsafe {
-        TEE_GenerateRandom(params[0].memref.buffer, params[0].memref.size);
-    }
-    TEE_SUCCESS
+fn MESA_DestroyEntryPoint() -> Result<()> {
+    Ok(())
 }
 
-#[no_mangle]
-pub extern "C" fn TA_InvokeCommandEntryPoint(
+fn MESA_InvokeCommandEntryPoint(
     _sess_ctx: *mut c_void,
     cmd_id: u32,
-    param_types: uint32_t,
-    params: &mut [TEE_Param; 4],
-) -> TEE_Result {
-    trace_println!("[+] TA_InvokeCommandEntryPoint: Invoke.");
+    params: &mut Parameters,
+) -> Result<()> {
     match cmd_id {
         TA_RANDOM_CMD_GENERATE => {
-            return random_number_generate(param_types, params);
+            return random_number_generate(params);
         }
         _ => {
-            return TEE_ERROR_BAD_PARAMETERS;
+            return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
         }
     }
 }
+
+pub fn random_number_generate(params: &mut Parameters) -> Result<()> {
+    params.check_type(
+        ParamTypeFlags::MemrefOutput,
+        ParamTypeFlags::None,
+        ParamTypeFlags::None,
+        ParamTypeFlags::None,
+    )?;
+
+    unsafe {
+        TEE_GenerateRandom(
+            (*params.param_0.raw).memref.buffer,
+            (*params.param_0.raw).memref.size,
+        );
+    }
+    Ok(())
+}
+
+const ta_name: &str = "Random Generator";
 
 const TA_FLAGS: uint32_t = TA_FLAG_EXEC_DDR;
 const TA_STACK_SIZE: uint32_t = 2 * 1024;

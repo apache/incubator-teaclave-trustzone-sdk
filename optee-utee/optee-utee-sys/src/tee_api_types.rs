@@ -33,6 +33,7 @@ pub struct Value {
     pub b: uint32_t,
 }
 
+#[derive(Copy, Clone)]
 #[repr(C)]
 pub union TEE_Param {
     pub memref: Memref,

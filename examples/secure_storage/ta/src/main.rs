@@ -5,7 +5,7 @@
 
 use libc::*;
 use optee_utee;
-use optee_utee::trace_println;
+use optee_utee::{trace_println, Error, Result};
 use optee_utee_sys::*;
 use std::mem;
 use std::ptr;
@@ -124,7 +124,7 @@ pub fn create_raw_object(param_types: uint32_t, params: &mut [TEE_Param; 4]) -> 
     }
 }
 
-pub fn read_raw_object(param_types: uint32_t, params: &mut [TEE_Param; 4]) -> TEE_Result {
+pub fn read_raw_object(param_types: uint32_t, params: &mut [TEE_Param; 4]) -> Result<()> {
     let exp_param_types: uint32_t = TEE_PARAM_TYPES(
         TEE_PARAM_TYPE_MEMREF_INPUT,
         TEE_PARAM_TYPE_MEMREF_OUTPUT,
@@ -132,14 +132,14 @@ pub fn read_raw_object(param_types: uint32_t, params: &mut [TEE_Param; 4]) -> TE
         TEE_PARAM_TYPE_NONE,
     );
     if param_types != exp_param_types {
-        return TEE_ERROR_BAD_PARAMETERS;
+       return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
     }
 
     unsafe {
         let obj_id_sz: uint32_t = params[0].memref.size;
         let obj_id: *mut c_void = TEE_Malloc(obj_id_sz, 0);
         if obj_id.is_null() {
-            return TEE_ERROR_OUT_OF_MEMORY;
+            return Err(Error::from_raw_error(TEE_ERROR_OUT_OF_MEMORY));
         }
         TEE_MemMove(obj_id, params[0].memref.buffer, obj_id_sz);
 
@@ -154,9 +154,9 @@ pub fn read_raw_object(param_types: uint32_t, params: &mut [TEE_Param; 4]) -> TE
             &mut object as *mut _,
         );
         if res != TEE_SUCCESS {
-            //EMSG("Failed to open persistent object, res=0x%08x", res);
             TEE_Free(obj_id);
-            return res;
+            //return res;
+            return Err(Error::from_raw_error(res));
         }
 
         let mut object_info: TEE_ObjectInfo = TEE_ObjectInfo {
@@ -168,31 +168,39 @@ pub fn read_raw_object(param_types: uint32_t, params: &mut [TEE_Param; 4]) -> TE
             dataPosition: 0,
             handleFlags: 0,
         };
+
         res = TEE_GetObjectInfo1(object, &mut object_info as *mut _);
         let mut read_bytes: uint32_t = 0; //original type: size_t
-        if res != TEE_SUCCESS {
-            //EMSG("Failed to get object info, res=0x%08x", res);
-        } else {
+
+        'correct_handle: loop {
+            if res != TEE_SUCCESS {
+                break 'correct_handle;
+            }
+
             if object_info.dataSize > data_sz {
                 params[1].memref.size = object_info.dataSize;
                 res = TEE_ERROR_SHORT_BUFFER;
-            } else {
-                res = TEE_ReadObjectData(
-                    object,
-                    data,
-                    object_info.dataSize,
-                    &mut read_bytes as *mut _,
-                );
-                if res != TEE_SUCCESS || read_bytes != object_info.dataSize {
-                    //EMSG("TEE_ReadObjectData failed 0x%08x, read %u over %u",res, read_bytes, object_info.dataSize);
-                } else {
-                    params[1].memref.size = read_bytes;
-                }
+                break 'correct_handle;
             }
+
+            res = TEE_ReadObjectData(
+                object,
+                data,
+                object_info.dataSize,
+                &mut read_bytes as *mut _,
+            );
+            if res != TEE_SUCCESS || read_bytes != object_info.dataSize {
+                if res == TEE_SUCCESS {
+                    res = TEE_ERROR_EXCESS_DATA;
+                }
+                break 'correct_handle;
+            }
+            params[1].memref.size = read_bytes;
+            return Ok(());
         }
         TEE_CloseObject(object);
         TEE_Free(obj_id);
-        return res;
+        return Err(Error::from_raw_error(res));
     }
 }
 
@@ -205,11 +213,18 @@ pub extern "C" fn TA_InvokeCommandEntryPoint(
 ) -> TEE_Result {
     trace_println!("[+] TA_InvokeCommandEntryPoint: Invoke.");
     match cmd_id {
-        TA_SECURE_STORAGE_CMD_WRITE_RAW => {
-            return create_raw_object(param_types, params);
+        TA_SECURE_STORAGE_CMD_WRITE_RAW=> {
+            return create_raw_object(param_types, params); 
         }
-        TA_SECURE_STORAGE_CMD_READ_RAW => {
-            return read_raw_object(param_types, params);
+        TA_SECURE_STORAGE_CMD_READ_RAW => match read_raw_object(param_types, params) {
+            Ok(_) => {
+                trace_println!("Create object success!");
+                return TEE_SUCCESS;
+            }
+            Err(e) => {
+                trace_println!("{:?}", e);
+                return e.raw_code();
+            }
         }
         TA_SECURE_STORAGE_CMD_DELETE => {
             return delete_object(param_types, params);
