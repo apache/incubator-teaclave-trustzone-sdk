@@ -97,7 +97,7 @@ pub extern "C" fn TA_CreateEntryPoint() -> TEE_Result {
             return TEE_SUCCESS;
         }
         Err(e) => {
-            trace_println!("{:?}", e);
+            trace_println!("{:x?}", e);
             return e.raw_code();
         }
     }
@@ -107,10 +107,10 @@ pub extern "C" fn TA_CreateEntryPoint() -> TEE_Result {
 pub extern "C" fn TA_DestroyEntryPoint() {
     match MESA_DestroyEntryPoint() {
         Ok(_) => {
-            trace_println!("[+] {} CreateDestroyPoint.", ta_name);
+            trace_println!("[+] {} DestroyEntryPoint.", ta_name);
         }
         Err(e) => {
-            trace_println!("{:?}", e);
+            trace_println!("{:x?}", e);
         }
     }
 }
@@ -129,7 +129,7 @@ pub extern "C" fn TA_OpenSessionEntryPoint(
             return TEE_SUCCESS;
         }
         Err(e) => {
-            trace_println!("{:?}", e);
+            trace_println!("{:x?}", e);
             return e.raw_code();
         }
     }
@@ -142,7 +142,7 @@ pub extern "C" fn TA_CloseSessionEntryPoint(sess_ctx: *mut *mut c_void) {
             trace_println!("[+] {} CloseSessionEntryPoint.", ta_name);
         }
         Err(e) => {
-            trace_println!("{:?}", e);
+            trace_println!("{:x?}", e);
         }
     }
 }
@@ -162,7 +162,7 @@ pub extern "C" fn TA_InvokeCommandEntryPoint(
             return TEE_SUCCESS;
         }
         Err(e) => {
-            trace_println!("{:?}", e);
+            trace_println!("{:x?}", e);
             return e.raw_code();
         }
     }

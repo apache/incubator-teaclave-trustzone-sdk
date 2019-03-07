@@ -93,11 +93,11 @@ pub unsafe extern "C" fn tahead_get_trace_level() -> c_int {
 pub extern "C" fn TA_CreateEntryPoint() -> TEE_Result {
     match MESA_CreateEntryPoint() {
         Ok(_) => {
-            trace_println!("[+] {} CreateEntryPoint.", ta_name);
+            trace_println!("[+] CreateEntryPoint.");//, ta_name);
             return TEE_SUCCESS;
         }
         Err(e) => {
-            trace_println!("{:?}", e);
+            trace_println!("{:x?}", e);
             return e.raw_code();
         }
     }
@@ -107,10 +107,10 @@ pub extern "C" fn TA_CreateEntryPoint() -> TEE_Result {
 pub extern "C" fn TA_DestroyEntryPoint() {
     match MESA_DestroyEntryPoint() {
         Ok(_) => {
-            trace_println!("[+] {} CreateDestroyPoint.", ta_name);
+            trace_println!("[+] DestroyEntryPoint.");//, ta_name);
         }
         Err(e) => {
-            trace_println!("{:?}", e);
+            trace_println!("{:x?}", e);
         }
     }
 }
@@ -125,11 +125,11 @@ pub extern "C" fn TA_OpenSessionEntryPoint(
 
     match MESA_OpenSessionEntryPoint(&mut parameters, sess_ctx) {
         Ok(_) => {
-            trace_println!("[+] {} OpenSessionEntryPoint.", ta_name);
+            trace_println!("[+] OpenSessionEntryPoint.");//, ta_name);
             return TEE_SUCCESS;
         }
         Err(e) => {
-            trace_println!("{:?}", e);
+            trace_println!("{:x?}", e);
             return e.raw_code();
         }
     }
@@ -139,10 +139,10 @@ pub extern "C" fn TA_OpenSessionEntryPoint(
 pub extern "C" fn TA_CloseSessionEntryPoint(sess_ctx: *mut *mut c_void) {
     match MESA_CloseSessionEntryPoint(sess_ctx) {
         Ok(_) => {
-            trace_println!("[+] {} CloseSessionEntryPoint.", ta_name);
+            trace_println!("[+] CloseSessionEntryPoint.");//, ta_name);
         }
         Err(e) => {
-            trace_println!("{:?}", e);
+            trace_println!("{:x?}", e);
         }
     }
 }
@@ -158,11 +158,11 @@ pub extern "C" fn TA_InvokeCommandEntryPoint(
 
     match MESA_InvokeCommandEntryPoint(sess_ctx, cmd_id, &mut parameters) {
         Ok(_) => {
-            //trace_println!("[+] {} InvokeCommandEntryPoint.", ta_name);
+            trace_println!("[+] InvokeCommandEntryPoint.");//, ta_name);
             return TEE_SUCCESS;
         }
         Err(e) => {
-            trace_println!("{:?}", e);
+            trace_println!("{:x?}", e);
             return e.raw_code();
         }
     }

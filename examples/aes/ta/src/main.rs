@@ -7,7 +7,7 @@ use libc::{c_char, c_int, c_ulong, c_void, size_t, uint32_t};
 use optee_utee;
 use optee_utee::{trace_println, Error, ParamTypeFlags, Parameters, Result};
 use optee_utee_sys::*;
-use std::{mem, str};
+use std::mem;
 
 pub const AES128_KEY_BIT_SIZE: u32 = 128;
 pub const AES128_KEY_BYTE_SIZE: u32 = AES128_KEY_BIT_SIZE / 8;
@@ -164,7 +164,7 @@ pub fn alloc_resources(sess_ctx: *mut c_void, params: &mut Parameters) -> Result
 
         'correct_handle: loop {
             if res != TEE_SUCCESS {
-                //trace_println!("[+] TA allocate operation failed.");
+                trace_println!("[+] TA allocate operation failed.");
                 (*sess).op_handle = TEE_HANDLE_NULL as *mut _;
                 break 'correct_handle;
             }
@@ -179,7 +179,7 @@ pub fn alloc_resources(sess_ctx: *mut c_void, params: &mut Parameters) -> Result
             );
 
             if res != TEE_SUCCESS {
-                //trace_println!("[+] TA allocate operation failed.");
+                trace_println!("[+] TA allocate operation failed.");
                 (*sess).key_handle = TEE_HANDLE_NULL as *mut _;
                 break 'correct_handle;
             }
@@ -188,7 +188,7 @@ pub fn alloc_resources(sess_ctx: *mut c_void, params: &mut Parameters) -> Result
 
             if key.is_null() {
                 res = TEE_ERROR_OUT_OF_MEMORY;
-                //trace_println!("[+] TA allocate key failed.");
+                trace_println!("[+] TA allocate key failed.");
                 break 'correct_handle;
             }
 
@@ -210,19 +210,19 @@ pub fn alloc_resources(sess_ctx: *mut c_void, params: &mut Parameters) -> Result
 
             res = TEE_PopulateTransientObject((*sess).key_handle, &mut attr, 1);
             if res != TEE_SUCCESS {
-                //trace_println!("[+] TA populate transient object failed.");
+                trace_println!("[+] TA populate transient object failed.");
                 break 'correct_handle;
             }
 
             res = TEE_SetOperationKey((*sess).op_handle, (*sess).key_handle);
             if res != TEE_SUCCESS {
-                //trace_println!("[+] TA set operation key failed.");
+                trace_println!("[+] TA set operation key failed.");
                 break 'correct_handle;
             }
 
             return Ok(());
         }
-        //trace_println!("[+] Error id is {}.", res);
+        trace_println!("[+] Error id is {}.", res);
         if ((*sess).op_handle) != TEE_HANDLE_NULL as *mut _ {
             TEE_FreeOperation((*sess).op_handle);
         }
@@ -257,7 +257,7 @@ pub fn set_aes_key(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()>
         let key_sz = (*params.param_0.raw).memref.size;
 
         if key_sz != (*sess).key_size {
-            //trace_println!("[+] Get wrong key size !\n");
+            trace_println!("[+] Get wrong key size !\n");
             return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
         }
 
@@ -266,10 +266,10 @@ pub fn set_aes_key(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()>
         let res = TEE_PopulateTransientObject((*sess).key_handle, &mut attr, 1);
 
         if res != TEE_SUCCESS {
-            //trace_println!("[+] TA set key failed!");
+            trace_println!("[+] TA set key failed!");
             return Err(Error::from_raw_error(res));
         } else {
-            //trace_println!("[+] TA set key success!");
+            trace_println!("[+] TA set key success!");
             Ok(())
         }
     }
@@ -290,7 +290,7 @@ pub fn reset_aes_iv(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()
 
         TEE_CipherInit((*sess).op_handle, iv, iv_sz);
     }
-    //trace_println!("[+] TA initial vectore reset done!");
+    trace_println!("[+] TA initial vectore reset done!");
     Ok(())
 }
 
@@ -311,7 +311,7 @@ pub fn cipher_buffer(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<(
         if (*sess).op_handle == TEE_HANDLE_NULL as *mut _ {
             return Err(Error::from_raw_error(TEE_ERROR_BAD_STATE));
         }
-        //trace_println!("[+] TA tries to update ciphers!");
+        trace_println!("[+] TA tries to update ciphers!");
 
         let res = TEE_CipherUpdate(
             (*sess).op_handle,
@@ -327,8 +327,6 @@ pub fn cipher_buffer(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<(
         }
     }
 }
-
-const ta_name: &str = "AES Operator";
 
 const TA_FLAGS: uint32_t = TA_FLAG_EXEC_DDR;
 const TA_STACK_SIZE: uint32_t = 2 * 1024;
