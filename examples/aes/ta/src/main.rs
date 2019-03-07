@@ -5,55 +5,34 @@
 
 use libc::{c_char, c_int, c_ulong, c_void, size_t, uint32_t};
 use optee_utee;
-use optee_utee::trace_println;
+use optee_utee::{trace_println, Error, ParamTypeFlags, Parameters, Result};
 use optee_utee_sys::*;
-use std::mem;
+use std::{mem, str};
 
 pub const AES128_KEY_BIT_SIZE: u32 = 128;
 pub const AES128_KEY_BYTE_SIZE: u32 = AES128_KEY_BIT_SIZE / 8;
 pub const AES256_KEY_BIT_SIZE: u32 = 256;
 pub const AES256_KEY_BYTE_SIZE: u32 = AES256_KEY_BIT_SIZE / 8;
 
-#[repr(C)]
-pub struct aes_cipher {
-    pub algo: uint32_t,
-    pub mode: uint32_t,
-    pub key_size: uint32_t,
-    pub op_handle: TEE_OperationHandle,
-    pub key_handle: TEE_ObjectHandle,
+fn MESA_CreateEntryPoint() -> Result<()> {
+    Ok(())
 }
 
-#[no_mangle]
-pub extern "C" fn TA_CreateEntryPoint() -> TEE_Result {
-    trace_println!("[+] TA_CreateEntryPoint: AES functions.");
-    TEE_SUCCESS
-}
-
-#[no_mangle]
-pub extern "C" fn TA_DestroyEntryPoint() {}
-
-#[no_mangle]
-pub extern "C" fn TA_OpenSessionEntryPoint(
-    _param_types: uint32_t,
-    _params: &mut [TEE_Param; 4],
-    sess_ctx: *mut *mut c_void,
-) -> TEE_Result {
+fn MESA_OpenSessionEntryPoint(_params: &mut Parameters, sess_ctx: *mut *mut c_void) -> Result<()> {
     unsafe {
         let sess: *mut aes_cipher =
             TEE_Malloc(mem::size_of::<aes_cipher>() as u32, 0) as *mut aes_cipher;
         if sess.is_null() {
-            return TEE_ERROR_OUT_OF_MEMORY;
+            return Err(Error::from_raw_error(TEE_ERROR_OUT_OF_MEMORY));
         }
         (*sess).key_handle = TEE_HANDLE_NULL as *mut _;
         (*sess).op_handle = TEE_HANDLE_NULL as *mut _;
         *sess_ctx = sess as *mut c_void;
     }
-    trace_println!("[+] TA_OpenSessionEntryPoint: AES TEE session allocated!");
-    return TEE_SUCCESS;
+    Ok(())
 }
 
-#[no_mangle]
-pub extern "C" fn TA_CloseSessionEntryPoint(sess_ctx: *mut c_void) {
+fn MESA_CloseSessionEntryPoint(sess_ctx: *mut *mut c_void) -> Result<()> {
     unsafe {
         let sess: *mut aes_cipher = sess_ctx as *mut aes_cipher;
         if ((*sess).key_handle) != TEE_HANDLE_NULL as *mut _ {
@@ -64,105 +43,119 @@ pub extern "C" fn TA_CloseSessionEntryPoint(sess_ctx: *mut c_void) {
         }
         TEE_Free(sess as *mut c_void);
     }
-    trace_println!("[+] TA_CloseSessionEntryPoint: TEE resources released.");
+    Ok(())
 }
 
-pub fn ta2tee_algo_id(param: uint32_t, algo: *mut uint32_t) -> TEE_Result {
+fn MESA_DestroyEntryPoint() -> Result<()> {
+    Ok(())
+}
+
+fn MESA_InvokeCommandEntryPoint(
+    sess_ctx: *mut c_void,
+    cmd_id: u32,
+    params: &mut Parameters,
+) -> Result<()> {
+    match cmd_id {
+        TA_AES_CMD_PREPARE => {
+            return alloc_resources(sess_ctx, params);
+        }
+        TA_AES_CMD_SET_KEY => {
+            return set_aes_key(sess_ctx, params);
+        }
+        TA_AES_CMD_SET_IV => {
+            return reset_aes_iv(sess_ctx, params);
+        }
+        TA_AES_CMD_CIPHER => {
+            return cipher_buffer(sess_ctx, params);
+        }
+        _ => {
+            return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
+        }
+    }
+}
+
+#[repr(C)]
+pub struct aes_cipher {
+    pub algo: uint32_t,
+    pub mode: uint32_t,
+    pub key_size: uint32_t,
+    pub op_handle: TEE_OperationHandle,
+    pub key_handle: TEE_ObjectHandle,
+}
+
+pub fn ta2tee_algo_id(param: uint32_t, sess: *mut aes_cipher) -> Result<()> {
     unsafe {
         match param {
             TA_AES_ALGO_ECB => {
-                *algo = TEE_ALG_AES_ECB_NOPAD;
-                return TEE_SUCCESS;
+                (*sess).algo = TEE_ALG_AES_ECB_NOPAD;
+                return Ok(());
             }
-
             TA_AES_ALGO_CBC => {
-                *algo = TEE_ALG_AES_CBC_NOPAD;
-                return TEE_SUCCESS;
+                (*sess).algo = TEE_ALG_AES_CBC_NOPAD;
+                return Ok(());
             }
-
             TA_AES_ALGO_CTR => {
-                *algo = TEE_ALG_AES_CTR;
-                return TEE_SUCCESS;
+                (*sess).algo = TEE_ALG_AES_CTR;
+                return Ok(());
             }
-
             _ => {
-                return TEE_ERROR_BAD_PARAMETERS;
+                return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
             }
         }
     }
 }
 
-pub fn ta2tee_key_size(param: uint32_t, key_size: *mut uint32_t) -> TEE_Result {
+pub fn ta2tee_key_size(param: uint32_t, sess: *mut aes_cipher) -> Result<()> {
     unsafe {
         match param {
             AES128_KEY_BYTE_SIZE | AES256_KEY_BYTE_SIZE => {
-                *key_size = param;
-                return TEE_SUCCESS;
+                (*sess).key_size = param;
+                return Ok(());
             }
-
             _ => {
-                return TEE_ERROR_BAD_PARAMETERS;
+                return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
             }
         }
     }
 }
 
-pub fn ta2tee_mode_id(param: uint32_t, mode: *mut uint32_t) -> TEE_Result {
+pub fn ta2tee_mode_id(param: uint32_t, sess: *mut aes_cipher) -> Result<()> {
     unsafe {
         match param {
             TA_AES_MODE_ENCODE => {
-                *mode = TEE_OperationMode::TEE_MODE_ENCRYPT as uint32_t;
-                return TEE_SUCCESS;
+                (*sess).mode = TEE_OperationMode::TEE_MODE_ENCRYPT as uint32_t;
+                return Ok(());
             }
-
             TA_AES_MODE_DECODE => {
-                *mode = TEE_OperationMode::TEE_MODE_DECRYPT as uint32_t;
-                return TEE_SUCCESS;
+                (*sess).mode = TEE_OperationMode::TEE_MODE_DECRYPT as uint32_t;
+                return Ok(());
             }
-
             _ => {
-                return TEE_ERROR_BAD_PARAMETERS;
+                return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
             }
         }
     }
 }
 
-pub fn alloc_resources(
-    sess_ctx: *mut c_void,
-    param_types: uint32_t,
-    params: &mut [TEE_Param; 4],
-) -> TEE_Result {
-    let exp_param_types: uint32_t = TEE_PARAM_TYPES(
-        TEE_PARAM_TYPE_VALUE_INPUT,
-        TEE_PARAM_TYPE_VALUE_INPUT,
-        TEE_PARAM_TYPE_VALUE_INPUT,
-        TEE_PARAM_TYPE_NONE,
-    );
-    if param_types != exp_param_types {
-        return TEE_ERROR_BAD_PARAMETERS;
-    }
+pub fn alloc_resources(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()> {
+    params.check_type(
+        ParamTypeFlags::ValueInput,
+        ParamTypeFlags::ValueInput,
+        ParamTypeFlags::ValueInput,
+        ParamTypeFlags::None,
+    )?;
     unsafe {
         let sess: *mut aes_cipher = sess_ctx as *mut aes_cipher;
-        let mut res = ta2tee_algo_id(params[0].value.a, &mut ((*sess).algo));
-        if res != TEE_SUCCESS {
-            return res;
-        }
 
-        res = ta2tee_key_size(params[1].value.a, &mut (*sess).key_size);
-        if res != TEE_SUCCESS {
-            return res;
-        }
-
-        res = ta2tee_mode_id(params[2].value.a, &mut (*sess).mode);
-        if res != TEE_SUCCESS {
-            return res;
-        }
+        ta2tee_algo_id((*params.param_0.raw).value.a, sess)?;
+        ta2tee_key_size((*params.param_1.raw).value.a, sess)?;
+        ta2tee_mode_id((*params.param_2.raw).value.a, sess)?;
 
         if (*sess).op_handle != TEE_HANDLE_NULL as *mut _ {
             TEE_FreeOperation((*sess).op_handle);
         }
 
-        res = TEE_AllocateOperation(
+        let mut res: TEE_Result = TEE_AllocateOperation(
             &mut (*sess).op_handle,
             (*sess).algo,
             (*sess).mode,
@@ -171,9 +164,12 @@ pub fn alloc_resources(
 
         'correct_handle: loop {
             if res != TEE_SUCCESS {
-                trace_println!("[+] TA allocate operation failed.");
+                //trace_println!("[+] TA allocate operation failed.");
                 (*sess).op_handle = TEE_HANDLE_NULL as *mut _;
                 break 'correct_handle;
+            }
+            if (*sess).key_handle != TEE_HANDLE_NULL as *mut _ {
+                TEE_FreeTransientObject((*sess).key_handle);
             }
 
             res = TEE_AllocateTransientObject(
@@ -183,15 +179,16 @@ pub fn alloc_resources(
             );
 
             if res != TEE_SUCCESS {
-                trace_println!("[+] TA allocate operation failed.");
+                //trace_println!("[+] TA allocate operation failed.");
                 (*sess).key_handle = TEE_HANDLE_NULL as *mut _;
                 break 'correct_handle;
             }
 
             let key: *mut c_char = TEE_Malloc((*sess).key_size, 0) as *mut _;
+
             if key.is_null() {
                 res = TEE_ERROR_OUT_OF_MEMORY;
-                trace_println!("[+] TA allocate key failed.");
+                //trace_println!("[+] TA allocate key failed.");
                 break 'correct_handle;
             }
 
@@ -204,54 +201,49 @@ pub fn alloc_resources(
                     },
                 },
             };
-
             TEE_InitRefAttribute(
                 &mut attr,
                 TEE_ATTR_SECRET_VALUE,
                 key as *mut _,
                 (*sess).key_size,
             );
+
             res = TEE_PopulateTransientObject((*sess).key_handle, &mut attr, 1);
             if res != TEE_SUCCESS {
-                trace_println!("[+] TA populate transient object failed.");
+                //trace_println!("[+] TA populate transient object failed.");
                 break 'correct_handle;
             }
 
             res = TEE_SetOperationKey((*sess).op_handle, (*sess).key_handle);
             if res != TEE_SUCCESS {
-                trace_println!("[+] TA set operation key failed.");
+                //trace_println!("[+] TA set operation key failed.");
                 break 'correct_handle;
             }
-            return res;
+
+            return Ok(());
         }
-        trace_println!("[+] Error id is {}.", res);
+        //trace_println!("[+] Error id is {}.", res);
         if ((*sess).op_handle) != TEE_HANDLE_NULL as *mut _ {
             TEE_FreeOperation((*sess).op_handle);
         }
         (*sess).op_handle = TEE_HANDLE_NULL as *mut _;
+
         if ((*sess).key_handle) != TEE_HANDLE_NULL as *mut _ {
             TEE_FreeTransientObject((*sess).key_handle);
         }
         (*sess).key_handle = TEE_HANDLE_NULL as *mut _;
 
-        return res;
+        return Err(Error::from_raw_error(res));
     }
 }
 
-pub fn set_aes_key(
-    sess_ctx: *mut c_void,
-    param_types: uint32_t,
-    params: &mut [TEE_Param; 4],
-) -> TEE_Result {
-    let exp_param_types: uint32_t = TEE_PARAM_TYPES(
-        TEE_PARAM_TYPE_MEMREF_INPUT,
-        TEE_PARAM_TYPE_NONE,
-        TEE_PARAM_TYPE_NONE,
-        TEE_PARAM_TYPE_NONE,
-    );
-    if param_types != exp_param_types {
-        return TEE_ERROR_BAD_PARAMETERS;
-    }
+pub fn set_aes_key(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()> {
+    params.check_type(
+        ParamTypeFlags::MemrefInput,
+        ParamTypeFlags::None,
+        ParamTypeFlags::None,
+        ParamTypeFlags::None,
+    )?;
 
     unsafe {
         let sess: *mut aes_cipher = sess_ctx as *mut aes_cipher;
@@ -261,116 +253,82 @@ pub fn set_aes_key(
                 value: Value { a: 0, b: 0 },
             },
         };
-        let res: TEE_Result;
-        let key = params[0].memref.buffer;
-        let key_sz = params[0].memref.size;
+        let key = (*params.param_0.raw).memref.buffer;
+        let key_sz = (*params.param_0.raw).memref.size;
 
         if key_sz != (*sess).key_size {
-            trace_println!("[+] Get wrong key size !\n");
-            return TEE_ERROR_BAD_PARAMETERS;
+            //trace_println!("[+] Get wrong key size !\n");
+            return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
         }
 
         TEE_InitRefAttribute(&mut attr, TEE_ATTR_SECRET_VALUE, key, key_sz);
         TEE_ResetTransientObject((*sess).key_handle);
-        res = TEE_PopulateTransientObject((*sess).key_handle, &mut attr, 1);
+        let res = TEE_PopulateTransientObject((*sess).key_handle, &mut attr, 1);
 
         if res != TEE_SUCCESS {
-            trace_println!("[+] TA set key failed!");
+            //trace_println!("[+] TA set key failed!");
+            return Err(Error::from_raw_error(res));
         } else {
-            trace_println!("[+] TA set key success!");
+            //trace_println!("[+] TA set key success!");
+            Ok(())
         }
-        return res;
     }
 }
 
-pub fn reset_aes_iv(
-    sess_ctx: *mut c_void,
-    param_types: uint32_t,
-    params: &mut [TEE_Param; 4],
-) -> TEE_Result {
-    let exp_param_types: uint32_t = TEE_PARAM_TYPES(
-        TEE_PARAM_TYPE_MEMREF_INPUT,
-        TEE_PARAM_TYPE_NONE,
-        TEE_PARAM_TYPE_NONE,
-        TEE_PARAM_TYPE_NONE,
-    );
-    if param_types != exp_param_types {
-        return TEE_ERROR_BAD_PARAMETERS;
-    }
+pub fn reset_aes_iv(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()> {
+    params.check_type(
+        ParamTypeFlags::MemrefInput,
+        ParamTypeFlags::None,
+        ParamTypeFlags::None,
+        ParamTypeFlags::None,
+    )?;
 
     unsafe {
         let sess: *mut aes_cipher = sess_ctx as *mut aes_cipher;
-        let iv = params[0].memref.buffer;
-        let iv_sz = params[0].memref.size;
+        let iv = (*params.param_0.raw).memref.buffer;
+        let iv_sz = (*params.param_0.raw).memref.size;
 
         TEE_CipherInit((*sess).op_handle, iv, iv_sz);
     }
-    trace_println!("[+] TA initial vectore reset done!");
-    return TEE_SUCCESS;
+    //trace_println!("[+] TA initial vectore reset done!");
+    Ok(())
 }
 
-pub fn cipher_buffer(
-    sess_ctx: *mut c_void,
-    param_types: uint32_t,
-    params: &mut [TEE_Param; 4],
-) -> TEE_Result {
-    let exp_param_types: uint32_t = TEE_PARAM_TYPES(
-        TEE_PARAM_TYPE_MEMREF_INPUT,
-        TEE_PARAM_TYPE_MEMREF_OUTPUT,
-        TEE_PARAM_TYPE_NONE,
-        TEE_PARAM_TYPE_NONE,
-    );
-    if param_types != exp_param_types {
-        return TEE_ERROR_BAD_PARAMETERS;
-    }
+pub fn cipher_buffer(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()> {
+    params.check_type(
+        ParamTypeFlags::MemrefInput,
+        ParamTypeFlags::MemrefOutput,
+        ParamTypeFlags::None,
+        ParamTypeFlags::None,
+    )?;
 
     unsafe {
         let sess: *mut aes_cipher = sess_ctx as *mut aes_cipher;
-        if params[1].memref.size < params[0].memref.size {
-            trace_println!("[+] Bad parameter sizes!");
-            return TEE_ERROR_BAD_PARAMETERS;
+        if (*params.param_1.raw).memref.size < (*params.param_0.raw).memref.size {
+            return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
         }
 
         if (*sess).op_handle == TEE_HANDLE_NULL as *mut _ {
-            return TEE_ERROR_BAD_STATE;
+            return Err(Error::from_raw_error(TEE_ERROR_BAD_STATE));
         }
-        trace_println!("[+] TA tries to update ciphers!");
+        //trace_println!("[+] TA tries to update ciphers!");
 
-        return TEE_CipherUpdate(
+        let res = TEE_CipherUpdate(
             (*sess).op_handle,
-            params[0].memref.buffer,
-            params[0].memref.size,
-            params[1].memref.buffer,
-            &mut params[1].memref.size as *mut _,
+            (*params.param_0.raw).memref.buffer,
+            (*params.param_0.raw).memref.size,
+            (*params.param_1.raw).memref.buffer,
+            &mut (*params.param_1.raw).memref.size as *mut _,
         );
+        if res == TEE_SUCCESS {
+            return Ok(());
+        } else {
+            return Err(Error::from_raw_error(res));
+        }
     }
 }
 
-#[no_mangle]
-pub extern "C" fn TA_InvokeCommandEntryPoint(
-    sess_ctx: *mut c_void,
-    cmd_id: u32,
-    param_types: uint32_t,
-    params: &mut [TEE_Param; 4],
-) -> TEE_Result {
-    match cmd_id {
-        TA_AES_CMD_PREPARE => {
-            return alloc_resources(sess_ctx, param_types, params);
-        }
-        TA_AES_CMD_SET_KEY => {
-            return set_aes_key(sess_ctx, param_types, params);
-        }
-        TA_AES_CMD_SET_IV => {
-            return reset_aes_iv(sess_ctx, param_types, params);
-        }
-        TA_AES_CMD_CIPHER => {
-            return cipher_buffer(sess_ctx, param_types, params);
-        }
-        _ => {
-            return TEE_ERROR_BAD_PARAMETERS;
-        }
-    }
-}
+const ta_name: &str = "AES Operator";
 
 const TA_FLAGS: uint32_t = TA_FLAG_EXEC_DDR;
 const TA_STACK_SIZE: uint32_t = 2 * 1024;

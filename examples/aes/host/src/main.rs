@@ -115,11 +115,11 @@ fn main() -> Result<(), Box<std::error::Error>> {
     println!("\nPrepare decode operation...");
     prepare_aes(&mut session, DECODE);
 
-    let mut key = [0xa5 as c_char; AES_TEST_KEY_SIZE];
+    let mut key = [0xa5u8; AES_TEST_KEY_SIZE];
     println!("Load key in TA...");
     set_key(&mut session, &mut key, AES_TEST_KEY_SIZE as size_t);
 
-    let mut iv = [0x00 as c_char; AES_BLOCK_SIZE];
+    let mut iv = [0x00u8; AES_BLOCK_SIZE];
     println!("Reset ciphering operation in TA (provides the initial vector)...");
     set_iv(&mut session, &mut iv, AES_BLOCK_SIZE as size_t);
 
@@ -134,7 +134,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
     if clear.iter().zip(tmp.iter()).all(|(a, b)| a == b) {
         println!("\nDecode the original clear text correctly.");
     } else {
-        println!("AES function runs wrong!i");
+        println!("AES function runs wrong!");
     }
     Ok(())
 }
