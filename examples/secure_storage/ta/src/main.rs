@@ -59,7 +59,7 @@ pub fn delete_object(params: &mut Parameters) -> Result<()> {
         let obj_id: *mut c_void = TEE_Malloc(obj_id_sz, 0);
         TEE_MemMove(obj_id, (*params.param_0.raw).memref.buffer, obj_id_sz);
 
-        let mut object: TEE_ObjectHandle = ptr::null_mut();
+        let mut object: TEE_ObjectHandle = TEE_HANDLE_NULL as *mut _;
         let res = TEE_OpenPersistentObject(
             TEE_STORAGE_PRIVATE,
             obj_id,
@@ -99,7 +99,7 @@ pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
             | TEE_DATA_FLAG_ACCESS_WRITE
             | TEE_DATA_FLAG_ACCESS_WRITE_META
             | TEE_DATA_FLAG_OVERWRITE;
-        let mut object: TEE_ObjectHandle = ptr::null_mut();
+        let mut object: TEE_ObjectHandle = TEE_HANDLE_NULL as *mut _;
         let mut res = TEE_CreatePersistentObject(
             TEE_STORAGE_PRIVATE,
             obj_id,
@@ -145,7 +145,7 @@ pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
 
         let data: *mut c_void = (*params.param_1.raw).memref.buffer as *mut c_void;
         let data_sz: uint32_t = (*params.param_1.raw).memref.size;
-        let mut object: TEE_ObjectHandle = ptr::null_mut();
+        let mut object: TEE_ObjectHandle = TEE_HANDLE_NULL as *mut _;
         let mut res = TEE_OpenPersistentObject(
             TEE_STORAGE_PRIVATE,
             obj_id,

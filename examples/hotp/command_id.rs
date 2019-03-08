@@ -1,0 +1,2 @@
+pub const TA_HOTP_CMD_REGISTER_SHARED_KEY: u32 = 0;
+pub const TA_HOTP_CMD_GET_HOTP: u32 = 1;
