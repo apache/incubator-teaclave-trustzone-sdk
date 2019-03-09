@@ -1,6 +1,5 @@
 use libc;
 use optee_utee_sys as raw;
-use std::ffi::CString;
 use std::fmt;
 use std::io;
 use std::io::Write;
@@ -34,9 +33,8 @@ impl Trace {
 
 impl io::Write for Trace {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        let to_print = CString::new(buf)?;
         unsafe {
-            raw::trace_ext_puts(to_print.as_ptr() as *const libc::c_char);
+            raw::utee_log(buf.as_ptr() as *const libc::c_void, buf.len());
         }
         Ok(buf.len())
     }
