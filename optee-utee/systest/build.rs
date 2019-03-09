@@ -10,6 +10,7 @@ fn main() {
         .header("utee_types.h")
         .header("user_ta_header.h")
         .header("tee_api.h")
+        .header("utee_syscalls.h")
         .include(env::var("OPTEE_OS_INCLUDE").unwrap())
         .type_name(|s, _is_struct, _is_union| {
             if s == "utee_params"

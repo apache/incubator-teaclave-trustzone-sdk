@@ -6,6 +6,7 @@ pub use tee_api_types::*;
 pub use trace::*;
 pub use user_ta_header::*;
 pub use utee_types::*;
+pub use utee_syscalls::*;
 
 mod tee_api;
 mod tee_api_defines;
@@ -13,3 +14,4 @@ mod tee_api_types;
 mod trace;
 mod user_ta_header;
 mod utee_types;
+mod utee_syscalls;
