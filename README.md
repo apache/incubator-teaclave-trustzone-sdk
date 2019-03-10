@@ -10,6 +10,7 @@ Rust's standard library and many third-party libraries (i.e., crates).
 
 To get started, you need to clone the project, initialize related submodules,
 and install building dependencies.
+Alternatively, you can use a docker container built with our [Dockerfile](Dockerfile).
 
 ``` sh
 # clone the project and initialize related submodules
