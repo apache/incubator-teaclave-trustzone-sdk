@@ -37,14 +37,12 @@ Then, download ARM toolchains and build OP-TEE libraries. Note that the OP-TEE
 target is QEMUv8, and you can modify the Makefile to other targets accordingly.
 
 ``` sh
-# make toolchains and OPTEE libraries
 $ make optee
 ```
 
 Before building examples, the environment should be properly setup.
 
 ``` sh
-# setup environment variables
 $ source environment
 ```
 
