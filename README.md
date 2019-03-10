@@ -1,8 +1,17 @@
 # Rust OP-TEE TrustZone SDK
 
+Rust OP-TEE TrustZone SDK provides abilities to build safe TrustZone applications in Rust.
+The SDK is based on the [OP-TEE](https://www.op-tee.org/) project which follows
+[GlobalPlatform](https://globalplatform.org/) API specifications.
+Additionally, the SDK enables capability to write TrustZone applications with
+Rust's standard library and many third-party libraries (i.e., crates).
+
 ## Getting started
 
-``` shell
+To get started, you need to clone the project, initialize related submodules,
+and install building dependencies.
+
+``` sh
 # clone the project and initialize related submodules
 $ git clone git@github.com:mesalock-linux/rust-optee-trustzone-sdk.git
 $ cd rust-optee-trustzone-sdk
@@ -13,9 +22,6 @@ $ (cd rust/rust && git submodule update --init src/stdsimd)
 # install dependencies
 $ sudo apt-get install curl make gcc python python-crypto xz-utils
 
-# make toolchains and OPTEE libraries
-$ make optee
-
 # install Rust and select a proper version
 $ curl https://sh.rustup.rs -sSf | sh
 $ source $HOME/.cargo/env
@@ -24,10 +30,30 @@ $ rustup target install aarch64-unknown-linux-gnu
 
 # install patched Xargo
 $ cargo install --git https://github.com/mssun/xargo.git --branch mssun/relative-patch-path --force
+```
 
+Then, download ARM toolchains and build OP-TEE libraries. Note that the OP-TEE
+target is QEMUv8, and you can modify the Makefile to other targets accordingly.
+
+``` sh
+# make toolchains and OPTEE libraries
+$ make optee
+```
+
+Before building examples, the environment should be properly setup.
+
+``` sh
 # setup environment variables
 $ source environment
+```
 
-# make all examples
+At last, you can get started with our examples.
+
+``` sh
 $ make examples
 ```
+
+## License
+
+Rust OP-TEE TrustZone SDK is distributed under the BSD 3-Clause license. See
+[LICENSE](LICENSE) for details.
