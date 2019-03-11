@@ -110,3 +110,10 @@ impl fmt::Display for Error {
         write!(fmt, "{}", self.message())
     }
 }
+
+impl From<ErrorCode> for Error {
+    #[inline]
+    fn from(code: ErrorCode) -> Error {
+        Error { code: code as u32 }
+    }
+}
