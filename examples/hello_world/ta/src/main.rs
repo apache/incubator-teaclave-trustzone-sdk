@@ -31,11 +31,13 @@ fn MESA_InvokeCommandEntryPoint(
     params: &mut Parameters,
 ) -> Result<()> {
     match cmd_id {
-        TA_HELLO_WORLD_CMD_INC_VALUE => unsafe {
-            (*params.param_0.raw).value.a += 100;
+        TA_HELLO_WORLD_CMD_INC_VALUE => {
+            let ori_value = params.param_0.get_value_a()?;
+            params.param_0.set_value_a(ori_value+100)?;
         },
-        TA_HELLO_WORLD_CMD_DEC_VALUE => unsafe {
-            (*params.param_0.raw).value.a -= 100;
+        TA_HELLO_WORLD_CMD_DEC_VALUE => {
+            let ori_value = params.param_0.get_value_a()?;
+            params.param_0.set_value_a(ori_value-100)?;
         },
         _ => {
             return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));

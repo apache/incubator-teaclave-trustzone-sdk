@@ -5,7 +5,7 @@
 
 use libc::{c_char, c_int, c_ulong, c_void, size_t, uint32_t};
 use optee_utee;
-use optee_utee::{trace_println, Error, ParamTypeFlags, Parameters, Result};
+use optee_utee::{trace_println, Error, Parameters, Result};
 use optee_utee_sys::*;
 use std::mem;
 
@@ -138,18 +138,15 @@ pub fn ta2tee_mode_id(param: uint32_t, sess: *mut aes_cipher) -> Result<()> {
 }
 
 pub fn alloc_resources(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()> {
-    params.check_type(
-        ParamTypeFlags::ValueInput,
-        ParamTypeFlags::ValueInput,
-        ParamTypeFlags::ValueInput,
-        ParamTypeFlags::None,
-    )?;
     unsafe {
         let sess: *mut aes_cipher = sess_ctx as *mut aes_cipher;
+        let algo_value = params.param_0.get_value_a()?;
+        let key_size_value = params.param_1.get_value_a()?;
+        let mode_id_value = params.param_2.get_value_a()?;
 
-        ta2tee_algo_id((*params.param_0.raw).value.a, sess)?;
-        ta2tee_key_size((*params.param_1.raw).value.a, sess)?;
-        ta2tee_mode_id((*params.param_2.raw).value.a, sess)?;
+        ta2tee_algo_id(algo_value, sess)?;
+        ta2tee_key_size(key_size_value, sess)?;
+        ta2tee_mode_id(mode_id_value, sess)?;
 
         if (*sess).op_handle != TEE_HANDLE_NULL as *mut _ {
             TEE_FreeOperation((*sess).op_handle);
@@ -238,13 +235,6 @@ pub fn alloc_resources(sess_ctx: *mut c_void, params: &mut Parameters) -> Result
 }
 
 pub fn set_aes_key(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()> {
-    params.check_type(
-        ParamTypeFlags::MemrefInput,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-    )?;
-
     unsafe {
         let sess: *mut aes_cipher = sess_ctx as *mut aes_cipher;
         let mut attr = TEE_Attribute {
@@ -253,8 +243,8 @@ pub fn set_aes_key(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()>
                 value: Value { a: 0, b: 0 },
             },
         };
-        let key = (*params.param_0.raw).memref.buffer;
-        let key_sz = (*params.param_0.raw).memref.size;
+        let key = params.param_0.get_memref_ptr()?;
+        let key_sz = params.param_0.get_memref_size()?;
 
         if key_sz != (*sess).key_size {
             trace_println!("[+] Get wrong key size !\n");
@@ -276,17 +266,10 @@ pub fn set_aes_key(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()>
 }
 
 pub fn reset_aes_iv(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()> {
-    params.check_type(
-        ParamTypeFlags::MemrefInput,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-    )?;
-
     unsafe {
         let sess: *mut aes_cipher = sess_ctx as *mut aes_cipher;
-        let iv = (*params.param_0.raw).memref.buffer;
-        let iv_sz = (*params.param_0.raw).memref.size;
+        let iv = params.param_0.get_memref_ptr()?;
+        let iv_sz = params.param_0.get_memref_size()?;
 
         TEE_CipherInit((*sess).op_handle, iv, iv_sz);
     }
@@ -295,16 +278,14 @@ pub fn reset_aes_iv(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()
 }
 
 pub fn cipher_buffer(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()> {
-    params.check_type(
-        ParamTypeFlags::MemrefInput,
-        ParamTypeFlags::MemrefOutput,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-    )?;
-
     unsafe {
+        let input_ptr = params.param_0.get_memref_ptr()?;
+        let output_ptr = params.param_1.get_memref_ptr()?;
+        let input_size = params.param_0.get_memref_size()?;
+        let mut output_size = params.param_1.get_memref_size()?;
+
         let sess: *mut aes_cipher = sess_ctx as *mut aes_cipher;
-        if (*params.param_1.raw).memref.size < (*params.param_0.raw).memref.size {
+        if output_size < input_size {
             return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
         }
 
@@ -315,10 +296,10 @@ pub fn cipher_buffer(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<(
 
         let res = TEE_CipherUpdate(
             (*sess).op_handle,
-            (*params.param_0.raw).memref.buffer,
-            (*params.param_0.raw).memref.size,
-            (*params.param_1.raw).memref.buffer,
-            &mut (*params.param_1.raw).memref.size as *mut _,
+            input_ptr,
+            input_size,
+            output_ptr,
+            &mut output_size as *mut _,
         );
         if res == TEE_SUCCESS {
             return Ok(());

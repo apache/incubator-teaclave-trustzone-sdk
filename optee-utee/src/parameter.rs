@@ -1,4 +1,5 @@
 use crate::{Error, Result};
+use libc::c_void;
 use optee_utee_sys as raw;
 
 #[derive(Copy, Clone)]
@@ -11,29 +12,21 @@ pub struct Parameters {
 
 impl Parameters {
     pub fn new(tee_params: &mut [raw::TEE_Param; 4], param_types: u32) -> Self {
-        let mut param_mask: u32 = 0xf;
-        param_mask = param_mask & param_types;
         let param_0 = Parameter::new(
-            &mut ((*tee_params)[0]),
-            ParamTypeFlags::map_back(param_mask),
+            &mut tee_params[0],
+            ParamTypeFlags::from(0xfu32 & param_types),
         );
-        param_mask = 0xf0;
-        param_mask = (param_mask & param_types) >> 4;
         let param_1 = Parameter::new(
-            &mut ((*tee_params)[1]),
-            ParamTypeFlags::map_back(param_mask),
+            &mut tee_params[1],
+            ParamTypeFlags::from((0xf0u32 & param_types) >> 4),
         );
-        param_mask = 0xf00;
-        param_mask = (param_mask & param_types) >> 8;
         let param_2 = Parameter::new(
-            &mut ((*tee_params)[2]),
-            ParamTypeFlags::map_back(param_mask),
+            &mut tee_params[2],
+            ParamTypeFlags::from((0xf00u32 & param_types) >> 8),
         );
-        param_mask = 0xf000;
-        param_mask = (param_mask & param_types) >> 12;
         let param_3 = Parameter::new(
-            &mut ((*tee_params)[3]),
-            ParamTypeFlags::map_back(param_mask),
+            &mut tee_params[3],
+            ParamTypeFlags::from((0xf000u32 & param_types) >> 12),
         );
 
         Parameters {
@@ -41,24 +34,6 @@ impl Parameters {
             param_1,
             param_2,
             param_3,
-        }
-    }
-
-    pub fn check_type(
-        &mut self,
-        flag_0: ParamTypeFlags,
-        flag_1: ParamTypeFlags,
-        flag_2: ParamTypeFlags,
-        flag_3: ParamTypeFlags,
-    ) -> Result<()> {
-        if (flag_0 != self.param_0.param_type)
-            || (flag_1 != self.param_1.param_type)
-            || (flag_2 != self.param_2.param_type)
-            || (flag_3 != self.param_3.param_type)
-        {
-            return Err(Error::from_raw_error(raw::TEE_ERROR_BAD_PARAMETERS));
-        } else {
-            Ok(())
         }
     }
 }
@@ -76,6 +51,79 @@ impl Parameter {
             param_type: param_type,
         }
     }
+
+    pub fn get_value_a(&mut self) -> std::result::Result<u32, Error> {
+        match self.param_type {
+            ParamTypeFlags::ValueInput | ParamTypeFlags::ValueInout => {
+                unsafe { return Ok((*self.raw).value.a) };
+            }
+            _ => {
+                return Err(Error::from_raw_error(raw::TEE_ERROR_BAD_PARAMETERS));
+            }
+        }
+    }
+
+    pub fn set_value_a(&mut self, value: u32) -> Result<()> {
+        match self.param_type {
+            ParamTypeFlags::ValueOutput | ParamTypeFlags::ValueInout => {
+                unsafe { (*self.raw).value.a = value };
+                Ok(())
+            }
+            _ => {
+                return Err(Error::from_raw_error(raw::TEE_ERROR_BAD_PARAMETERS));
+            }
+        }
+    }
+
+    pub fn get_value_b(&mut self) -> std::result::Result<u32, Error> {
+        match self.param_type {
+            ParamTypeFlags::ValueInput | ParamTypeFlags::ValueInout => {
+                unsafe { return Ok((*self.raw).value.b) };
+            }
+            _ => {
+                return Err(Error::from_raw_error(raw::TEE_ERROR_BAD_PARAMETERS));
+            }
+        }
+    }
+
+    pub fn set_value_b(&mut self, value: u32) -> Result<()> {
+        match self.param_type {
+            ParamTypeFlags::ValueOutput | ParamTypeFlags::ValueInout => {
+                unsafe { (*self.raw).value.b = value };
+                Ok(())
+            }
+            _ => {
+                return Err(Error::from_raw_error(raw::TEE_ERROR_BAD_PARAMETERS));
+            }
+        }
+    }
+
+    //Todo: diffrentiate memref types when get the reference
+    pub fn get_memref_ptr(&mut self) -> std::result::Result<*mut c_void, Error> {
+        match self.param_type {
+            ParamTypeFlags::MemrefInput
+            | ParamTypeFlags::MemrefOutput
+            | ParamTypeFlags::MemrefInout => {
+                unsafe { return Ok((*self.raw).memref.buffer) };
+            }
+            _ => {
+                return Err(Error::from_raw_error(raw::TEE_ERROR_BAD_PARAMETERS));
+            }
+        }
+    }
+
+    pub fn get_memref_size(&mut self) -> std::result::Result<u32, Error> {
+        match self.param_type {
+            ParamTypeFlags::MemrefInput
+            | ParamTypeFlags::MemrefOutput
+            | ParamTypeFlags::MemrefInout => {
+                unsafe { return Ok((*self.raw).memref.size) };
+            }
+            _ => {
+                return Err(Error::from_raw_error(raw::TEE_ERROR_BAD_PARAMETERS));
+            }
+        }
+    }
 }
 
 #[derive(Copy, Clone, PartialEq)]
@@ -89,8 +137,8 @@ pub enum ParamTypeFlags {
     MemrefInout = 7,
 }
 
-impl ParamTypeFlags {
-    pub fn map_back(value: u32) -> Self {
+impl From<u32> for ParamTypeFlags {
+    fn from(value: u32) -> Self {
         return match value {
             0 => ParamTypeFlags::None,
             1 => ParamTypeFlags::ValueInput,
@@ -101,32 +149,5 @@ impl ParamTypeFlags {
             7 => ParamTypeFlags::MemrefInout,
             _ => ParamTypeFlags::None,
         };
-    }
-}
-
-pub struct ParamTypes(u32);
-
-impl ParamTypes {
-    pub fn new(
-        p0: ParamTypeFlags,
-        p1: ParamTypeFlags,
-        p2: ParamTypeFlags,
-        p3: ParamTypeFlags,
-    ) -> Self {
-        ParamTypes((p0 as u32) | (p1 as u32) << 4 | (p2 as u32) << 8 | (p3 as u32) << 12)
-    }
-}
-
-impl From<[u32; 4]> for ParamTypes {
-    fn from(param_types: [u32; 4]) -> Self {
-        ParamTypes(
-            param_types[0] | param_types[1] << 4 | param_types[2] << 8 | param_types[3] << 12,
-        )
-    }
-}
-
-impl From<ParamTypes> for u32 {
-    fn from(a: ParamTypes) -> u32 {
-        a.0
     }
 }

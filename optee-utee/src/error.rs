@@ -27,7 +27,7 @@ pub enum ErrorCode {
     NotImplemented = 0xFFFF0009,
     NotSupported = 0xFFFF000A,
     NoData = 0xFFFF000B,
-    OutOfMEmory = 0xFFFF000C,
+    OutOfMemory = 0xFFFF000C,
     Busy = 0xFFFF000D,
     Communication = 0xFFFF000E,
     Security = 0xFFFF000F,
@@ -66,7 +66,7 @@ impl ErrorCode {
                 "The requested operation is valid but is not supported in this implementation."
             }
             ErrorCode::NoData => "Expected data was missing.",
-            ErrorCode::OutOfMEmory => "System ran out of resources.",
+            ErrorCode::OutOfMemory => "System ran out of resources.",
             ErrorCode::Busy => "The system is busy working on something else.",
             ErrorCode::Communication => "Communication with a remote party failed.",
             ErrorCode::Security => "A security fault was detected.",
@@ -107,7 +107,7 @@ impl Error {
             raw::TEE_ERROR_NOT_IMPLEMENTED => ErrorCode::NotImplemented,
             raw::TEE_ERROR_NOT_SUPPORTED => ErrorCode::NotSupported,
             raw::TEE_ERROR_NO_DATA => ErrorCode::NoData,
-            raw::TEE_ERROR_OUT_OF_MEMORY => ErrorCode::OutOfMEmory,
+            raw::TEE_ERROR_OUT_OF_MEMORY => ErrorCode::OutOfMemory,
             raw::TEE_ERROR_BUSY => ErrorCode::Busy,
             raw::TEE_ERROR_COMMUNICATION => ErrorCode::Communication,
             raw::TEE_ERROR_SECURITY => ErrorCode::Security,
