@@ -1,0 +1,12 @@
+[package]
+name = "optee-utee-macros"
+version = "0.1.0"
+authors = ["Mingshen Sun <mssun@mesalock-linux.org>"]
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "0.6"
+syn = { version = "0.15", features = ["full"] }
