@@ -83,56 +83,50 @@ pub struct aes_cipher {
     pub key_handle: TEE_ObjectHandle,
 }
 
-pub fn ta2tee_algo_id(param: uint32_t, sess: *mut aes_cipher) -> Result<()> {
-    unsafe {
-        match param {
-            TA_AES_ALGO_ECB => {
-                (*sess).algo = TEE_ALG_AES_ECB_NOPAD;
-                return Ok(());
-            }
-            TA_AES_ALGO_CBC => {
-                (*sess).algo = TEE_ALG_AES_CBC_NOPAD;
-                return Ok(());
-            }
-            TA_AES_ALGO_CTR => {
-                (*sess).algo = TEE_ALG_AES_CTR;
-                return Ok(());
-            }
-            _ => {
-                return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
-            }
+pub fn ta2tee_algo_id(param: uint32_t, aes: &mut aes_cipher) -> Result<()> {
+    match param {
+        TA_AES_ALGO_ECB => {
+            aes.algo = TEE_ALG_AES_ECB_NOPAD;
+            return Ok(());
+        }
+        TA_AES_ALGO_CBC => {
+            aes.algo = TEE_ALG_AES_CBC_NOPAD;
+            return Ok(());
+        }
+        TA_AES_ALGO_CTR => {
+            aes.algo = TEE_ALG_AES_CTR;
+            return Ok(());
+        }
+        _ => {
+            return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
         }
     }
 }
 
-pub fn ta2tee_key_size(param: uint32_t, sess: *mut aes_cipher) -> Result<()> {
-    unsafe {
-        match param {
-            AES128_KEY_BYTE_SIZE | AES256_KEY_BYTE_SIZE => {
-                (*sess).key_size = param;
-                return Ok(());
-            }
-            _ => {
-                return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
-            }
+pub fn ta2tee_key_size(param: uint32_t, aes: &mut aes_cipher) -> Result<()> {
+    match param {
+        AES128_KEY_BYTE_SIZE | AES256_KEY_BYTE_SIZE => {
+            aes.key_size = param;
+            return Ok(());
+        }
+        _ => {
+            return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
         }
     }
 }
 
-pub fn ta2tee_mode_id(param: uint32_t, sess: *mut aes_cipher) -> Result<()> {
-    unsafe {
-        match param {
-            TA_AES_MODE_ENCODE => {
-                (*sess).mode = TEE_OperationMode::TEE_MODE_ENCRYPT as uint32_t;
-                return Ok(());
-            }
-            TA_AES_MODE_DECODE => {
-                (*sess).mode = TEE_OperationMode::TEE_MODE_DECRYPT as uint32_t;
-                return Ok(());
-            }
-            _ => {
-                return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
-            }
+pub fn ta2tee_mode_id(param: uint32_t, aes: &mut aes_cipher) -> Result<()> {
+    match param {
+        TA_AES_MODE_ENCODE => {
+            aes.mode = TEE_OperationMode::TEE_MODE_ENCRYPT as uint32_t;
+            return Ok(());
+        }
+        TA_AES_MODE_DECODE => {
+            aes.mode = TEE_OperationMode::TEE_MODE_DECRYPT as uint32_t;
+            return Ok(());
+        }
+        _ => {
+            return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
         }
     }
 }
@@ -144,9 +138,9 @@ pub fn alloc_resources(sess_ctx: *mut c_void, params: &mut Parameters) -> Result
         let key_size_value = params.param_1.get_value_a()?;
         let mode_id_value = params.param_2.get_value_a()?;
 
-        ta2tee_algo_id(algo_value, sess)?;
-        ta2tee_key_size(key_size_value, sess)?;
-        ta2tee_mode_id(mode_id_value, sess)?;
+        ta2tee_algo_id(algo_value, &mut *sess)?;
+        ta2tee_key_size(key_size_value, &mut *sess)?;
+        ta2tee_mode_id(mode_id_value, &mut *sess)?;
 
         if (*sess).op_handle != TEE_HANDLE_NULL as *mut _ {
             TEE_FreeOperation((*sess).op_handle);
