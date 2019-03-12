@@ -52,6 +52,12 @@ At last, you can get started with our examples.
 $ make examples
 ```
 
+## Contributing
+
+The project is maintained by Mingshen Sun (@mssun) and Shengye Wan (@SimonWan),
+under the supervision of steering committee (Tai Wei and Yulong Zhang).
+Contributions are very welcome.
+
 ## License
 
 Rust OP-TEE TrustZone SDK is distributed under the BSD 3-Clause license. See
