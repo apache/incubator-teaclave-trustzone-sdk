@@ -94,7 +94,7 @@ impl Error {
         Error { code }
     }
 
-    pub fn code(&self) -> ErrorKind {
+    pub fn kind(&self) -> ErrorKind {
         match self.code as libc::uint32_t {
             raw::TEE_ERROR_CORRUPT_OBJECT => ErrorKind::CorruptObject,
             raw::TEE_ERROR_CORRUPT_OBJECT_2 => ErrorKind::CorruptObject2,
@@ -134,7 +134,7 @@ impl Error {
     }
 
     pub fn message(&self) -> &str {
-        self.code().as_str()
+        self.kind().as_str()
     }
 }
 
