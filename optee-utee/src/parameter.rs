@@ -106,7 +106,7 @@ impl Parameter {
     }
 }
 
-#[derive(Copy, Clone, PartialEq)]
+#[derive(Copy, Clone)]
 pub enum ParamTypeFlags {
     None = 0,
     ValueInput = 1,

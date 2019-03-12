@@ -1,13 +1,13 @@
 #![no_main]
 
 use optee_utee::{
-    ta_close_session, ta_create, ta_destory, ta_invoke_command, ta_open_session, trace_println,
+    ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 
 #[ta_create]
 fn create() -> Result<()> {
-    trace_println!("[+] TA crate");
+    trace_println!("[+] TA create");
     Ok(())
 }
 
@@ -22,9 +22,9 @@ fn close_session(_sess_ctx: *mut *mut libc::c_void) {
     trace_println!("[+] TA close session");
 }
 
-#[ta_destory]
+#[ta_destroy]
 fn destroy() {
-    trace_println!("[+] TA destory");
+    trace_println!("[+] TA destroy");
 }
 
 #[ta_invoke_command]

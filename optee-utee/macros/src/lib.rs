@@ -30,11 +30,11 @@ pub fn ta_create(_args: TokenStream, input: TokenStream) -> TokenStream {
 
 /// # Examples
 /// ``` no_run
-/// #[ta_destory]
-/// fn ta_destory() { }
+/// #[ta_destroy]
+/// fn ta_destroy() { }
 /// ```
 #[proc_macro_attribute]
-pub fn ta_destory(_args: TokenStream, input: TokenStream) -> TokenStream {
+pub fn ta_destroy(_args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as syn::ItemFn);
     let ident = &f.ident;
 
