@@ -8,10 +8,11 @@ SIGN := $(OPTEE_DIR)/optee_os/out/arm/export-ta_arm64/scripts/sign.py
 all: ta sign
 
 ta:
-	xargo rustc --target aarch64-unknown-optee-trustzone -vv -- -Z print-link-args
+	@xargo build --target aarch64-unknown-optee-trustzone
 
 sign:
-	$(SIGN) --uuid $(UUID) --key $(TA_SIGN_KEY) --in $(OUT_DIR)/ta --out $(OUT_DIR)/$(UUID).ta
+	@$(SIGN) --uuid $(UUID) --key $(TA_SIGN_KEY) --in $(OUT_DIR)/ta --out $(OUT_DIR)/$(UUID).ta
+	@echo "SIGN =>  ${UUID}"
 
 clean:
-	xargo clean
+	@xargo clean

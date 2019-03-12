@@ -1,56 +1,64 @@
 #![no_main]
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
 
-use libc::{c_int, c_ulong, c_void, size_t, uint32_t};
-use optee_utee;
-use optee_utee::{trace_println, Error, Parameters, Result};
-use optee_utee_sys::*;
-use std::{mem, str};
+use optee_utee::{
+    ta_close_session, ta_create, ta_destory, ta_invoke_command, ta_open_session, trace_println,
+};
+use optee_utee::{Error, ErrorKind, Parameters, Result};
 
-fn MESA_CreateEntryPoint() -> Result<()> {
+#[ta_create]
+fn create() -> Result<()> {
+    trace_println!("[+] TA crate");
     Ok(())
 }
 
-fn MESA_OpenSessionEntryPoint(_params: &mut Parameters, _sess_ctx: *mut *mut c_void) -> Result<()> {
+#[ta_open_session]
+fn open_session(_params: &mut Parameters, _sess_ctx: *mut *mut libc::c_void) -> Result<()> {
+    trace_println!("[+] TA open session");
     Ok(())
 }
 
-fn MESA_CloseSessionEntryPoint(_sess_ctx: *mut *mut c_void) -> Result<()> {
-    Ok(())
+#[ta_close_session]
+fn close_session(_sess_ctx: *mut *mut libc::c_void) {
+    trace_println!("[+] TA close session");
 }
 
-fn MESA_DestroyEntryPoint() -> Result<()> {
-    Ok(())
+#[ta_destory]
+fn destroy() {
+    trace_println!("[+] TA destory");
 }
 
-fn MESA_InvokeCommandEntryPoint(
-    _sess_ctx: *mut c_void,
+#[ta_invoke_command]
+fn invoke_command(
+    _sess_ctx: *mut libc::c_void,
     cmd_id: u32,
     params: &mut Parameters,
 ) -> Result<()> {
+    trace_println!("[+] TA invoke command");
     match cmd_id {
         TA_HELLO_WORLD_CMD_INC_VALUE => {
             let ori_value = params.param_0.get_value_a()?;
-            params.param_0.set_value_a(ori_value+100)?;
-        },
+            params.param_0.set_value_a(ori_value + 100)?;
+            Ok(())
+        }
         TA_HELLO_WORLD_CMD_DEC_VALUE => {
             let ori_value = params.param_0.get_value_a()?;
-            params.param_0.set_value_a(ori_value-100)?;
-        },
-        _ => {
-            return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
+            params.param_0.set_value_a(ori_value - 100)?;
+            Ok(())
         }
+        _ => Err(Error::new(ErrorKind::BadParameters)),
     }
-    Ok(())
 }
 
-const ta_name: &str = "Hello World";
-
-const TA_FLAGS: uint32_t = 0;
-const TA_STACK_SIZE: uint32_t = 2 * 1024;
-const TA_DATA_SIZE: uint32_t = 32 * 1024;
+// TA configurations
+const TA_FLAGS: libc::uint32_t = 0;
+const TA_DATA_SIZE: libc::uint32_t = 32 * 1024;
+const TA_STACK_SIZE: libc::uint32_t = 2 * 1024;
+const TA_VERSION: &[u8] = b"0.1\0";
+const TA_DESCRIPTION: &[u8] = b"This is an hello world example.\0";
 const EXT_PROP_VALUE_1: &[u8] = b"Hello World TA\0";
-const EXT_PROP_VALUE_2: uint32_t = 0x0010;
+const EXT_PROP_VALUE_2: libc::uint32_t = 0x0010;
+const TRACE_LEVEL: libc::c_int = 4;
+const TRACE_EXT_PREFIX: &[u8] = b"TA\0";
+const TA_FRAMEWORK_STACK_SIZE: libc::uint32_t = 2048;
+
 include!(concat!(env!("OUT_DIR"), "/user_ta_header.rs"));
