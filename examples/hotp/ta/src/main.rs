@@ -25,13 +25,7 @@ fn MESA_CreateEntryPoint() -> Result<()> {
     Ok(())
 }
 
-fn MESA_OpenSessionEntryPoint(params: &mut Parameters, _sess_ctx: *mut *mut c_void) -> Result<()> {
-    params.check_type(
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-    )?;
+fn MESA_OpenSessionEntryPoint(_params: &mut Parameters, _sess_ctx: *mut *mut c_void) -> Result<()> {
     Ok(())
 }
 
@@ -62,13 +56,6 @@ fn MESA_InvokeCommandEntryPoint(
 }
 
 pub fn register_shared_key(params: &mut Parameters) -> Result<()> {
-    params.check_type(
-        ParamTypeFlags::MemrefInput,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-    )?;
-
     unsafe {
         K_LEN = (*params.param_0.raw).memref.size;
         let tmp: *mut [u8; MAX_KEY_SIZE as usize] = (*params.param_0.raw).memref.buffer as *mut _;
@@ -81,13 +68,6 @@ pub fn register_shared_key(params: &mut Parameters) -> Result<()> {
 }
 
 pub fn get_hotp(params: &mut Parameters) -> Result<()> {
-    params.check_type(
-        ParamTypeFlags::ValueOutput,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-    )?;
-
     let mut mac: [u8; SHA1_HASH_SIZE as usize] = [0x0; SHA1_HASH_SIZE as usize];
     let mut mac_len: u32 = SHA1_HASH_SIZE;
     let mut hotp_val: u32 = 0;

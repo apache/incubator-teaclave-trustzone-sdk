@@ -41,13 +41,6 @@ fn MESA_InvokeCommandEntryPoint(
 }
 
 pub fn random_number_generate(params: &mut Parameters) -> Result<()> {
-    params.check_type(
-        ParamTypeFlags::MemrefOutput,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-    )?;
-
     unsafe {
         TEE_GenerateRandom(
             (*params.param_0.raw).memref.buffer,

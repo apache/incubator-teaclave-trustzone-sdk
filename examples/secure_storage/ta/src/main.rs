@@ -47,13 +47,6 @@ fn MESA_InvokeCommandEntryPoint(
 }
 
 pub fn delete_object(params: &mut Parameters) -> Result<()> {
-    params.check_type(
-        ParamTypeFlags::MemrefInput,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-    )?;
-
     unsafe {
         let obj_id_sz: uint32_t = (*params.param_0.raw).memref.size;
         let obj_id: *mut c_void = TEE_Malloc(obj_id_sz, 0);
@@ -78,13 +71,6 @@ pub fn delete_object(params: &mut Parameters) -> Result<()> {
 }
 
 pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
-    params.check_type(
-        ParamTypeFlags::MemrefInput,
-        ParamTypeFlags::MemrefInput,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-    )?;
-
     unsafe {
         let obj_id_sz: uint32_t = (*params.param_0.raw).memref.size;
         let obj_id: *mut c_void = TEE_Malloc(obj_id_sz, 0);
@@ -128,13 +114,6 @@ pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
 }
 
 pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
-    params.check_type(
-        ParamTypeFlags::MemrefInput,
-        ParamTypeFlags::MemrefOutput,
-        ParamTypeFlags::None,
-        ParamTypeFlags::None,
-    )?;
-
     unsafe {
         let obj_id_sz: uint32_t = (*params.param_0.raw).memref.size;
         let obj_id: *mut c_void = TEE_Malloc(obj_id_sz, 0);
