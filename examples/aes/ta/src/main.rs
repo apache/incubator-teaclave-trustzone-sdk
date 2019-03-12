@@ -25,7 +25,7 @@ fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut c_void) -> Result<
         let sess: *mut aes_cipher =
             TEE_Malloc(mem::size_of::<aes_cipher>() as u32, 0) as *mut aes_cipher;
         if sess.is_null() {
-            return Err(Error::from_raw_error(TEE_ERROR_OUT_OF_MEMORY));
+            return Err(Error::new(ErrorKind::OutOfMemory));
         }
         (*sess).key_handle = TEE_HANDLE_NULL as *mut _;
         (*sess).op_handle = TEE_HANDLE_NULL as *mut _;
@@ -244,7 +244,7 @@ pub fn set_aes_key(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<()>
 
         if key_sz != (*sess).key_size {
             trace_println!("[+] Get wrong key size !\n");
-            return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
+            return Err(Error::new(ErrorKind::BadParameters));
         }
 
         TEE_InitRefAttribute(&mut attr, TEE_ATTR_SECRET_VALUE, key, key_sz);
@@ -282,11 +282,11 @@ pub fn cipher_buffer(sess_ctx: *mut c_void, params: &mut Parameters) -> Result<(
 
         let sess: *mut aes_cipher = sess_ctx as *mut aes_cipher;
         if output_size < input_size {
-            return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
+            return Err(Error::new(ErrorKind::BadParameters));
         }
 
         if (*sess).op_handle == TEE_HANDLE_NULL as *mut _ {
-            return Err(Error::from_raw_error(TEE_ERROR_BAD_STATE));
+            return Err(Error::new(ErrorKind::BadState));
         }
         trace_println!("[+] TA tries to update ciphers!");
 
