@@ -1,4 +1,4 @@
-use crate::{Error, Result};
+use crate::{Error, ErrorKind, Result};
 use libc::c_void;
 use optee_utee_sys as raw;
 
@@ -46,7 +46,7 @@ impl Parameter {
                 let value = unsafe { (*self.raw).value.a };
                 Ok(value)
             }
-            _ => Err(Error::from_raw_error(raw::TEE_ERROR_BAD_PARAMETERS)),
+            _ => Err(Error::new(ErrorKind::BadParameters)),
         }
     }
 
@@ -56,7 +56,7 @@ impl Parameter {
                 unsafe { (*self.raw).value.a = value };
                 Ok(())
             }
-            _ => Err(Error::from_raw_error(raw::TEE_ERROR_BAD_PARAMETERS)),
+            _ => Err(Error::new(ErrorKind::BadParameters)),
         }
     }
 
@@ -66,7 +66,7 @@ impl Parameter {
                 let value = unsafe { (*self.raw).value.b };
                 Ok(value)
             }
-            _ => Err(Error::from_raw_error(raw::TEE_ERROR_BAD_PARAMETERS)),
+            _ => Err(Error::new(ErrorKind::BadParameters)),
         }
     }
 
@@ -76,7 +76,7 @@ impl Parameter {
                 unsafe { (*self.raw).value.b = value };
                 Ok(())
             }
-            _ => Err(Error::from_raw_error(raw::TEE_ERROR_BAD_PARAMETERS)),
+            _ => Err(Error::new(ErrorKind::BadParameters)),
         }
     }
 
@@ -89,7 +89,7 @@ impl Parameter {
                 let buffer = unsafe { (*self.raw).memref.buffer };
                 Ok(buffer)
             }
-            _ => Err(Error::from_raw_error(raw::TEE_ERROR_BAD_PARAMETERS)),
+            _ => Err(Error::new(ErrorKind::BadParameters)),
         }
     }
 
@@ -101,7 +101,7 @@ impl Parameter {
                 let size = unsafe { (*self.raw).memref.size };
                 Ok(size)
             }
-            _ => Err(Error::from_raw_error(raw::TEE_ERROR_BAD_PARAMETERS)),
+            _ => Err(Error::new(ErrorKind::BadParameters)),
         }
     }
 }

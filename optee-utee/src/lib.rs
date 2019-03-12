@@ -1,4 +1,4 @@
-pub use error::{Error, Result};
+pub use error::{Error, ErrorKind, Result};
 pub use parameter::{ParamTypeFlags, Parameters};
 pub use trace::Trace;
 

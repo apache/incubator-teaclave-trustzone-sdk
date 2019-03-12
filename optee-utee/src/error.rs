@@ -1,5 +1,6 @@
 use libc;
 use optee_utee_sys as raw;
+use std::convert::From;
 use std::fmt;
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -10,7 +11,7 @@ pub struct Error {
 }
 
 #[derive(PartialEq, Eq, Clone, Debug, Copy)]
-pub enum ErrorCode {
+pub enum ErrorKind {
     CorruptObject = 0xF0100001,
     CorruptObject2 = 0xF0100002,
     StorageNotAvailable = 0xF0100003,
@@ -43,84 +44,88 @@ pub enum ErrorCode {
     Unknown,
 }
 
-impl ErrorCode {
+impl ErrorKind {
     pub fn as_str(&self) -> &'static str {
         match *self {
-            ErrorCode::CorruptObject => "Object corruption.",
-            ErrorCode::CorruptObject2 => "Persistent object corruption.",
-            ErrorCode::StorageNotAvailable => "Object storage is not available.",
-            ErrorCode::StorageNotAvailable2 => "Persistent object storage is not available.",
-            ErrorCode::Generic => "Non-specific cause.",
-            ErrorCode::AccessDenied => "Access privileges are not sufficient.",
-            ErrorCode::Cancel => "The operation was canceled.",
-            ErrorCode::AccessConflict => "Concurrent accesses caused conflict.",
-            ErrorCode::ExcessData => "Too much data for the requested operation was passed.",
-            ErrorCode::BadFormat => "Input data was of invalid format.",
-            ErrorCode::BadParameters => "Input parameters were invalid.",
-            ErrorCode::BadState => "Operation is not valid in the current state.",
-            ErrorCode::ItemNotFound => "The requested data item is not found.",
-            ErrorCode::NotImplemented => {
+            ErrorKind::CorruptObject => "Object corruption.",
+            ErrorKind::CorruptObject2 => "Persistent object corruption.",
+            ErrorKind::StorageNotAvailable => "Object storage is not available.",
+            ErrorKind::StorageNotAvailable2 => "Persistent object storage is not available.",
+            ErrorKind::Generic => "Non-specific cause.",
+            ErrorKind::AccessDenied => "Access privileges are not sufficient.",
+            ErrorKind::Cancel => "The operation was canceled.",
+            ErrorKind::AccessConflict => "Concurrent accesses caused conflict.",
+            ErrorKind::ExcessData => "Too much data for the requested operation was passed.",
+            ErrorKind::BadFormat => "Input data was of invalid format.",
+            ErrorKind::BadParameters => "Input parameters were invalid.",
+            ErrorKind::BadState => "Operation is not valid in the current state.",
+            ErrorKind::ItemNotFound => "The requested data item is not found.",
+            ErrorKind::NotImplemented => {
                 "The requested operation should exist but is not yet implemented."
             }
-            ErrorCode::NotSupported => {
+            ErrorKind::NotSupported => {
                 "The requested operation is valid but is not supported in this implementation."
             }
-            ErrorCode::NoData => "Expected data was missing.",
-            ErrorCode::OutOfMemory => "System ran out of resources.",
-            ErrorCode::Busy => "The system is busy working on something else.",
-            ErrorCode::Communication => "Communication with a remote party failed.",
-            ErrorCode::Security => "A security fault was detected.",
-            ErrorCode::ShortBuffer => "The supplied buffer is too short for the generated output.",
-            ErrorCode::ExternalCancel => "Undocumented.",
-            ErrorCode::Overflow => "Data overflow",
-            ErrorCode::TargetDead => "Trusted Application has panicked during the operation.",
-            ErrorCode::StorageNoSpace => "Storage no space",
-            ErrorCode::MacInvalid => "Mac is invalid.",
-            ErrorCode::SignatureInvalid => "Signature is invalid.",
-            ErrorCode::TimeNotSet => "Time is not set.",
-            ErrorCode::TimeNeedsReset => "Time needs to be reset.",
-            ErrorCode::Unknown => "Unknown error.",
+            ErrorKind::NoData => "Expected data was missing.",
+            ErrorKind::OutOfMemory => "System ran out of resources.",
+            ErrorKind::Busy => "The system is busy working on something else.",
+            ErrorKind::Communication => "Communication with a remote party failed.",
+            ErrorKind::Security => "A security fault was detected.",
+            ErrorKind::ShortBuffer => "The supplied buffer is too short for the generated output.",
+            ErrorKind::ExternalCancel => "Undocumented.",
+            ErrorKind::Overflow => "Data overflow",
+            ErrorKind::TargetDead => "Trusted Application has panicked during the operation.",
+            ErrorKind::StorageNoSpace => "Storage no space",
+            ErrorKind::MacInvalid => "Mac is invalid.",
+            ErrorKind::SignatureInvalid => "Signature is invalid.",
+            ErrorKind::TimeNotSet => "Time is not set.",
+            ErrorKind::TimeNeedsReset => "Time needs to be reset.",
+            ErrorKind::Unknown => "Unknown error.",
         }
     }
 }
 
 impl Error {
+    pub fn new(kind: ErrorKind) -> Error {
+        Error { code: kind as u32 }
+    }
+
     pub fn from_raw_error(code: u32) -> Error {
         Error { code }
     }
 
-    pub fn code(&self) -> ErrorCode {
+    pub fn code(&self) -> ErrorKind {
         match self.code as libc::uint32_t {
-            raw::TEE_ERROR_CORRUPT_OBJECT => ErrorCode::CorruptObject,
-            raw::TEE_ERROR_CORRUPT_OBJECT_2 => ErrorCode::CorruptObject2,
-            raw::TEE_ERROR_STORAGE_NOT_AVAILABLE => ErrorCode::StorageNotAvailable,
-            raw::TEE_ERROR_STORAGE_NOT_AVAILABLE_2 => ErrorCode::StorageNotAvailable2,
-            raw::TEE_ERROR_GENERIC => ErrorCode::Generic,
-            raw::TEE_ERROR_ACCESS_DENIED => ErrorCode::AccessDenied,
-            raw::TEE_ERROR_CANCEL => ErrorCode::Cancel,
-            raw::TEE_ERROR_ACCESS_CONFLICT => ErrorCode::AccessConflict,
-            raw::TEE_ERROR_EXCESS_DATA => ErrorCode::ExcessData,
-            raw::TEE_ERROR_BAD_FORMAT => ErrorCode::BadFormat,
-            raw::TEE_ERROR_BAD_PARAMETERS => ErrorCode::BadParameters,
-            raw::TEE_ERROR_BAD_STATE => ErrorCode::BadState,
-            raw::TEE_ERROR_ITEM_NOT_FOUND => ErrorCode::ItemNotFound,
-            raw::TEE_ERROR_NOT_IMPLEMENTED => ErrorCode::NotImplemented,
-            raw::TEE_ERROR_NOT_SUPPORTED => ErrorCode::NotSupported,
-            raw::TEE_ERROR_NO_DATA => ErrorCode::NoData,
-            raw::TEE_ERROR_OUT_OF_MEMORY => ErrorCode::OutOfMemory,
-            raw::TEE_ERROR_BUSY => ErrorCode::Busy,
-            raw::TEE_ERROR_COMMUNICATION => ErrorCode::Communication,
-            raw::TEE_ERROR_SECURITY => ErrorCode::Security,
-            raw::TEE_ERROR_SHORT_BUFFER => ErrorCode::ShortBuffer,
-            raw::TEE_ERROR_EXTERNAL_CANCEL => ErrorCode::ExternalCancel,
-            raw::TEE_ERROR_OVERFLOW => ErrorCode::Overflow,
-            raw::TEE_ERROR_TARGET_DEAD => ErrorCode::TargetDead,
-            raw::TEE_ERROR_STORAGE_NO_SPACE => ErrorCode::StorageNoSpace,
-            raw::TEE_ERROR_MAC_INVALID => ErrorCode::MacInvalid,
-            raw::TEE_ERROR_SIGNATURE_INVALID => ErrorCode::SignatureInvalid,
-            raw::TEE_ERROR_TIME_NOT_SET => ErrorCode::TimeNotSet,
-            raw::TEE_ERROR_TIME_NEEDS_RESET => ErrorCode::TimeNeedsReset,
-            _ => ErrorCode::Unknown,
+            raw::TEE_ERROR_CORRUPT_OBJECT => ErrorKind::CorruptObject,
+            raw::TEE_ERROR_CORRUPT_OBJECT_2 => ErrorKind::CorruptObject2,
+            raw::TEE_ERROR_STORAGE_NOT_AVAILABLE => ErrorKind::StorageNotAvailable,
+            raw::TEE_ERROR_STORAGE_NOT_AVAILABLE_2 => ErrorKind::StorageNotAvailable2,
+            raw::TEE_ERROR_GENERIC => ErrorKind::Generic,
+            raw::TEE_ERROR_ACCESS_DENIED => ErrorKind::AccessDenied,
+            raw::TEE_ERROR_CANCEL => ErrorKind::Cancel,
+            raw::TEE_ERROR_ACCESS_CONFLICT => ErrorKind::AccessConflict,
+            raw::TEE_ERROR_EXCESS_DATA => ErrorKind::ExcessData,
+            raw::TEE_ERROR_BAD_FORMAT => ErrorKind::BadFormat,
+            raw::TEE_ERROR_BAD_PARAMETERS => ErrorKind::BadParameters,
+            raw::TEE_ERROR_BAD_STATE => ErrorKind::BadState,
+            raw::TEE_ERROR_ITEM_NOT_FOUND => ErrorKind::ItemNotFound,
+            raw::TEE_ERROR_NOT_IMPLEMENTED => ErrorKind::NotImplemented,
+            raw::TEE_ERROR_NOT_SUPPORTED => ErrorKind::NotSupported,
+            raw::TEE_ERROR_NO_DATA => ErrorKind::NoData,
+            raw::TEE_ERROR_OUT_OF_MEMORY => ErrorKind::OutOfMemory,
+            raw::TEE_ERROR_BUSY => ErrorKind::Busy,
+            raw::TEE_ERROR_COMMUNICATION => ErrorKind::Communication,
+            raw::TEE_ERROR_SECURITY => ErrorKind::Security,
+            raw::TEE_ERROR_SHORT_BUFFER => ErrorKind::ShortBuffer,
+            raw::TEE_ERROR_EXTERNAL_CANCEL => ErrorKind::ExternalCancel,
+            raw::TEE_ERROR_OVERFLOW => ErrorKind::Overflow,
+            raw::TEE_ERROR_TARGET_DEAD => ErrorKind::TargetDead,
+            raw::TEE_ERROR_STORAGE_NO_SPACE => ErrorKind::StorageNoSpace,
+            raw::TEE_ERROR_MAC_INVALID => ErrorKind::MacInvalid,
+            raw::TEE_ERROR_SIGNATURE_INVALID => ErrorKind::SignatureInvalid,
+            raw::TEE_ERROR_TIME_NOT_SET => ErrorKind::TimeNotSet,
+            raw::TEE_ERROR_TIME_NEEDS_RESET => ErrorKind::TimeNeedsReset,
+            _ => ErrorKind::Unknown,
         }
     }
 
@@ -142,5 +147,12 @@ impl std::error::Error for Error {
 impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
         write!(fmt, "{}", self.message())
+    }
+}
+
+impl From<ErrorKind> for Error {
+    #[inline]
+    fn from(kind: ErrorKind) -> Error {
+        Error { code: kind as u32 }
     }
 }
