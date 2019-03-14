@@ -1,12 +1,14 @@
 pub use error::{Error, ErrorKind, Result};
+pub use optee_utee_macros::{
+    ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session,
+};
 pub use parameter::{ParamTypeFlags, Parameters};
-pub use trace::Trace;
 pub use session::Session;
-pub use optee_utee_macros::{ta_create,ta_destroy,ta_open_session,ta_close_session,ta_invoke_command};
+pub use trace::Trace;
 
 #[macro_use]
 mod macros;
 mod error;
 mod parameter;
-mod trace;
 mod session;
+mod trace;

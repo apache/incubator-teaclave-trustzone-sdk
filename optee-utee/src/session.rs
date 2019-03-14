@@ -9,16 +9,14 @@ pub struct Session {
 
 impl Session {
     pub fn new(ptr: *mut c_void) -> Self {
-        Self {
-            raw: ptr,
-        }
+        Self { raw: ptr }
     }
 
     //Session struct needs to be manually allocated in open session function
-    pub fn alloc(ptr: *mut *mut c_void, size: u32)  -> Result<Self> {
+    pub fn alloc(ptr: *mut *mut c_void, size: u32) -> Result<Self> {
         unsafe {
             *ptr = raw::TEE_Malloc(size, 0);
-        
+
             if (*ptr).is_null() {
                 return Err(Error::new(ErrorKind::OutOfMemory));
             } else {
@@ -28,11 +26,9 @@ impl Session {
     }
 
     pub fn validate(&mut self) -> Result<()> {
-        if self.raw.is_null()
-        {
+        if self.raw.is_null() {
             return Err(Error::new(ErrorKind::ItemNotFound));
-        }
-        else {
+        } else {
             Ok(())
         }
     }
