@@ -24,7 +24,8 @@ pub static ta_head: ta_head = ta_head {
 };
 
 #[no_mangle]
-pub static ta_heap: &[u8; TA_DATA_SIZE as usize] = &['\0' as u8; TA_DATA_SIZE as usize];
+#[link_section = ".bss"]
+pub static ta_heap: [u8; TA_DATA_SIZE as usize] = [0; TA_DATA_SIZE as usize];
 
 #[no_mangle]
 pub static ta_heap_size: size_t = mem::size_of::<u8>() * TA_DATA_SIZE as usize;

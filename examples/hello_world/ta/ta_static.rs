@@ -29,7 +29,8 @@ pub static ta_head: optee_utee_sys::ta_head = optee_utee_sys::ta_head {
 };
 
 #[no_mangle]
-pub static ta_heap: &[u8; TA_DATA_SIZE as usize] = &['\0' as u8; TA_DATA_SIZE as usize];
+#[link_section = ".bss"]
+pub static ta_heap: [u8; TA_DATA_SIZE as usize] = [0; TA_DATA_SIZE as usize];
 
 #[no_mangle]
 pub static ta_heap_size: libc::size_t = std::mem::size_of::<u8>() * TA_DATA_SIZE as usize;
