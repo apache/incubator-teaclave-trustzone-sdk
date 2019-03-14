@@ -5,7 +5,7 @@
 
 use libc::*;
 use optee_utee;
-use optee_utee::{trace_println, Error, ParamTypeFlags, Parameters, Result};
+use optee_utee::{trace_println, Error, Parameters, Result};
 use optee_utee_sys::*;
 use std::{mem, ptr, str};
 

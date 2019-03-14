@@ -81,7 +81,7 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
 /// # Examples
 /// ``` no_run
 /// #[ta_close_session]
-/// fn close_session(_sess_ctx: *mut *mut libc::c_void) { }
+/// fn close_session(_sess_ctx: &mut Session) { }
 /// ```
 #[proc_macro_attribute]
 pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
@@ -90,8 +90,9 @@ pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
 
     quote!(
         #[no_mangle]
-        pub extern "C" fn TA_CloseSessionEntryPoint(sess_ctx: *mut *mut libc::c_void) {
-            #ident(sess_ctx)
+        pub extern "C" fn TA_CloseSessionEntryPoint(sess_ctx: *mut libc::c_void) {
+            let mut sess = Session::new(sess_ctx);
+            #ident(&mut sess)
         }
 
         #f
@@ -102,7 +103,7 @@ pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
 /// # Examples
 /// ``` no_run
 /// #[ta_invoke_command]
-/// fn invoke_command(_sess_ctx: *mut libc::c_void, cmd_id: u32, params: &mut Parameters) -> Result<()> { }
+/// fn invoke_command(_sess_ctx: &mut Session, cmd_id: u32, params: &mut Parameters) -> Result<()> { }
 /// ```
 #[proc_macro_attribute]
 pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream {
@@ -118,7 +119,8 @@ pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream 
             params: &mut [optee_utee_sys::TEE_Param; 4],
         ) -> optee_utee_sys::TEE_Result {
             let mut parameters = Parameters::new(params, param_types);
-            match #ident(sess_ctx, cmd_id, &mut parameters) {
+            let mut sess = Session::new(sess_ctx);
+            match #ident(&mut sess, cmd_id, &mut parameters) {
                 Ok(_) => optee_utee_sys::TEE_SUCCESS,
                 Err(e) => e.raw_code()
             }
