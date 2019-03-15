@@ -4,7 +4,10 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse_macro_input;
 
+/// Attribute to declare the entry point of creating TA.
+///
 /// # Examples
+///
 /// ``` no_run
 /// #[ta_crate]
 /// fn ta_crate() -> Result<()> { }
@@ -28,7 +31,10 @@ pub fn ta_create(_args: TokenStream, input: TokenStream) -> TokenStream {
     .into()
 }
 
+/// Attribute to declare the entry point of destroying TA.
+///
 /// # Examples
+///
 /// ``` no_run
 /// #[ta_destroy]
 /// fn ta_destroy() { }
@@ -49,7 +55,12 @@ pub fn ta_destroy(_args: TokenStream, input: TokenStream) -> TokenStream {
     .into()
 }
 
+/// Attribute to declare the entry point of opening a session. Pointer to
+/// session context pointer (*mut *mut T) can be defined as an optional
+/// parameter.
+///
 /// # Examples
+///
 /// ``` no_run
 /// #[ta_open_session]
 /// fn open_session(params: &mut Parameters, sess_ctx: *mut *mut T) -> Result<()> { }
@@ -114,7 +125,11 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
     }
 }
 
+/// Attribute to declare the entry point of closing a session. Session context
+/// reference (`&mut T`) can be defined as an optional parameter.
+///
 /// # Examples
+///
 /// ``` no_run
 /// #[ta_close_session]
 /// fn close_session(sess_ctx: &mut T) { }
@@ -170,7 +185,11 @@ pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
     }
 }
 
+/// Attribute to declare the entry point of invoking commands. Session context
+/// reference (`&mut T`) can be defined as an optional parameter.
+///
 /// # Examples
+///
 /// ``` no_run
 /// #[ta_invoke_command]
 /// fn invoke_command(sess_ctx: &mut T, cmd_id: u32, params: &mut Parameters) -> Result<()> { }
