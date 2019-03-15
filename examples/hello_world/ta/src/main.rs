@@ -3,7 +3,7 @@
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
-use optee_utee::{Error, ErrorKind, Parameters, Session, Result};
+use optee_utee::{Error, ErrorKind, Parameters, Result};
 
 #[ta_create]
 fn create() -> Result<()> {
@@ -12,13 +12,13 @@ fn create() -> Result<()> {
 }
 
 #[ta_open_session]
-fn open_session(_params: &mut Parameters, _sess_ctx: *mut *mut libc::c_void) -> Result<()> {
+fn open_session(_params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA open session");
     Ok(())
 }
 
 #[ta_close_session]
-fn close_session(_sess_ctx: &mut Session) {
+fn close_session() {
     trace_println!("[+] TA close session");
 }
 
@@ -29,7 +29,6 @@ fn destroy() {
 
 #[ta_invoke_command]
 fn invoke_command(
-    _sess_ctx: &mut Session,
     cmd_id: u32,
     params: &mut Parameters,
 ) -> Result<()> {

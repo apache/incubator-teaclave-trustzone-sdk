@@ -1,13 +1,12 @@
 #![no_main]
 
-use libc::{c_char, c_int, c_void, uint32_t};
+use libc::{c_char, c_int, uint32_t};
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
-use optee_utee::{Error, ErrorKind, Parameters, Result, Session};
+use optee_utee::{Error, ErrorKind, Parameters, Result};
 use optee_utee_sys::*;
 use std::boxed::Box;
-use std::mem;
 
 pub const AES128_KEY_BIT_SIZE: u32 = 128;
 pub const AES128_KEY_BYTE_SIZE: u32 = AES128_KEY_BIT_SIZE / 8;
@@ -29,42 +28,30 @@ fn create() -> Result<()> {
 }
 
 #[ta_open_session]
-fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut c_void) -> Result<()> {
-    let mut ctx = Session::alloc(sess_ctx, mem::size_of::<AesCipher>() as u32)?;
-    ctx.validate()?;
-    let mut sess = unsafe { Box::from_raw(ctx.raw as *mut AesCipher) };
-
-    sess.key_handle = TEE_HANDLE_NULL as *mut _;
-    sess.op_handle = TEE_HANDLE_NULL as *mut _;
-
-    ctx.collect(Box::into_raw(sess) as *mut _);
+fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut AesCipher) -> Result<()> {
     trace_println!("[+] TA open session");
+    let ptr = Box::into_raw(Box::new(AesCipher {
+        algo: 0,
+        mode: 0,
+        key_size: 0,
+        op_handle: std::ptr::null_mut(),
+        key_handle: std::ptr::null_mut()
+    }));
+    unsafe { *sess_ctx = ptr; }
     Ok(())
 }
 
 #[ta_close_session]
-fn close_session(sess_ctx: &mut Session) {
-    match sess_ctx.validate() {
-        Err(_e) => {
-            return;
-        }
-        _ => {}
-    }
-
-    unsafe {
-        let aes = Box::from_raw(sess_ctx.raw as *mut AesCipher);
-
-        if aes.key_handle != TEE_HANDLE_NULL as *mut _ {
-            TEE_FreeTransientObject(aes.key_handle);
-        }
-        if aes.op_handle != TEE_HANDLE_NULL as *mut _ {
-            TEE_FreeOperation(aes.op_handle);
-        }
-
-        sess_ctx.collect(Box::into_raw(aes) as *mut _);
-        TEE_Free(sess_ctx.raw as *mut c_void);
-    }
+fn close_session(sess_ctx: &mut AesCipher) {
     trace_println!("[+] TA close session");
+    unsafe {
+        if sess_ctx.key_handle != TEE_HANDLE_NULL as *mut _ {
+            TEE_FreeTransientObject(sess_ctx.key_handle);
+        }
+        if sess_ctx.op_handle != TEE_HANDLE_NULL as *mut _ {
+            TEE_FreeOperation(sess_ctx.op_handle);
+        }
+    }
 }
 
 #[ta_destroy]
@@ -73,7 +60,8 @@ fn destroy() {
 }
 
 #[ta_invoke_command]
-fn invoke_command(sess_ctx: &mut Session, cmd_id: u32, params: &mut Parameters) -> Result<()> {
+fn invoke_command(sess_ctx: &mut AesCipher, cmd_id: u32, params: &mut Parameters) -> Result<()> {
+    trace_println!("[+] TA invoke command");
     match cmd_id {
         TA_AES_CMD_PREPARE => {
             return alloc_resources(sess_ctx, params);
@@ -141,17 +129,15 @@ pub fn ta2tee_mode_id(param: uint32_t, aes: &mut AesCipher) -> Result<()> {
     }
 }
 
-pub fn alloc_resources(sess_ctx: &mut Session, params: &mut Parameters) -> Result<()> {
-    sess_ctx.validate()?;
-    let mut aes = unsafe { Box::from_raw(sess_ctx.raw as *mut AesCipher) };
+pub fn alloc_resources(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
 
     let algo_value = params.param_0.get_value_a()?;
     let key_size_value = params.param_1.get_value_a()?;
     let mode_id_value = params.param_2.get_value_a()?;
 
-    ta2tee_algo_id(algo_value, &mut aes)?;
-    ta2tee_key_size(key_size_value, &mut aes)?;
-    ta2tee_mode_id(mode_id_value, &mut aes)?;
+    ta2tee_algo_id(algo_value, aes)?;
+    ta2tee_key_size(key_size_value, aes)?;
+    ta2tee_mode_id(mode_id_value, aes)?;
 
     if aes.op_handle != TEE_HANDLE_NULL as *mut _ {
         unsafe { TEE_FreeOperation(aes.op_handle) };
@@ -217,7 +203,6 @@ pub fn alloc_resources(sess_ctx: &mut Session, params: &mut Parameters) -> Resul
             trace_println!("[+] TA set operation key failed.");
             break 'correct_handle;
         }
-        sess_ctx.collect(Box::into_raw(aes) as *mut _);
         return Ok(());
     }
     trace_println!("[+] Error id is {}.", res);
@@ -231,14 +216,10 @@ pub fn alloc_resources(sess_ctx: &mut Session, params: &mut Parameters) -> Resul
     }
     aes.key_handle = TEE_HANDLE_NULL as *mut _;
 
-    sess_ctx.collect(Box::into_raw(aes) as *mut _);
     return Err(Error::from_raw_error(res));
 }
 
-pub fn set_aes_key(sess_ctx: &mut Session, params: &mut Parameters) -> Result<()> {
-    sess_ctx.validate()?;
-    let aes = unsafe { Box::from_raw(sess_ctx.raw as *mut AesCipher) };
-
+pub fn set_aes_key(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
     let mut attr = TEE_Attribute {
         attributeID: 0,
         content: content {
@@ -258,8 +239,6 @@ pub fn set_aes_key(sess_ctx: &mut Session, params: &mut Parameters) -> Result<()
     unsafe { TEE_ResetTransientObject(aes.key_handle) };
     let res = unsafe { TEE_PopulateTransientObject(aes.key_handle, &mut attr, 1) };
 
-    sess_ctx.collect(Box::into_raw(aes) as *mut _);
-
     if res != TEE_SUCCESS {
         trace_println!("[+] TA set key failed!");
         return Err(Error::from_raw_error(res));
@@ -269,10 +248,7 @@ pub fn set_aes_key(sess_ctx: &mut Session, params: &mut Parameters) -> Result<()
     }
 }
 
-pub fn reset_aes_iv(sess_ctx: &mut Session, params: &mut Parameters) -> Result<()> {
-    sess_ctx.validate()?;
-    let aes = unsafe { Box::from_raw(sess_ctx.raw as *mut AesCipher) };
-
+pub fn reset_aes_iv(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
     let iv = params.param_0.get_memref_ptr()?;
     let iv_sz = params.param_0.get_memref_size()?;
 
@@ -281,11 +257,10 @@ pub fn reset_aes_iv(sess_ctx: &mut Session, params: &mut Parameters) -> Result<(
     }
 
     trace_println!("[+] TA initial vectore reset done!");
-    sess_ctx.collect(Box::into_raw(aes) as *mut _);
     Ok(())
 }
 
-pub fn cipher_buffer(sess_ctx: &mut Session, params: &mut Parameters) -> Result<()> {
+pub fn cipher_buffer(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
     let input_ptr = params.param_0.get_memref_ptr()?;
     let output_ptr = params.param_1.get_memref_ptr()?;
     let input_size = params.param_0.get_memref_size()?;
@@ -295,13 +270,6 @@ pub fn cipher_buffer(sess_ctx: &mut Session, params: &mut Parameters) -> Result<
         return Err(Error::new(ErrorKind::BadParameters));
     }
 
-    sess_ctx.validate()?;
-    let aes = unsafe { Box::from_raw(sess_ctx.raw as *mut AesCipher) };
-
-    if aes.op_handle == TEE_HANDLE_NULL as *mut _ {
-        sess_ctx.collect(Box::into_raw(aes) as *mut _);
-        return Err(Error::new(ErrorKind::BadState));
-    }
     trace_println!("[+] TA tries to update ciphers!");
 
     let res = unsafe {
@@ -313,7 +281,6 @@ pub fn cipher_buffer(sess_ctx: &mut Session, params: &mut Parameters) -> Result<
             &mut output_size as *mut _,
         )
     };
-    sess_ctx.collect(Box::into_raw(aes) as *mut _);
     if res == TEE_SUCCESS {
         return Ok(());
     } else {
