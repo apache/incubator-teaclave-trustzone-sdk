@@ -1,15 +1,25 @@
-use libc;
 use optee_teec_sys as raw;
 use std::fmt;
 
+/// A specialized [`Result`](https://doc.rust-lang.org/std/result/enum.Result.html)
+/// type for TEE operations.
+///
+/// # Examples
+///
+/// ``` no_run
+/// fn main() -> optee_teec::Result<()> {
+///     let mut ctx = Context::new()?;
+/// }
+/// ````
 pub type Result<T> = std::result::Result<T, Error>;
 
-#[derive(Debug, PartialEq)]
 pub struct Error {
     code: u32,
 }
 
-#[derive(PartialEq, Eq, Clone, Debug, Copy)]
+/// A list specifying general categories of TEE client error and its
+/// corresponding code in OP-TEE client library.
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ErrorKind {
     Generic = 0xFFFF0000,
     AccessDenied = 0xFFFF0001,
@@ -65,12 +75,31 @@ impl ErrorKind {
 }
 
 impl Error {
+    /// Creates a new instance of an `Error` from a particular TEE error code.
+    ///
+    /// # Examples
+    ///
+    /// ``` no_run
+    /// use optee_teec;
+    ///
+    /// let error = optee_teec::Error::from_raw_error(0xFFFF000F);
+    /// assert_eq!(error.kind(), optee_teec::ErrorKind::Security);
+    /// ```
     pub fn from_raw_error(code: u32) -> Error {
         Error { code }
     }
 
+    /// Returns the corresponding `ErrorKind` for this error.
+    ///
+    /// # Examples
+    ///
+    /// ``` no_run
+    /// use optee_teec;
+    ///
+    /// let error = optee_teec::Error::new(optee_teec::ErrorKind::Security);
+    /// ```
     pub fn kind(&self) -> ErrorKind {
-        match self.code as libc::uint32_t {
+        match self.code {
             raw::TEEC_ERROR_GENERIC => ErrorKind::Generic,
             raw::TEEC_ERROR_ACCESS_DENIED => ErrorKind::AccessDenied,
             raw::TEEC_ERROR_CANCEL => ErrorKind::Cancel,
@@ -94,20 +123,30 @@ impl Error {
         }
     }
 
-    pub fn raw_code(&self) -> libc::uint32_t {
-        self.code as libc::uint32_t
+    pub fn raw_code(&self) -> u32 {
+        self.code
     }
 
-    pub fn message(&self) -> &str { self.kind().as_str() }
+    pub fn message(&self) -> &str {
+        self.kind().as_str()
+    }
 }
 
-impl std::error::Error for Error {
-    fn description(&self) -> &str { self.message() }
+impl fmt::Debug for Error {
+    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
+        write!(fmt, "{} (error code 0x{:x})", self.message(), self.code)
+    }
 }
 
 impl fmt::Display for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        write!(fmt, "{}", self.message())
+        write!(fmt, "{} (error code 0x{:x})", self.message(), self.code)
+    }
+}
+
+impl std::error::Error for Error {
+    fn description(&self) -> &str {
+        self.message()
     }
 }
 
