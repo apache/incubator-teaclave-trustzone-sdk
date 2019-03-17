@@ -1,9 +1,9 @@
-pub use crate::uuid::Uuid;
-pub use context::Context;
-pub use error::{Error, Result};
-pub use operation::Operation;
-pub use parameter::{ParamTypeFlags, ParamTypes, Parameter, Parameters};
-pub use session::{ConnectionMethods, Session};
+pub use self::uuid::Uuid;
+pub use self::context::Context;
+pub use self::error::{Error, ErrorKind, Result};
+pub use self::operation::Operation;
+pub use self::parameter::{ParamTypeFlags, ParamTypes, Parameter, Parameters};
+pub use self::session::{ConnectionMethods, Session};
 
 mod context;
 mod error;
