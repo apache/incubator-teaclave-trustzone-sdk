@@ -2,7 +2,6 @@ use crate::{Error, ErrorKind, Result};
 use libc::c_void;
 use optee_utee_sys as raw;
 
-#[derive(Copy, Clone)]
 pub struct Parameters(pub Parameter, pub Parameter, pub Parameter, pub Parameter);
 
 impl Parameters {
@@ -33,7 +32,6 @@ impl Parameters {
     }
 }
 
-#[derive(Copy, Clone)]
 pub struct Parameter {
     pub raw: *mut raw::TEE_Param,
     pub param_type: ParamTypeFlags,
@@ -46,6 +44,8 @@ impl Parameter {
             param_type: param_type,
         }
     }
+
+    pub fn raw(&self) -> *mut raw::TEE_Param { self.raw }
 
     pub fn get_value_a(&mut self) -> Result<u32> {
         match self.param_type {
