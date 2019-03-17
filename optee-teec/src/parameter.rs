@@ -75,8 +75,6 @@ impl Parameter {
         }
     }
 
-    pub fn raw(&self) -> raw::TEEC_Parameter { self.raw }
-
     pub fn value(&self) -> (u32, u32) {
         unsafe {
             (self.raw.value.a, self.raw.value.a)

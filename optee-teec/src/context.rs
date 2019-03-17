@@ -26,21 +26,21 @@ impl Context {
         }
     }
 
-    pub fn raw(&mut self) -> *mut raw::TEEC_Context {
+    pub fn as_mut_raw_ptr(&mut self) -> *mut raw::TEEC_Context {
         &mut self.raw
     }
 
     pub fn open_session(&mut self, uuid: Uuid) -> Result<Session> {
         let mut raw_session = raw::TEEC_Session {
-            ctx: self.raw(),
+            ctx: self.as_mut_raw_ptr(),
             session_id: 0,
         };
         let mut err_origin: libc::uint32_t = 0;
         unsafe {
             let res = raw::TEEC_OpenSession(
-                self.raw(),
+                self.as_mut_raw_ptr(),
                 &mut raw_session,
-                uuid.as_ptr(),
+                uuid.as_raw_ptr(),
                 ConnectionMethods::LoginPublic as u32,
                 ptr::null() as *const libc::c_void,
                 ptr::null_mut() as *mut raw::TEEC_Operation,

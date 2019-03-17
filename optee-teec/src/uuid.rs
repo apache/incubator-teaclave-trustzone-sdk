@@ -47,7 +47,7 @@ impl Uuid {
         Self { raw: raw_uuid }
     }
 
-    pub fn as_ptr(&self) -> *const raw::TEEC_UUID {
+    pub fn as_raw_ptr(&self) -> *const raw::TEEC_UUID {
         &self.raw
     }
 }
