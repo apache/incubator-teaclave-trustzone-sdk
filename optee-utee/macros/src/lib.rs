@@ -3,6 +3,7 @@ extern crate proc_macro;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse_macro_input;
+use syn::spanned::Spanned;
 
 /// Attribute to declare the entry point of creating TA.
 ///
@@ -16,6 +17,26 @@ use syn::parse_macro_input;
 pub fn ta_create(_args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as syn::ItemFn);
     let ident = &f.ident;
+
+    // check the function signature
+    let valid_signature = f.constness.is_none()
+        && match f.vis {
+            syn::Visibility::Inherited => true,
+            _ => false,
+        }
+        && f.abi.is_none()
+        && f.decl.inputs.is_empty()
+        && f.decl.generics.where_clause.is_none()
+        && f.decl.variadic.is_none();
+
+    if !valid_signature {
+        return syn::parse::Error::new(
+            f.span(),
+            "`#[ta_crate]` function must have signature `fn() -> optee_utee::Result<()>`",
+        )
+        .to_compile_error()
+        .into();
+    }
 
     quote!(
         #[no_mangle]
@@ -43,6 +64,30 @@ pub fn ta_create(_args: TokenStream, input: TokenStream) -> TokenStream {
 pub fn ta_destroy(_args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as syn::ItemFn);
     let ident = &f.ident;
+
+    // check the function signature
+    let valid_signature = f.constness.is_none()
+        && match f.vis {
+            syn::Visibility::Inherited => true,
+            _ => false,
+        }
+        && f.abi.is_none()
+        && f.decl.inputs.is_empty()
+        && f.decl.generics.where_clause.is_none()
+        && f.decl.variadic.is_none();
+    &&match f.decl.output {
+        syn::ReturnType::Default => true,
+        _ => false,
+    };
+
+    if !valid_signature {
+        return syn::parse::Error::new(
+            f.span(),
+            "`#[ta_destroy]` function must have signature `fn()`",
+        )
+        .to_compile_error()
+        .into();
+    }
 
     quote!(
         #[no_mangle]
@@ -72,6 +117,26 @@ pub fn ta_destroy(_args: TokenStream, input: TokenStream) -> TokenStream {
 pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as syn::ItemFn);
     let ident = &f.ident;
+
+    // check the function signature
+    let valid_signature = f.constness.is_none()
+        && match f.vis {
+            syn::Visibility::Inherited => true,
+            _ => false,
+        }
+        && f.abi.is_none()
+        && (f.decl.inputs.len() == 1 || f.decl.inputs.len() == 2)
+        && f.decl.generics.where_clause.is_none()
+        && f.decl.variadic.is_none();
+
+    if !valid_signature {
+        return syn::parse::Error::new(
+            f.span(),
+            "`#[ta_open_session]` function must have signature `fn(&mut Parameters, *mut *mut T) -> Result<()>` or `fn(&mut Parameters) -> Result<()>`",
+        )
+        .to_compile_error()
+        .into();
+    }
 
     match f.decl.inputs.len() {
         1 => quote!(
@@ -141,6 +206,31 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
 pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as syn::ItemFn);
     let ident = &f.ident;
+
+    // check the function signature
+    let valid_signature = f.constness.is_none()
+        && match f.vis {
+            syn::Visibility::Inherited => true,
+            _ => false,
+        }
+        && f.abi.is_none()
+        && (f.decl.inputs.len() == 0 || f.decl.inputs.len() == 1)
+        && f.decl.generics.where_clause.is_none()
+        && f.decl.variadic.is_none();
+    &&match f.decl.output {
+        syn::ReturnType::Default => true,
+        _ => false,
+    };
+
+    if !valid_signature {
+        return syn::parse::Error::new(
+            f.span(),
+            "`#[ta_close_session]` function must have signature `fn(&mut T)` or `fn()`",
+        )
+        .to_compile_error()
+        .into();
+    }
+
     match f.decl.inputs.len() {
         0 => quote!(
             #[no_mangle]
@@ -201,6 +291,27 @@ pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
 pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as syn::ItemFn);
     let ident = &f.ident;
+
+    // check the function signature
+    let valid_signature = f.constness.is_none()
+        && match f.vis {
+            syn::Visibility::Inherited => true,
+            _ => false,
+        }
+        && f.abi.is_none()
+        && (f.decl.inputs.len() == 2 || f.decl.inputs.len() == 3)
+        && f.decl.generics.where_clause.is_none()
+        && f.decl.variadic.is_none();
+
+    if !valid_signature {
+        return syn::parse::Error::new(
+            f.span(),
+            "`#[ta_invoke_command]` function must have signature `fn(&mut T, u32, &mut Parameters) -> Result<()>` or `fn(u32, &mut Parameters) -> Result<()>`",
+        )
+        .to_compile_error()
+        .into();
+    }
+
     match f.decl.inputs.len() {
         2 => quote!(
             #[no_mangle]
