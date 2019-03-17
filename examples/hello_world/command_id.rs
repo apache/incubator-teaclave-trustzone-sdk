@@ -1,2 +1,16 @@
-pub const TA_HELLO_WORLD_CMD_INC_VALUE: u32 = 0;
-pub const TA_HELLO_WORLD_CMD_DEC_VALUE: u32 = 1;
+pub enum Command {
+    IncValue,
+    DecValue,
+    Unknown,
+}
+
+impl From<u32> for Command {
+    #[inline]
+    fn from(value: u32) -> Command {
+        match value {
+            0 => Command::IncValue,
+            1 => Command::DecValue,
+            _ => Command::Unknown,
+        }
+    }
+}
