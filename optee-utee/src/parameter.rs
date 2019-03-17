@@ -3,26 +3,33 @@ use libc::c_void;
 use optee_utee_sys as raw;
 
 #[derive(Copy, Clone)]
-pub struct Parameters {
-    pub param_0: Parameter,
-    pub param_1: Parameter,
-    pub param_2: Parameter,
-    pub param_3: Parameter,
-}
+pub struct Parameters(pub Parameter, pub Parameter, pub Parameter, pub Parameter);
 
 impl Parameters {
-    pub fn new(tee_params: &mut [raw::TEE_Param; 4], param_types: u32) -> Self {
-        let param_0 = Parameter::new(&mut tee_params[0], (0x000fu32 & param_types).into());
-        let param_1 = Parameter::new(&mut tee_params[1], ((0x00f0u32 & param_types) >> 4).into());
-        let param_2 = Parameter::new(&mut tee_params[2], ((0x0f00u32 & param_types) >> 8).into());
-        let param_3 = Parameter::new(&mut tee_params[3], ((0xf000u32 & param_types) >> 12).into());
+    pub fn from_raw(tee_params: &mut [raw::TEE_Param; 4], param_types: u32) -> Self {
+        let (f0, f1, f2, f3) = ParamTypes::from(param_types).into_flags();
+        let p0 = Parameter::from_raw(&mut tee_params[0], f0);
+        let p1 = Parameter::from_raw(&mut tee_params[1], f1);
+        let p2 = Parameter::from_raw(&mut tee_params[2], f2);
+        let p3 = Parameter::from_raw(&mut tee_params[3], f3);
 
-        Parameters {
-            param_0,
-            param_1,
-            param_2,
-            param_3,
-        }
+        Parameters(p0, p1, p2, p3)
+    }
+
+    pub fn first(&self) -> &Parameter {
+        &self.0
+    }
+
+    pub fn second(&self) -> &Parameter {
+        &self.1
+    }
+
+    pub fn third(&self) -> &Parameter {
+        &self.2
+    }
+
+    pub fn fourth(&self) -> &Parameter {
+        &self.3
     }
 }
 
@@ -33,7 +40,7 @@ pub struct Parameter {
 }
 
 impl Parameter {
-    pub fn new(ptr: *mut raw::TEE_Param, param_type: ParamTypeFlags) -> Self {
+    pub fn from_raw(ptr: *mut raw::TEE_Param, param_type: ParamTypeFlags) -> Self {
         Self {
             raw: ptr,
             param_type: param_type,
@@ -103,6 +110,32 @@ impl Parameter {
             }
             _ => Err(Error::new(ErrorKind::BadParameters)),
         }
+    }
+}
+
+pub struct ParamTypes(u32);
+
+impl ParamTypes {
+    pub fn into_flags(
+        &self,
+    ) -> (
+        ParamTypeFlags,
+        ParamTypeFlags,
+        ParamTypeFlags,
+        ParamTypeFlags,
+    ) {
+        (
+            (0x000fu32 & self.0).into(),
+            (0x00f0u32 & self.0).into(),
+            (0x0f00u32 & self.0).into(),
+            (0xf000u32 & self.0).into(),
+        )
+    }
+}
+
+impl From<u32> for ParamTypes {
+    fn from(value: u32) -> Self {
+        ParamTypes(value)
     }
 }
 
