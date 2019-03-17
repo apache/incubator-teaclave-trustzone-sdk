@@ -1,11 +1,11 @@
-use optee_teec::{Context, Operation, ParamTypeFlags, Parameter, Uuid};
+use optee_teec::{Context, Operation, ParamType, Parameter, Uuid};
 
 include!(concat!(env!("OUT_DIR"), "/host_header.rs"));
 
 fn hello_world() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
 
-    let p0 = Parameter::from_value(29, 0, ParamTypeFlags::ValueInout);
+    let p0 = Parameter::from_value(29, 0, ParamType::ValueInout);
     let p1 = Parameter::none();
     let p2 = Parameter::none();
     let p3 = Parameter::none();

@@ -1,5 +1,5 @@
 use libc::*;
-use optee_teec::{Context, Operation, ParamTypeFlags, Parameter, Uuid};
+use optee_teec::{Context, Operation, ParamType, Parameter, Uuid};
 
 include!(concat!(env!("OUT_DIR"), "/host_header.rs"));
 
@@ -11,7 +11,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
     let param0 = Parameter::from_tmpref(
         random_uuid.as_ptr() as *mut c_char,
         random_uuid.len(),
-        ParamTypeFlags::MemrefTempOutput,
+        ParamType::MemrefTempOutput,
     );
     let param1 = Parameter::none();
     let param2 = Parameter::none();

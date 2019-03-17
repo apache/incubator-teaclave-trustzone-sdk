@@ -34,11 +34,11 @@ impl Parameters {
 
 pub struct Parameter {
     pub raw: *mut raw::TEE_Param,
-    pub param_type: ParamTypeFlags,
+    pub param_type: ParamType,
 }
 
 impl Parameter {
-    pub fn from_raw(ptr: *mut raw::TEE_Param, param_type: ParamTypeFlags) -> Self {
+    pub fn from_raw(ptr: *mut raw::TEE_Param, param_type: ParamType) -> Self {
         Self {
             raw: ptr,
             param_type: param_type,
@@ -49,7 +49,7 @@ impl Parameter {
 
     pub fn get_value_a(&mut self) -> Result<u32> {
         match self.param_type {
-            ParamTypeFlags::ValueInput | ParamTypeFlags::ValueInout => {
+            ParamType::ValueInput | ParamType::ValueInout => {
                 let value = unsafe { (*self.raw).value.a };
                 Ok(value)
             }
@@ -59,7 +59,7 @@ impl Parameter {
 
     pub fn set_value_a(&mut self, value: u32) -> Result<()> {
         match self.param_type {
-            ParamTypeFlags::ValueOutput | ParamTypeFlags::ValueInout => {
+            ParamType::ValueOutput | ParamType::ValueInout => {
                 unsafe { (*self.raw).value.a = value };
                 Ok(())
             }
@@ -69,7 +69,7 @@ impl Parameter {
 
     pub fn get_value_b(&mut self) -> Result<u32> {
         match self.param_type {
-            ParamTypeFlags::ValueInput | ParamTypeFlags::ValueInout => {
+            ParamType::ValueInput | ParamType::ValueInout => {
                 let value = unsafe { (*self.raw).value.b };
                 Ok(value)
             }
@@ -79,7 +79,7 @@ impl Parameter {
 
     pub fn set_value_b(&mut self, value: u32) -> Result<()> {
         match self.param_type {
-            ParamTypeFlags::ValueOutput | ParamTypeFlags::ValueInout => {
+            ParamType::ValueOutput | ParamType::ValueInout => {
                 unsafe { (*self.raw).value.b = value };
                 Ok(())
             }
@@ -90,9 +90,9 @@ impl Parameter {
     // TODO: use memref type instead of separate ptr and size
     pub fn get_memref_ptr(&mut self) -> Result<*mut c_void> {
         match self.param_type {
-            ParamTypeFlags::MemrefInput
-            | ParamTypeFlags::MemrefOutput
-            | ParamTypeFlags::MemrefInout => {
+            ParamType::MemrefInput
+            | ParamType::MemrefOutput
+            | ParamType::MemrefInout => {
                 let buffer = unsafe { (*self.raw).memref.buffer };
                 Ok(buffer)
             }
@@ -102,9 +102,9 @@ impl Parameter {
 
     pub fn get_memref_size(&mut self) -> Result<u32> {
         match self.param_type {
-            ParamTypeFlags::MemrefInput
-            | ParamTypeFlags::MemrefOutput
-            | ParamTypeFlags::MemrefInout => {
+            ParamType::MemrefInput
+            | ParamType::MemrefOutput
+            | ParamType::MemrefInout => {
                 let size = unsafe { (*self.raw).memref.size };
                 Ok(size)
             }
@@ -119,10 +119,10 @@ impl ParamTypes {
     pub fn into_flags(
         &self,
     ) -> (
-        ParamTypeFlags,
-        ParamTypeFlags,
-        ParamTypeFlags,
-        ParamTypeFlags,
+        ParamType,
+        ParamType,
+        ParamType,
+        ParamType,
     ) {
         (
             (0x000fu32 & self.0).into(),
@@ -140,7 +140,7 @@ impl From<u32> for ParamTypes {
 }
 
 #[derive(Copy, Clone)]
-pub enum ParamTypeFlags {
+pub enum ParamType {
     None = 0,
     ValueInput = 1,
     ValueOutput = 2,
@@ -150,17 +150,17 @@ pub enum ParamTypeFlags {
     MemrefInout = 7,
 }
 
-impl From<u32> for ParamTypeFlags {
+impl From<u32> for ParamType {
     fn from(value: u32) -> Self {
         match value {
-            0 => ParamTypeFlags::None,
-            1 => ParamTypeFlags::ValueInput,
-            2 => ParamTypeFlags::ValueOutput,
-            3 => ParamTypeFlags::ValueInout,
-            5 => ParamTypeFlags::MemrefInput,
-            6 => ParamTypeFlags::MemrefOutput,
-            7 => ParamTypeFlags::MemrefInout,
-            _ => ParamTypeFlags::None,
+            0 => ParamType::None,
+            1 => ParamType::ValueInput,
+            2 => ParamType::ValueOutput,
+            3 => ParamType::ValueInout,
+            5 => ParamType::MemrefInput,
+            6 => ParamType::MemrefOutput,
+            7 => ParamType::MemrefInout,
+            _ => ParamType::None,
         }
     }
 }

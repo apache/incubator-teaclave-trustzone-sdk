@@ -33,7 +33,7 @@ impl Parameters {
 
 pub struct Parameter {
     raw: raw::TEEC_Parameter,
-    pub param_type: ParamTypeFlags,
+    pub param_type: ParamType,
 }
 
 impl Parameter {
@@ -41,11 +41,11 @@ impl Parameter {
         let raw = unsafe { mem::zeroed() };
         Self {
             raw: raw,
-            param_type: ParamTypeFlags::None,
+            param_type: ParamType::None,
         }
     }
 
-    pub fn from_value(a: u32, b: u32, param_type: ParamTypeFlags) -> Self {
+    pub fn from_value(a: u32, b: u32, param_type: ParamType) -> Self {
         let raw = raw::TEEC_Parameter {
             value: raw::TEEC_Value { a, b },
         };
@@ -55,7 +55,7 @@ impl Parameter {
         }
     }
 
-    pub fn from_tmpref<T>(buffer: *mut T, size: usize, param_type: ParamTypeFlags) -> Self {
+    pub fn from_tmpref<T>(buffer: *mut T, size: usize, param_type: ParamType) -> Self {
         let raw = raw::TEEC_Parameter {
             tmpref: raw::TEEC_TempMemoryReference {
                 buffer: buffer as *mut libc::c_void,
@@ -68,7 +68,7 @@ impl Parameter {
         }
     }
 
-    pub fn from_raw(raw: raw::TEEC_Parameter, param_type: ParamTypeFlags) -> Self {
+    pub fn from_raw(raw: raw::TEEC_Parameter, param_type: ParamType) -> Self {
         Self {
             raw: raw,
             param_type: param_type,
@@ -89,7 +89,7 @@ impl From<Parameter> for raw::TEEC_Parameter {
 }
 
 #[derive(Copy, Clone)]
-pub enum ParamTypeFlags {
+pub enum ParamType {
     None = 0,
     ValueInput = 1,
     ValueOutput = 2,
@@ -103,21 +103,21 @@ pub enum ParamTypeFlags {
     MemrefPartialInout = 0xF,
 }
 
-impl From<u32> for ParamTypeFlags {
+impl From<u32> for ParamType {
     fn from(value: u32) -> Self {
         match value {
-            0 => ParamTypeFlags::None,
-            1 => ParamTypeFlags::ValueInput,
-            2 => ParamTypeFlags::ValueOutput,
-            3 => ParamTypeFlags::ValueInout,
-            5 => ParamTypeFlags::MemrefTempInput,
-            6 => ParamTypeFlags::MemrefTempOutput,
-            7 => ParamTypeFlags::MemrefTempInout,
-            0xC => ParamTypeFlags::MemrefWhole,
-            0xD => ParamTypeFlags::MemrefPartialInput,
-            0xE => ParamTypeFlags::MemrefPartialOutput,
-            0xF => ParamTypeFlags::MemrefPartialInout,
-            _ => ParamTypeFlags::None,
+            0 => ParamType::None,
+            1 => ParamType::ValueInput,
+            2 => ParamType::ValueOutput,
+            3 => ParamType::ValueInout,
+            5 => ParamType::MemrefTempInput,
+            6 => ParamType::MemrefTempOutput,
+            7 => ParamType::MemrefTempInout,
+            0xC => ParamType::MemrefWhole,
+            0xD => ParamType::MemrefPartialInput,
+            0xE => ParamType::MemrefPartialOutput,
+            0xF => ParamType::MemrefPartialInout,
+            _ => ParamType::None,
         }
     }
 }
@@ -126,15 +126,15 @@ pub struct ParamTypes(u32);
 
 impl ParamTypes {
     pub fn new(
-        p0: ParamTypeFlags,
-        p1: ParamTypeFlags,
-        p2: ParamTypeFlags,
-        p3: ParamTypeFlags,
+        p0: ParamType,
+        p1: ParamType,
+        p2: ParamType,
+        p3: ParamType,
     ) -> Self {
         ParamTypes((p0 as u32) | (p1 as u32) << 4 | (p2 as u32) << 8 | (p3 as u32) << 12)
     }
 
-    pub fn into_flags(&self) -> (ParamTypeFlags, ParamTypeFlags, ParamTypeFlags, ParamTypeFlags) {
+    pub fn into_flags(&self) -> (ParamType, ParamType, ParamType, ParamType) {
         (
             (0x000fu32 & self.0).into(),
             (0x00f0u32 & self.0).into(),

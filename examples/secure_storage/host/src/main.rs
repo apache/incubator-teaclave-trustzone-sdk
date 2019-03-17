@@ -1,5 +1,5 @@
 use libc::*;
-use optee_teec::{Context, Operation, ParamTypeFlags, Parameter, Session, Uuid};
+use optee_teec::{Context, Operation, ParamType, Parameter, Session, Uuid};
 use std::ffi::CString;
 
 include!(concat!(env!("OUT_DIR"), "/host_header.rs"));
@@ -9,12 +9,12 @@ fn write_secure_object(session: &mut Session, obj_id: &mut CString, obj_data: &m
     let param0 = Parameter::from_tmpref(
         obj_id.as_ptr() as *mut c_char,
         obj_id.as_bytes_with_nul().len(),
-        ParamTypeFlags::MemrefTempInput,
+        ParamType::MemrefTempInput,
     );
     let param1 = Parameter::from_tmpref(
         obj_data.as_mut_ptr(),
         TEST_OBJECT_SIZE,
-        ParamTypeFlags::MemrefTempInput,
+        ParamType::MemrefTempInput,
     );
     let param2 = Parameter::none();
     let param3 = Parameter::none();
@@ -29,12 +29,12 @@ fn read_secure_object(session: &mut Session, obj_id: &mut CString, obj_data: &mu
     let param0 = Parameter::from_tmpref(
         obj_id.as_ptr() as *mut c_char,
         obj_id.as_bytes_with_nul().len(),
-        ParamTypeFlags::MemrefTempInput,
+        ParamType::MemrefTempInput,
     );
     let param1 = Parameter::from_tmpref(
         obj_data.as_mut_ptr(),
         TEST_OBJECT_SIZE,
-        ParamTypeFlags::MemrefTempOutput,
+        ParamType::MemrefTempOutput,
     );
     let param2 = Parameter::none();
     let param3 = Parameter::none();
@@ -49,7 +49,7 @@ fn delete_secure_object(session: &mut Session, obj_id: &mut CString) {
     let param0 = Parameter::from_tmpref(
         obj_id.as_ptr() as *mut c_char,
         obj_id.as_bytes_with_nul().len(),
-        ParamTypeFlags::MemrefTempInput,
+        ParamType::MemrefTempInput,
     );
     let param1 = Parameter::none();
     let param2 = Parameter::none();
