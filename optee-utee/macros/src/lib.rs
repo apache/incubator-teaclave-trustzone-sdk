@@ -81,7 +81,7 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
                 params: &mut [optee_utee_sys::TEE_Param; 4],
                 sess_ctx: *mut *mut libc::c_void,
             ) -> optee_utee_sys::TEE_Result {
-                let mut parameters = Parameters::new(params, param_types);
+                let mut parameters = Parameters::from_raw(params, param_types);
                 match #ident(&mut parameters) {
                     Ok(_) => optee_utee_sys::TEE_SUCCESS,
                     Err(e) => e.raw_code()
@@ -110,7 +110,7 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
                     params: &mut [optee_utee_sys::TEE_Param; 4],
                     sess_ctx: *mut *mut libc::c_void,
                 ) -> optee_utee_sys::TEE_Result {
-                    let mut parameters = Parameters::new(params, param_types);
+                    let mut parameters = Parameters::from_raw(params, param_types);
                     match #ident(&mut parameters, sess_ctx as #t) {
                         Ok(_) => optee_utee_sys::TEE_SUCCESS,
                         Err(e) => e.raw_code()
@@ -210,7 +210,7 @@ pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream 
                 param_types: libc::uint32_t,
                 params: &mut [optee_utee_sys::TEE_Param; 4],
             ) -> optee_utee_sys::TEE_Result {
-                let mut parameters = Parameters::new(params, param_types);
+                let mut parameters = Parameters::from_raw(params, param_types);
                 match #ident(cmd_id, &mut parameters) {
                     Ok(_) => {
                         optee_utee_sys::TEE_SUCCESS
@@ -248,7 +248,7 @@ pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream 
                     if sess_ctx.is_null() {
                         return optee_utee_sys::TEE_ERROR_SECURITY;
                     }
-                    let mut parameters = Parameters::new(params, param_types);
+                    let mut parameters = Parameters::from_raw(params, param_types);
                     let mut b = unsafe {Box::from_raw(sess_ctx as *mut #t)};
                     match #ident(&mut b, cmd_id, &mut parameters) {
                         Ok(_) => {
