@@ -21,8 +21,7 @@ optee-client:
 
 examples: $(EXAMPLES)
 $(EXAMPLES):
-	make -C $@/ta
-	cd $@/host && cargo build --target aarch64-unknown-linux-gnu
+	make -C $@
 
 optee-os-clean:
 	make -C $(OPTEE_OS_PATH) O=out/arm clean
@@ -32,9 +31,8 @@ optee-client-clean:
 
 examples-clean: $(EXAMPLES_CLEAN)
 $(EXAMPLES_CLEAN):
-	make -C $(@:-clean=)/ta clean
-	cd $(@:-clean=)/host && cargo clean
+	make -C $(@:-clean=) clean
 
 .PHONY: clean optee-os-clean optee-client-clean $(EXAMPLES) $(EXAMPLES_CLEAN)
 
-clean: optee-os-clean optee-client-clean $(EXAMPLES) $(EXAMPLES_CLEAN)
+clean: optee-os-clean optee-client-clean $(EXAMPLES_CLEAN)
