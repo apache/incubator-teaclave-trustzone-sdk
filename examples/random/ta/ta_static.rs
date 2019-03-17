@@ -122,7 +122,7 @@ pub extern "C" fn TA_OpenSessionEntryPoint(
     params: &mut [TEE_Param; 4],
     sess_ctx: *mut *mut c_void,
 ) -> TEE_Result {
-    let mut parameters = Parameters::new(params, param_types);
+    let mut parameters = Parameters::from_raw(params, param_types);
 
     match MESA_OpenSessionEntryPoint(&mut parameters, sess_ctx) {
         Ok(_) => {
@@ -155,7 +155,7 @@ pub extern "C" fn TA_InvokeCommandEntryPoint(
     param_types: uint32_t,
     params: &mut [TEE_Param; 4],
 ) -> TEE_Result {
-    let mut parameters = Parameters::new(params, param_types);
+    let mut parameters = Parameters::from_raw(params, param_types);
 
     match MESA_InvokeCommandEntryPoint(sess_ctx, cmd_id, &mut parameters) {
         Ok(_) => {

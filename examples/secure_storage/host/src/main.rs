@@ -6,12 +6,12 @@ include!(concat!(env!("OUT_DIR"), "/host_header.rs"));
 const TEST_OBJECT_SIZE: usize = 7000;
 
 fn write_secure_object(session: &mut Session, obj_id: &mut CString, obj_data: &mut [c_char]) {
-    let param0 = Parameter::tmpref(
+    let param0 = Parameter::from_tmpref(
         obj_id.as_ptr() as *mut c_char,
         obj_id.as_bytes_with_nul().len(),
         ParamTypeFlags::MemrefTempInput,
     );
-    let param1 = Parameter::tmpref(
+    let param1 = Parameter::from_tmpref(
         obj_data.as_mut_ptr(),
         TEST_OBJECT_SIZE,
         ParamTypeFlags::MemrefTempInput,
@@ -26,12 +26,12 @@ fn write_secure_object(session: &mut Session, obj_id: &mut CString, obj_data: &m
 }
 
 fn read_secure_object(session: &mut Session, obj_id: &mut CString, obj_data: &mut [c_char]) {
-    let param0 = Parameter::tmpref(
+    let param0 = Parameter::from_tmpref(
         obj_id.as_ptr() as *mut c_char,
         obj_id.as_bytes_with_nul().len(),
         ParamTypeFlags::MemrefTempInput,
     );
-    let param1 = Parameter::tmpref(
+    let param1 = Parameter::from_tmpref(
         obj_data.as_mut_ptr(),
         TEST_OBJECT_SIZE,
         ParamTypeFlags::MemrefTempOutput,
@@ -46,7 +46,7 @@ fn read_secure_object(session: &mut Session, obj_id: &mut CString, obj_data: &mu
 }
 
 fn delete_secure_object(session: &mut Session, obj_id: &mut CString) {
-    let param0 = Parameter::tmpref(
+    let param0 = Parameter::from_tmpref(
         obj_id.as_ptr() as *mut c_char,
         obj_id.as_bytes_with_nul().len(),
         ParamTypeFlags::MemrefTempInput,

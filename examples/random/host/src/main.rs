@@ -8,7 +8,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let mut ctx = Context::new()?;
 
-    let param0 = Parameter::tmpref(
+    let param0 = Parameter::from_tmpref(
         random_uuid.as_ptr() as *mut c_char,
         random_uuid.len(),
         ParamTypeFlags::MemrefTempOutput,

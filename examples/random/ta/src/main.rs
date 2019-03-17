@@ -43,8 +43,8 @@ fn MESA_InvokeCommandEntryPoint(
 pub fn random_number_generate(params: &mut Parameters) -> Result<()> {
     unsafe {
         TEE_GenerateRandom(
-            (*params.param_0.raw).memref.buffer,
-            (*params.param_0.raw).memref.size,
+            (*params.first().raw).memref.buffer,
+            (*params.first().raw).memref.size,
         );
     }
     Ok(())

@@ -131,9 +131,9 @@ pub fn ta2tee_mode_id(param: uint32_t, aes: &mut AesCipher) -> Result<()> {
 
 pub fn alloc_resources(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
 
-    let algo_value = params.param_0.get_value_a()?;
-    let key_size_value = params.param_1.get_value_a()?;
-    let mode_id_value = params.param_2.get_value_a()?;
+    let algo_value = params.0.get_value_a()?;
+    let key_size_value = params.1.get_value_a()?;
+    let mode_id_value = params.2.get_value_a()?;
 
     ta2tee_algo_id(algo_value, aes)?;
     ta2tee_key_size(key_size_value, aes)?;
@@ -227,8 +227,8 @@ pub fn set_aes_key(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
         },
     };
 
-    let key = params.param_0.get_memref_ptr()?;
-    let key_sz = params.param_0.get_memref_size()?;
+    let key = params.0.get_memref_ptr()?;
+    let key_sz = params.0.get_memref_size()?;
 
     if key_sz != aes.key_size {
         trace_println!("[+] Get wrong key size !\n");
@@ -249,8 +249,8 @@ pub fn set_aes_key(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
 }
 
 pub fn reset_aes_iv(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
-    let iv = params.param_0.get_memref_ptr()?;
-    let iv_sz = params.param_0.get_memref_size()?;
+    let iv = params.0.get_memref_ptr()?;
+    let iv_sz = params.0.get_memref_size()?;
 
     unsafe {
         TEE_CipherInit(aes.op_handle, iv, iv_sz);
@@ -261,10 +261,10 @@ pub fn reset_aes_iv(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> 
 }
 
 pub fn cipher_buffer(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
-    let input_ptr = params.param_0.get_memref_ptr()?;
-    let output_ptr = params.param_1.get_memref_ptr()?;
-    let input_size = params.param_0.get_memref_size()?;
-    let mut output_size = params.param_1.get_memref_size()?;
+    let input_ptr = params.0.get_memref_ptr()?;
+    let output_ptr = params.1.get_memref_ptr()?;
+    let input_size = params.0.get_memref_size()?;
+    let mut output_size = params.1.get_memref_size()?;
 
     if output_size < input_size {
         return Err(Error::new(ErrorKind::BadParameters));

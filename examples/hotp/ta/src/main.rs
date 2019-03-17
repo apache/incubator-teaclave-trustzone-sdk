@@ -57,8 +57,8 @@ fn MESA_InvokeCommandEntryPoint(
 
 pub fn register_shared_key(params: &mut Parameters) -> Result<()> {
     unsafe {
-        K_LEN = (*params.param_0.raw).memref.size;
-        let tmp: *mut [u8; MAX_KEY_SIZE as usize] = (*params.param_0.raw).memref.buffer as *mut _;
+        K_LEN = (*params.first().raw).memref.size;
+        let tmp: *mut [u8; MAX_KEY_SIZE as usize] = (*params.first().raw).memref.buffer as *mut _;
         for i in 0..K_LEN {
             k[i as usize] = (*tmp)[i as usize];
         }
@@ -81,7 +81,7 @@ pub fn get_hotp(params: &mut Parameters) -> Result<()> {
             }
         }
         truncate(&mut mac, &mut hotp_val)?;
-        (*params.param_0.raw).value.a = hotp_val;
+        (*params.first().raw).value.a = hotp_val;
     }
     Ok(())
 }

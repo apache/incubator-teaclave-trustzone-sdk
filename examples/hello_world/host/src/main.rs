@@ -2,29 +2,35 @@ use optee_teec::{Context, Operation, ParamTypeFlags, Parameter, Uuid};
 
 include!(concat!(env!("OUT_DIR"), "/host_header.rs"));
 
-fn main() -> Result<(), Box<std::error::Error>> {
+fn hello_world() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
 
-    let param0 = Parameter::value(29, 0, ParamTypeFlags::ValueInout);
-    let param1 = Parameter::none();
-    let param2 = Parameter::none();
-    let param3 = Parameter::none();
-    let mut operation = Operation::new(0, param0, param1, param2, param3);
+    let p0 = Parameter::from_value(29, 0, ParamTypeFlags::ValueInout);
+    let p1 = Parameter::none();
+    let p2 = Parameter::none();
+    let p3 = Parameter::none();
+    let mut operation = Operation::new(0, p0, p1, p2, p3);
 
     let uuid =
-        Uuid::parse_str(&include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../uuid.txt")).trim())?;
+        Uuid::parse_str(&include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../uuid.txt")).trim()).unwrap();
     let mut session = ctx.open_session(uuid)?;
 
-    println!("original value is {}", unsafe {
-        operation.raw.params[0].value.a
-    });
+    let (p0, _, _, _)= operation.parameters();
+    println!("original value is {}", p0.value().0);
+
     let _ = session.invoke_command(TA_HELLO_WORLD_CMD_INC_VALUE, &mut operation)?;
-    println!("inc value is {}", unsafe {
-        operation.raw.params[0].value.a
-    });
+    let (p0, _, _, _)= operation.parameters();
+    println!("inc value is {}", p0.value().0);
+
     let _ = session.invoke_command(TA_HELLO_WORLD_CMD_DEC_VALUE, &mut operation)?;
-    println!("dec value is {}", unsafe {
-        operation.raw.params[0].value.a
-    });
+    let (p0, _, _, _)= operation.parameters();
+    println!("dec value is {}", p0.value().0);
     Ok(())
+}
+
+fn main() {
+    match hello_world() {
+        Ok(_) => println!("Success"),
+        Err(e) => println!("{}", e)
+    }
 }

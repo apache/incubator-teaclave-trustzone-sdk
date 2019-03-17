@@ -35,13 +35,13 @@ fn invoke_command(
     trace_println!("[+] TA invoke command");
     match cmd_id {
         TA_HELLO_WORLD_CMD_INC_VALUE => {
-            let ori_value = params.param_0.get_value_a()?;
-            params.param_0.set_value_a(ori_value + 100)?;
+            let ori_value = params.0.get_value_a()?;
+            params.0.set_value_a(ori_value + 100)?;
             Ok(())
         }
         TA_HELLO_WORLD_CMD_DEC_VALUE => {
-            let ori_value = params.param_0.get_value_a()?;
-            params.param_0.set_value_a(ori_value - 100)?;
+            let ori_value = params.0.get_value_a()?;
+            params.0.set_value_a(ori_value - 100)?;
             Ok(())
         }
         _ => Err(Error::new(ErrorKind::BadParameters)),
