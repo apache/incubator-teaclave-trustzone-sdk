@@ -28,7 +28,7 @@ impl Operation {
         Operation { raw: raw_op }
     }
 
-    pub fn as_mut_ptr(&mut self) -> *mut raw::TEEC_Operation {
+    pub fn raw(&mut self) -> *mut raw::TEEC_Operation {
         &mut self.raw
     }
 

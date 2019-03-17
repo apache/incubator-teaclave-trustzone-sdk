@@ -22,7 +22,7 @@ impl Session {
         Session { raw }
     }
 
-    pub fn as_mut_ptr(&mut self) -> *mut raw::TEEC_Session {
+    pub fn raw(&mut self) -> *mut raw::TEEC_Session {
         &mut self.raw
     }
 
@@ -32,7 +32,7 @@ impl Session {
             let res = raw::TEEC_InvokeCommand(
                 &mut self.raw,
                 command_id,
-                operation.as_mut_ptr(),
+                operation.raw(),
                 &mut err_origin,
             );
             if res != raw::TEEC_SUCCESS {

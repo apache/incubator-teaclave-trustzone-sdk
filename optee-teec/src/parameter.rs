@@ -1,7 +1,6 @@
 use optee_teec_sys as raw;
 use std::mem;
 
-#[derive(Copy, Clone)]
 pub struct Parameters(pub Parameter, pub Parameter, pub Parameter, pub Parameter);
 
 impl Parameters {
@@ -32,7 +31,6 @@ impl Parameters {
     }
 }
 
-#[derive(Copy, Clone)]
 pub struct Parameter {
     raw: raw::TEEC_Parameter,
     pub param_type: ParamTypeFlags,
@@ -76,6 +74,8 @@ impl Parameter {
             param_type: param_type,
         }
     }
+
+    pub fn raw(&self) -> raw::TEEC_Parameter { self.raw }
 
     pub fn value(&self) -> (u32, u32) {
         unsafe {

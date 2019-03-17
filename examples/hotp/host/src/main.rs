@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     let mut ctx = Context::new()?;
 
-    let mut param0 = Parameter::from_tmpref(
+    let param0 = Parameter::from_tmpref(
         (&mut k).as_ptr() as *mut c_char,
         SIZE_K,
         ParamTypeFlags::MemrefTempInput,
@@ -34,11 +34,14 @@ fn main() -> Result<(), Box<std::error::Error>> {
 
     session.invoke_command(TA_HOTP_CMD_REGISTER_SHARED_KEY, &mut operation)?;
 
-    param0 = Parameter::from_value(
+    let param0 = Parameter::from_value(
         (&mut k) as *mut _ as u32,
         SIZE_K as u32,
         ParamTypeFlags::ValueOutput,
     );
+    let param1 = Parameter::none();
+    let param2 = Parameter::none();
+    let param3 = Parameter::none();
     operation = Operation::new(0, param0, param1, param2, param3);
 
     let mut hotp_value: u32;
