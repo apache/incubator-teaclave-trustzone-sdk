@@ -76,9 +76,7 @@ impl Parameter {
     }
 
     pub fn value(&self) -> (u32, u32) {
-        unsafe {
-            (self.raw.value.a, self.raw.value.a)
-        }
+        unsafe { (self.raw.value.a, self.raw.value.a) }
     }
 }
 
@@ -125,12 +123,7 @@ impl From<u32> for ParamType {
 pub struct ParamTypes(u32);
 
 impl ParamTypes {
-    pub fn new(
-        p0: ParamType,
-        p1: ParamType,
-        p2: ParamType,
-        p3: ParamType,
-    ) -> Self {
+    pub fn new(p0: ParamType, p1: ParamType, p2: ParamType, p3: ParamType) -> Self {
         ParamTypes((p0 as u32) | (p1 as u32) << 4 | (p2 as u32) << 8 | (p3 as u32) << 12)
     }
 

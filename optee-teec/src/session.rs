@@ -29,16 +29,14 @@ impl Session {
     pub fn invoke_command(&mut self, command_id: u32, operation: &mut Operation) -> Result<()> {
         let mut err_origin: libc::uint32_t = 0;
         unsafe {
-            let res = raw::TEEC_InvokeCommand(
+            match raw::TEEC_InvokeCommand(
                 &mut self.raw,
                 command_id,
                 operation.as_mut_raw_ptr(),
                 &mut err_origin,
-            );
-            if res != raw::TEEC_SUCCESS {
-                Err(Error::from_raw_error(res))
-            } else {
-                Ok(())
+            ) {
+                raw::TEEC_SUCCESS => Ok(()),
+                code => Err(Error::from_raw_error(code)),
             }
         }
     }

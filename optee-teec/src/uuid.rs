@@ -24,12 +24,7 @@ impl Uuid {
     pub fn from_bytes(bytes: [u8; 16]) -> Uuid {
         let uuid = uuid_crate::Uuid::from_bytes(bytes);
         let (time_low, time_mid, time_hi_and_version, clock_seq_and_node) = uuid.as_fields();
-        Self::new_raw(
-            time_low,
-            time_mid,
-            time_hi_and_version,
-            *clock_seq_and_node,
-        )
+        Self::new_raw(time_low, time_mid, time_hi_and_version, *clock_seq_and_node)
     }
 
     pub fn new_raw(

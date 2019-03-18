@@ -10,19 +10,9 @@ impl Operation {
     pub fn new(started: u32, p0: Parameter, p1: Parameter, p2: Parameter, p3: Parameter) -> Self {
         let raw_op = raw::TEEC_Operation {
             started: started,
-            paramTypes: ParamTypes::new(
-                p0.param_type,
-                p1.param_type,
-                p2.param_type,
-                p3.param_type,
-            )
-            .into(),
-            params: [
-                p0.into(),
-                p1.into(),
-                p2.into(),
-                p3.into(),
-            ],
+            paramTypes: ParamTypes::new(p0.param_type, p1.param_type, p2.param_type, p3.param_type)
+                .into(),
+            params: [p0.into(), p1.into(), p2.into(), p3.into()],
             session: ptr::null_mut() as *mut raw::TEEC_Session,
         };
         Operation { raw: raw_op }
