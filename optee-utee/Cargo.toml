@@ -8,6 +8,7 @@ edition = "2018"
 optee-utee-sys = { path = "optee-utee-sys" }
 optee-utee-macros = { path = "macros" }
 libc = { path = "../rust/libc", version = "0.2.49" }
+bitflags = "1.0.4"
 
 [workspace]
 members = ['systest']

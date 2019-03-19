@@ -9,3 +9,4 @@ pub mod trace;
 mod macros;
 mod error;
 mod parameter;
+pub mod object;
