@@ -5,7 +5,7 @@
 
 use libc::*;
 use optee_utee;
-use optee_utee::{trace_println, Error, Parameters, Result};
+use optee_utee::{trace_println, Error, ErrorKind, Parameters, Result};
 use optee_utee_sys::*;
 use std::{mem, ptr, str};
 
@@ -125,7 +125,7 @@ pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
         let data: *mut c_void = (*params.second().raw).memref.buffer as *mut c_void;
         let data_sz: uint32_t = (*params.second().raw).memref.size;
         let mut object: TEE_ObjectHandle = TEE_HANDLE_NULL as *mut _;
-        let mut res = TEE_OpenPersistentObject(
+        let res = TEE_OpenPersistentObject(
             TEE_STORAGE_PRIVATE,
             obj_id,
             obj_id_sz,
@@ -146,42 +146,41 @@ pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
             dataPosition: 0,
             handleFlags: 0,
         };
-
-        res = TEE_GetObjectInfo1(object, &mut object_info as *mut _);
-        let mut read_bytes: uint32_t = 0;
-
-        'correct_handle: loop {
-            if res != TEE_SUCCESS {
-                break 'correct_handle;
-            }
-
-            if object_info.dataSize > data_sz {
-                (*params.second().raw).memref.size = object_info.dataSize;
-                res = TEE_ERROR_SHORT_BUFFER;
-                break 'correct_handle;
-            }
-
-            res = TEE_ReadObjectData(
-                object,
-                data,
-                object_info.dataSize,
-                &mut read_bytes as *mut _,
-            );
-            if res != TEE_SUCCESS || read_bytes != object_info.dataSize {
-                if res == TEE_SUCCESS {
-                    res = TEE_ERROR_EXCESS_DATA;
-                }
-                break 'correct_handle;
-            }
-            (*params.second().raw).memref.size = read_bytes;
-        }
-        TEE_CloseObject(object);
-        TEE_Free(obj_id);
-        if res == TEE_SUCCESS {
-            return Ok(());
-        } else {
+        let res = TEE_GetObjectInfo1(object, &mut object_info as *mut _);
+        if res != TEE_SUCCESS {
+            TEE_CloseObject(object);
+            TEE_Free(obj_id);
             return Err(Error::from_raw_error(res));
         }
+        let mut read_bytes: uint32_t = 0;
+
+        if object_info.dataSize > data_sz {
+            (*params.second().raw).memref.size = object_info.dataSize;
+            TEE_CloseObject(object);
+            TEE_Free(obj_id);
+            return Err(Error::new(ErrorKind::ShortBuffer));
+        }
+
+
+        let res = TEE_ReadObjectData(
+            object,
+            data,
+            object_info.dataSize,
+            &mut read_bytes as *mut _,
+        );
+        if res != TEE_SUCCESS {
+            TEE_CloseObject(object);
+            TEE_Free(obj_id);
+            return Err(Error::from_raw_error(res));
+        } else if read_bytes != object_info.dataSize {
+            TEE_CloseObject(object);
+            TEE_Free(obj_id);
+            return Err(Error::new(ErrorKind::ExcessData));
+        }
+        (*params.second().raw).memref.size = read_bytes;
+        TEE_CloseObject(object);
+        TEE_Free(obj_id);
+        return Ok(());
     }
 }
 
