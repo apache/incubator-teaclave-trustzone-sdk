@@ -76,7 +76,14 @@ impl Parameter {
     }
 
     pub fn value(&self) -> (u32, u32) {
-        unsafe { (self.raw.value.a, self.raw.value.a) }
+        unsafe { (self.raw.value.a, self.raw.value.b) }
+    }
+
+    pub fn set_value(&mut self, a: u32, b: u32) {
+        unsafe {
+            self.raw.value.a = a;
+            self.raw.value.b = b;
+        }
     }
 }
 
