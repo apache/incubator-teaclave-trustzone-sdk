@@ -66,10 +66,10 @@ impl Parameter {
         }
     }
 
-    pub fn from_tmpref<T>(mut buffer: T, size: usize, param_type: ParamType) -> Self {
+    pub fn from_tmpref<T>(buffer: *mut T, size: usize, param_type: ParamType) -> Self {
         let raw = raw::TEEC_Parameter {
             tmpref: raw::TEEC_TempMemoryReference {
-                buffer: &mut buffer as *mut T as _,
+                buffer: buffer as *mut T as _,
                 size: size as libc::size_t,
             },
         };
