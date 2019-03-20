@@ -6,9 +6,9 @@ fn hello_world() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
 
     let p0 = Parameter::from_value(29, 0, ParamType::ValueInout);
-    let p1 = Parameter::none();
-    let p2 = Parameter::none();
-    let p3 = Parameter::none();
+    let p1 = Parameter::new();
+    let p2 = Parameter::new();
+    let p3 = Parameter::new();
     let mut operation = Operation::new(0, p0, p1, p2, p3);
 
     let uuid =

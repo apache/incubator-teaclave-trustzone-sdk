@@ -23,9 +23,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
         SIZE_K,
         ParamType::MemrefTempInput,
     );
-    let param1 = Parameter::none();
-    let param2 = Parameter::none();
-    let param3 = Parameter::none();
+    let param1 = Parameter::new();
+    let param2 = Parameter::new();
+    let param3 = Parameter::new();
     let mut operation = Operation::new(0, param0, param1, param2, param3);
 
     let uuid =
@@ -39,9 +39,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
         SIZE_K as u32,
         ParamType::ValueOutput,
     );
-    let param1 = Parameter::none();
-    let param2 = Parameter::none();
-    let param3 = Parameter::none();
+    let param1 = Parameter::new();
+    let param2 = Parameter::new();
+    let param3 = Parameter::new();
     operation = Operation::new(0, param0, param1, param2, param3);
 
     let mut hotp_value: u32;

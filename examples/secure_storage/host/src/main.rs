@@ -16,8 +16,8 @@ fn write_secure_object(session: &mut Session, obj_id: &mut CString, obj_data: &m
         TEST_OBJECT_SIZE,
         ParamType::MemrefTempInput,
     );
-    let param2 = Parameter::none();
-    let param3 = Parameter::none();
+    let param2 = Parameter::new();
+    let param3 = Parameter::new();
     let mut operation = Operation::new(0, param0, param1, param2, param3);
     match session.invoke_command(TA_SECURE_STORAGE_CMD_WRITE_RAW, &mut operation) {
         Ok(_) => println!("Write object to secure storage success."),
@@ -36,8 +36,8 @@ fn read_secure_object(session: &mut Session, obj_id: &mut CString, obj_data: &mu
         TEST_OBJECT_SIZE,
         ParamType::MemrefTempOutput,
     );
-    let param2 = Parameter::none();
-    let param3 = Parameter::none();
+    let param2 = Parameter::new();
+    let param3 = Parameter::new();
     let mut operation = Operation::new(0, param0, param1, param2, param3);
     match session.invoke_command(TA_SECURE_STORAGE_CMD_READ_RAW, &mut operation) {
         Ok(_) => println!("Read back object success."),
@@ -51,9 +51,9 @@ fn delete_secure_object(session: &mut Session, obj_id: &mut CString) {
         obj_id.as_bytes_with_nul().len(),
         ParamType::MemrefTempInput,
     );
-    let param1 = Parameter::none();
-    let param2 = Parameter::none();
-    let param3 = Parameter::none();
+    let param1 = Parameter::new();
+    let param2 = Parameter::new();
+    let param3 = Parameter::new();
     let mut operation = Operation::new(0, param0, param1, param2, param3);
     match session.invoke_command(TA_SECURE_STORAGE_CMD_DELETE, &mut operation) {
         Ok(_) => println!("Delete object success."),

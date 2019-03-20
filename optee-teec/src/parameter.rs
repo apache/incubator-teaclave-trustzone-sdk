@@ -31,16 +31,26 @@ impl Parameters {
     }
 }
 
+pub enum ParamRawType {
+    Value,
+    TmpRef,
+    MemRef,
+    None,
+    Unknown,
+}
+
 pub struct Parameter {
     raw: raw::TEEC_Parameter,
+    raw_type: ParamRawType,
     pub param_type: ParamType,
 }
 
 impl Parameter {
-    pub fn none() -> Self {
+    pub fn new() -> Self {
         let raw = unsafe { mem::zeroed() };
         Self {
             raw: raw,
+            raw_type: ParamRawType::None,
             param_type: ParamType::None,
         }
     }
@@ -51,19 +61,21 @@ impl Parameter {
         };
         Self {
             raw: raw,
+            raw_type: ParamRawType::Value,
             param_type: param_type,
         }
     }
 
-    pub fn from_tmpref<T>(buffer: *mut T, size: usize, param_type: ParamType) -> Self {
+    pub fn from_tmpref<T>(mut buffer: T, size: usize, param_type: ParamType) -> Self {
         let raw = raw::TEEC_Parameter {
             tmpref: raw::TEEC_TempMemoryReference {
-                buffer: buffer as *mut libc::c_void,
+                buffer: &mut buffer as *mut T as _,
                 size: size as libc::size_t,
             },
         };
         Self {
             raw: raw,
+            raw_type: ParamRawType::TmpRef,
             param_type: param_type,
         }
     }
@@ -71,6 +83,7 @@ impl Parameter {
     pub fn from_raw(raw: raw::TEEC_Parameter, param_type: ParamType) -> Self {
         Self {
             raw: raw,
+            raw_type: ParamRawType::Unknown,
             param_type: param_type,
         }
     }
@@ -84,6 +97,16 @@ impl Parameter {
             self.raw.value.a = a;
             self.raw.value.b = b;
         }
+    }
+
+    pub fn tmpref<T>(&mut self) -> &mut T {
+        unsafe {
+            &mut *(self.raw.tmpref.buffer as *mut T)
+        }
+    }
+
+    pub fn set_param_type(&mut self, param_type: ParamType) {
+        self.param_type = param_type;
     }
 }
 

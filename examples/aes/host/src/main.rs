@@ -19,7 +19,7 @@ fn prepare_aes(session: &mut Session, encode: i8) {
     let param0 = Parameter::from_value(TA_AES_ALGO_CTR, 0, ParamType::ValueInput);
     let param1 = Parameter::from_value(TA_AES_SIZE_128BIT, 0, ParamType::ValueInput);
     let param2 = Parameter::from_value(param2_value, 0, ParamType::ValueInput);
-    let param3 = Parameter::none();
+    let param3 = Parameter::new();
     let mut operation = Operation::new(0, param0, param1, param2, param3);
 
     match session.invoke_command(TA_AES_CMD_PREPARE, &mut operation) {
@@ -34,9 +34,9 @@ fn set_key(session: &mut Session, key: &mut [c_char], key_sz: size_t) {
         key_sz,
         ParamType::MemrefTempInput,
     );
-    let param1 = Parameter::none();
-    let param2 = Parameter::none();
-    let param3 = Parameter::none();
+    let param1 = Parameter::new();
+    let param2 = Parameter::new();
+    let param3 = Parameter::new();
     let mut operation = Operation::new(0, param0, param1, param2, param3);
 
     match session.invoke_command(TA_AES_CMD_SET_KEY, &mut operation) {
@@ -51,9 +51,9 @@ fn set_iv(session: &mut Session, iv: &mut [c_char], iv_sz: size_t) {
         iv_sz,
         ParamType::MemrefTempInput,
     );
-    let param1 = Parameter::none();
-    let param2 = Parameter::none();
-    let param3 = Parameter::none();
+    let param1 = Parameter::new();
+    let param2 = Parameter::new();
+    let param3 = Parameter::new();
     let mut operation = Operation::new(0, param0, param1, param2, param3);
 
     match session.invoke_command(TA_AES_CMD_SET_IV, &mut operation) {
@@ -73,8 +73,8 @@ fn cipher_buffer(session: &mut Session, intext: &mut [c_char], outtext: &mut [c_
         sz,
         ParamType::MemrefTempOutput,
     );
-    let param2 = Parameter::none();
-    let param3 = Parameter::none();
+    let param2 = Parameter::new();
+    let param3 = Parameter::new();
     let mut operation = Operation::new(0, param0, param1, param2, param3);
 
     match session.invoke_command(TA_AES_CMD_CIPHER, &mut operation) {

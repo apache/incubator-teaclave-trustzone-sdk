@@ -13,9 +13,9 @@ fn main() -> Result<(), Box<std::error::Error>> {
         random_uuid.len(),
         ParamType::MemrefTempOutput,
     );
-    let param1 = Parameter::none();
-    let param2 = Parameter::none();
-    let param3 = Parameter::none();
+    let param1 = Parameter::new();
+    let param2 = Parameter::new();
+    let param3 = Parameter::new();
     let mut operation = Operation::new(0, param0, param1, param2, param3);
 
     let uuid =
