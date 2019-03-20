@@ -31,17 +31,8 @@ impl Parameters {
     }
 }
 
-pub enum ParamRawType {
-    Value,
-    TmpRef,
-    MemRef,
-    None,
-    Unknown,
-}
-
 pub struct Parameter {
     raw: raw::TEEC_Parameter,
-    raw_type: ParamRawType,
     pub param_type: ParamType,
 }
 
@@ -50,7 +41,6 @@ impl Parameter {
         let raw = unsafe { mem::zeroed() };
         Self {
             raw: raw,
-            raw_type: ParamRawType::None,
             param_type: ParamType::None,
         }
     }
@@ -61,7 +51,6 @@ impl Parameter {
         };
         Self {
             raw: raw,
-            raw_type: ParamRawType::Value,
             param_type: param_type,
         }
     }
@@ -75,7 +64,6 @@ impl Parameter {
         };
         Self {
             raw: raw,
-            raw_type: ParamRawType::TmpRef,
             param_type: param_type,
         }
     }
@@ -83,7 +71,6 @@ impl Parameter {
     pub fn from_raw(raw: raw::TEEC_Parameter, param_type: ParamType) -> Self {
         Self {
             raw: raw,
-            raw_type: ParamRawType::Unknown,
             param_type: param_type,
         }
     }
@@ -99,9 +86,9 @@ impl Parameter {
         }
     }
 
-    pub fn tmpref<T>(&mut self) -> &mut T {
+    pub fn tmpref<T>(&mut self) -> *mut T {
         unsafe {
-            &mut *(self.raw.tmpref.buffer as *mut T)
+            self.raw.tmpref.buffer as *mut T
         }
     }
 
