@@ -35,9 +35,11 @@ fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut AesCipher) -> Resu
         mode: 0,
         key_size: 0,
         op_handle: std::ptr::null_mut(),
-        key_handle: std::ptr::null_mut()
+        key_handle: std::ptr::null_mut(),
     }));
-    unsafe { *sess_ctx = ptr; }
+    unsafe {
+        *sess_ctx = ptr;
+    }
     Ok(())
 }
 
@@ -130,7 +132,6 @@ pub fn ta2tee_mode_id(param: uint32_t, aes: &mut AesCipher) -> Result<()> {
 }
 
 pub fn alloc_resources(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
-
     let algo_value = params.0.get_value_a()?;
     let key_size_value = params.1.get_value_a()?;
     let mode_id_value = params.2.get_value_a()?;
@@ -238,6 +239,13 @@ pub fn set_aes_key(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
     unsafe { TEE_InitRefAttribute(&mut attr, TEE_ATTR_SECRET_VALUE, key, key_sz) };
     unsafe { TEE_ResetTransientObject(aes.key_handle) };
     let res = unsafe { TEE_PopulateTransientObject(aes.key_handle, &mut attr, 1) };
+
+    if res != TEE_SUCCESS {
+        trace_println!("[+] TA set key failed!");
+        return Err(Error::from_raw_error(res));
+    }
+
+    let res = unsafe { TEE_SetOperationKey(aes.op_handle, aes.key_handle) };
 
     if res != TEE_SUCCESS {
         trace_println!("[+] TA set key failed!");
