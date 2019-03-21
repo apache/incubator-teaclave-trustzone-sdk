@@ -126,9 +126,9 @@ impl ParamTypes {
     ) {
         (
             (0x000fu32 & self.0).into(),
-            (0x00f0u32 & self.0).into(),
-            (0x0f00u32 & self.0).into(),
-            (0xf000u32 & self.0).into(),
+            ((0x00f0u32 & self.0)>>4).into(),
+            ((0x0f00u32 & self.0)>>8).into(),
+            ((0xf000u32 & self.0)>>12).into(),
         )
     }
 }
