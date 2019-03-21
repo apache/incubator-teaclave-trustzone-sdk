@@ -6,6 +6,8 @@ The SDK is based on the [OP-TEE](https://www.op-tee.org/) project which follows
 Additionally, the SDK enables capability to write TrustZone applications with
 Rust's standard library and many third-party libraries (i.e., crates).
 
+Rust OP-TEE TrustZone SDK is under the [MesaTEE](https://mesatee.org) project.
+
 ## Getting started
 
 To get started, you need to clone the project, initialize related submodules,
@@ -52,10 +54,13 @@ At last, you can get started with our examples.
 $ make examples
 ```
 
+Please read detailed [instructions](https://optee.readthedocs.io/building/devices/index.html) to
+run these examples on OP-TEE OS supported devices.
+
 ## Contributing
 
 The project is maintained by Mingshen Sun (@mssun) and Shengye Wan (@SimonWan),
-under the supervision of steering committee (Tai Wei and Yulong Zhang).
+under the supervision of steering committee (Tao Wei and Yulong Zhang).
 Contributions are very welcome.
 
 ## License
