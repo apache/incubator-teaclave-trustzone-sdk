@@ -2,7 +2,7 @@ use libc;
 use optee_teec_sys as raw;
 use std::ptr;
 
-use crate::{ConnectionMethods, Error, Result, Session, Uuid};
+use crate::{Error, Result, Session, Uuid};
 
 pub struct Context {
     raw: raw::TEEC_Context,
@@ -28,25 +28,7 @@ impl Context {
     }
 
     pub fn open_session(&mut self, uuid: Uuid) -> Result<Session> {
-        let mut raw_session = raw::TEEC_Session {
-            ctx: self.as_mut_raw_ptr(),
-            session_id: 0,
-        };
-        let mut err_origin: libc::uint32_t = 0;
-        unsafe {
-            match raw::TEEC_OpenSession(
-                self.as_mut_raw_ptr(),
-                &mut raw_session,
-                uuid.as_raw_ptr(),
-                ConnectionMethods::LoginPublic as u32,
-                ptr::null() as *const libc::c_void,
-                ptr::null_mut() as *mut raw::TEEC_Operation,
-                &mut err_origin,
-            ) {
-                raw::TEEC_SUCCESS => Ok(Session::from_raw(raw_session)),
-                code => Err(Error::from_raw_error(code)),
-            }
-        }
+        Session::new(self, uuid)
     }
 }
 
