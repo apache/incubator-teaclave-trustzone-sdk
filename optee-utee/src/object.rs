@@ -68,15 +68,27 @@ impl ObjectHandle {
         unimplemented!()
     }
 
-    pub fn info(&self) -> Result<ObjectInfo> {
+    pub fn info(&self, info: &mut ObjectInfo) -> Result<()> {
         unimplemented!()
     }
 
-    pub fn attribute(&self, id: u32) -> Result<Attribute> {
+    pub fn ref_attribute(&self, id: u32, ref_attribute: &mut Attribute) -> Result<()> {
+        unimplemented!()
+    }
+
+    pub fn value_attribute(&self, id: u32, value_attribute: &mut Attribute) -> Result<()> {
         unimplemented!()
     }
 
     pub fn restrict(&self, usage: u32) -> Result<()> {
+        unimplemented!()
+    }
+
+    pub fn copy_attribute_from(&mut self, handle: &mut ObjectHandle) -> Result<()> {
+        unimplemented!()
+    }
+
+    pub fn generate_key(&self, key_size: u32, params: &[Attribute]) -> Result<()> {
         unimplemented!()
     }
 }
@@ -184,7 +196,9 @@ impl TransientObject {
 
 impl Drop for TransientObject {
     fn drop(&mut self) {
-        unimplemented!()
+        unsafe {
+            raw::TEE_FreeTransientObject(*self.0.raw);
+        }
     }
 }
 
@@ -214,28 +228,18 @@ impl PersistentObject {
         storage_id: u32,
         object_id: &mut T,
         flags: u32,
-        data: &mut D,
+        initial_data: &mut D,
     ) -> Result<PersistentObject> {
         unimplemented!()
-    }
-
-    pub fn read(&self, buf: &mut [u8]) -> Result<usize> {
-        self.0.read(buf)
-    }
-
-    pub fn write(&self, buf: &[u8]) -> Result<()> {
-        self.0.write(buf)
     }
 
     pub fn rename<T>(&mut self, new_object_id: &mut T) -> Result<()> {
         unimplemented!()
     }
+}
 
-    pub fn handle(&self) -> &ObjectHandle {
-        &self.0
-    }
-
-    pub fn into_handle(self) -> ObjectHandle {
-        self.0
+impl Drop for PersistentObject {
+    fn drop(&mut self) {
+        unimplemented!()
     }
 }
