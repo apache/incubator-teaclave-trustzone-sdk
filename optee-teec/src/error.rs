@@ -68,7 +68,7 @@ pub enum ErrorKind {
 }
 
 impl ErrorKind {
-    pub fn as_str(&self) -> &'static str {
+    pub(crate) fn as_str(&self) -> &'static str {
         match *self {
             ErrorKind::Generic => "Non-specific cause.",
             ErrorKind::AccessDenied => "Access privileges are not sufficient.",

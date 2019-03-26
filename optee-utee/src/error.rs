@@ -55,7 +55,7 @@ pub enum ErrorKind {
 }
 
 impl ErrorKind {
-    pub fn as_str(&self) -> &'static str {
+    pub(crate) fn as_str(&self) -> &'static str {
         match *self {
             ErrorKind::CorruptObject => "Object corruption.",
             ErrorKind::CorruptObject2 => "Persistent object corruption.",
