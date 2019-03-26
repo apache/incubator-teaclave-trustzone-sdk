@@ -13,6 +13,10 @@ use std::fmt;
 /// ````
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// The error type for TEE operations of [`Context`] and [`Session`].
+///
+/// [`Context`]: struct.Context.html
+/// [`Session`]: struct.Session.html
 pub struct Error {
     code: u32,
 }
@@ -21,25 +25,45 @@ pub struct Error {
 /// corresponding code in OP-TEE client library.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
 pub enum ErrorKind {
+    /// Non-specific cause.
     Generic = 0xFFFF0000,
+    /// Access privileges are not sufficient.
     AccessDenied = 0xFFFF0001,
+    /// The operation was canceled.
     Cancel = 0xFFFF0002,
+    /// Concurrent accesses caused conflict.
     AccessConflict = 0xFFFF0003,
+    /// Too much data for the requested operation was passed.
     ExcessData = 0xFFFF0004,
+    /// Input data was of invalid format.
     BadFormat = 0xFFFF0005,
+    /// Input parameters were invalid.
     BadParameters = 0xFFFF0006,
+    /// Operation is not valid in the current state.
     BadState = 0xFFFF0007,
+    /// The requested data item is not found.
     ItemNotFound = 0xFFFF0008,
+    /// The requested operation should exist but is not yet implemented.
     NotImplemented = 0xFFFF0009,
+    /// The requested operation is valid but is not supported in this implementation.
     NotSupported = 0xFFFF000A,
+    /// Expected data was missing.
     NoData = 0xFFFF000B,
+    /// System ran out of resources.
     OutOfMEmory = 0xFFFF000C,
+    /// The system is busy working on something else.
     Busy = 0xFFFF000D,
+    /// Communication with a remote party failed.
     Communication = 0xFFFF000E,
+    /// A security fault was detected.
     Security = 0xFFFF000F,
+    /// The supplied buffer is too short for the generated output.
     ShortBuffer = 0xFFFF0010,
+    /// Implementation defined error code.
     ExternalCancel = 0xFFFF0011,
+    /// Implementation defined error code: trusted Application has panicked during the operation.
     TargetDead = 0xFFFF3024,
+    /// Unknown error.
     Unknown,
 }
 
@@ -123,10 +147,12 @@ impl Error {
         }
     }
 
+    /// Returns raw code of this error.
     pub fn raw_code(&self) -> u32 {
         self.code
     }
 
+    /// Returns corresponding error message of this error.
     pub fn message(&self) -> &str {
         self.kind().as_str()
     }
