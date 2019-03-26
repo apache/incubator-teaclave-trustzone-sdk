@@ -47,7 +47,7 @@ impl Parameter {
 
     pub fn raw(&self) -> *mut raw::TEE_Param { self.raw }
 
-    pub fn get_value_a(&mut self) -> Result<u32> {
+    pub fn get_value_a(&self) -> Result<u32> {
         match self.param_type {
             ParamType::ValueInput | ParamType::ValueInout => {
                 let value = unsafe { (*self.raw).value.a };
@@ -67,7 +67,7 @@ impl Parameter {
         }
     }
 
-    pub fn get_value_b(&mut self) -> Result<u32> {
+    pub fn get_value_b(&self) -> Result<u32> {
         match self.param_type {
             ParamType::ValueInput | ParamType::ValueInout => {
                 let value = unsafe { (*self.raw).value.b };
@@ -87,26 +87,14 @@ impl Parameter {
         }
     }
 
-    // TODO: use memref type instead of separate ptr and size
-    pub fn get_memref_ptr(&mut self) -> Result<*mut c_void> {
+    pub fn get_memref(&mut self) -> Result<(*mut c_void, u32)> {
         match self.param_type {
             ParamType::MemrefInput
             | ParamType::MemrefOutput
             | ParamType::MemrefInout => {
                 let buffer = unsafe { (*self.raw).memref.buffer };
-                Ok(buffer)
-            }
-            _ => Err(Error::new(ErrorKind::BadParameters)),
-        }
-    }
-
-    pub fn get_memref_size(&mut self) -> Result<u32> {
-        match self.param_type {
-            ParamType::MemrefInput
-            | ParamType::MemrefOutput
-            | ParamType::MemrefInout => {
                 let size = unsafe { (*self.raw).memref.size };
-                Ok(size)
+                Ok((buffer, size))
             }
             _ => Err(Error::new(ErrorKind::BadParameters)),
         }

@@ -228,8 +228,7 @@ pub fn set_aes_key(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
         },
     };
 
-    let key = params.0.get_memref_ptr()?;
-    let key_sz = params.0.get_memref_size()?;
+    let (key, key_sz) = params.0.get_memref()?;
 
     if key_sz != aes.key_size {
         trace_println!("[+] Get wrong key size !\n");
@@ -257,8 +256,7 @@ pub fn set_aes_key(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
 }
 
 pub fn reset_aes_iv(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
-    let iv = params.0.get_memref_ptr()?;
-    let iv_sz = params.0.get_memref_size()?;
+    let (iv, iv_sz) = params.0.get_memref()?;
 
     unsafe {
         TEE_CipherInit(aes.op_handle, iv, iv_sz);
@@ -269,10 +267,8 @@ pub fn reset_aes_iv(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> 
 }
 
 pub fn cipher_buffer(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
-    let input_ptr = params.0.get_memref_ptr()?;
-    let output_ptr = params.1.get_memref_ptr()?;
-    let input_size = params.0.get_memref_size()?;
-    let mut output_size = params.1.get_memref_size()?;
+    let (input_ptr, input_size) = params.0.get_memref()?;
+    let (output_ptr, mut output_size) = params.1.get_memref()?;
 
     if output_size < input_size {
         return Err(Error::new(ErrorKind::BadParameters));
