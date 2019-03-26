@@ -4,21 +4,30 @@ use std::ptr;
 
 use crate::{Context, Error, Operation, Result, Uuid};
 
+/// Session login methods.
 #[derive(Copy, Clone)]
 pub enum ConnectionMethods {
+    /// No login data is provided.
     LoginPublic,
+    /// Login data about the user running the Client Application process is provided.
     LoginUser,
+    /// Login data about the group running the Client Application process is provided.
     LoginGroup,
+    /// Login data about the running Client Application itself is provided.
     LoginApplication,
+    /// Login data about the user and the running Client Application itself is provided.
     LoginUserApplication,
+    /// Login data about the group and the running Client Application itself is provided.
     LoginGroupApplication,
 }
 
+/// Represents a connection between a client application and a trusted application.
 pub struct Session {
     raw: raw::TEEC_Session,
 }
 
 impl Session {
+    /// Initializes a TEE session object with specified context and uuid.
     pub fn new(context: &mut Context, uuid: Uuid) -> Result<Self> {
         let mut raw_session = raw::TEEC_Session {
             ctx: context.as_mut_raw_ptr(),
@@ -43,10 +52,12 @@ impl Session {
         }
     }
 
+    /// Converts a TEE client context to a raw pointer.
     pub fn as_mut_raw_ptr(&mut self) -> *mut raw::TEEC_Session {
         &mut self.raw
     }
 
+    /// Invokes a command with an operation with this session.
     pub fn invoke_command(&mut self, command_id: u32, operation: &mut Operation) -> Result<()> {
         let mut err_origin: libc::uint32_t = 0;
         unsafe {
