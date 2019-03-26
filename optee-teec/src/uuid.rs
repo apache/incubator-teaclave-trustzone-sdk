@@ -4,11 +4,20 @@ use optee_teec_sys as raw;
 use uuid as uuid_crate;
 use uuid_crate::parser::ParseError;
 
+/// A Universally Unique Resource Identifier (UUID) type as defined in RFC4122.
+/// The value is used to identify a trusted application.
 pub struct Uuid {
     raw: raw::TEEC_UUID,
 }
 
 impl Uuid {
+    /// Parses a Uuid from a string of hexadecimal digits with optional hyphens.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let uuid = Uuid::parse_str("8abcf200-2450-11e4-abe2-0002a5d5c51b").unwrap();
+    /// ```
     pub fn parse_str(input: &str) -> Result<Uuid, ParseError> {
         let uuid = uuid_crate::Uuid::parse_str(input)?;
         let (time_low, time_mid, time_hi_and_version, clock_seq_and_node) = uuid.as_fields();
@@ -27,6 +36,7 @@ impl Uuid {
         Self::new_raw(time_low, time_mid, time_hi_and_version, *clock_seq_and_node)
     }
 
+    /// Crates a raw TEE client uuid object with specified parameters.
     pub fn new_raw(
         time_low: u32,
         time_mid: u16,
@@ -42,6 +52,7 @@ impl Uuid {
         Self { raw: raw_uuid }
     }
 
+    /// Converts a uuid to a const raw `TEEC_UUID` pointer.
     pub fn as_raw_ptr(&self) -> *const raw::TEEC_UUID {
         &self.raw
     }
