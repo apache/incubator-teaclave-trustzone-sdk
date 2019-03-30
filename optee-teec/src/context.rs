@@ -2,7 +2,7 @@ use libc;
 use optee_teec_sys as raw;
 use std::ptr;
 
-use crate::{Error, Result, Session, Uuid};
+use crate::{Error, Result, Session, Uuid, Operation};
 
 /// An abstraction of the logical connection between a client application and a
 /// TEE.
@@ -63,7 +63,28 @@ impl Context {
     /// let session = ctx.open_session(uuid).unwrap();
     /// ```
     pub fn open_session(&mut self, uuid: Uuid) -> Result<Session> {
-        Session::new(self, uuid)
+        Session::new(self, uuid, None)
+    }
+
+    /// Opens a new session with the specified trusted application, pass some
+    /// parameters to TA by an operation.
+    ///
+    /// The target trusted application is specified by `uuid`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let mut ctx = Context::new().unwrap();
+    /// let uuid = Uuid::parse_str("8abcf200-2450-11e4-abe2-0002a5d5c51b").unwrap();
+    /// let p0 = Parameter::from_value(42, 0, ParamType::ValueInout);
+    /// let p1 = Parameter::new();
+    /// let p2 = Parameter::new();
+    /// let p3 = Parameter::new();
+    /// let mut operation = Operation::new(0, p0, p1, p2, p3);
+    /// let session = ctx.open_session_with_operation(uuid, operation).unwrap();
+    /// ```
+    pub fn open_session_with_operation(&mut self, uuid: Uuid, operation: Operation) -> Result<Session> {
+        Session::new(self, uuid, Some(operation))
     }
 }
 

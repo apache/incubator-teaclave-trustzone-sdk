@@ -28,12 +28,17 @@ pub struct Session {
 
 impl Session {
     /// Initializes a TEE session object with specified context and uuid.
-    pub fn new(context: &mut Context, uuid: Uuid) -> Result<Self> {
+    pub fn new(context: &mut Context, uuid: Uuid, operation: Option<Operation>) -> Result<Self> {
         let mut raw_session = raw::TEEC_Session {
             ctx: context.as_mut_raw_ptr(),
             session_id: 0,
         };
         let mut err_origin: libc::uint32_t = 0;
+        let raw_operation = if operation.is_none() {
+            ptr::null_mut() as *mut raw::TEEC_Operation
+        } else {
+            operation.unwrap().as_mut_raw_ptr()
+        };
         unsafe {
             match raw::TEEC_OpenSession(
                 context.as_mut_raw_ptr(),
@@ -41,7 +46,7 @@ impl Session {
                 uuid.as_raw_ptr(),
                 ConnectionMethods::LoginPublic as u32,
                 ptr::null() as *const libc::c_void,
-                ptr::null_mut() as *mut raw::TEEC_Operation,
+                raw_operation,
                 &mut err_origin,
             ) {
                 raw::TEEC_SUCCESS => Ok(Self {
