@@ -1,6 +1,7 @@
 use optee_teec_sys as raw;
 use std::mem;
 
+/// Parameters is a tuple of four Parameters.
 pub struct Parameters(pub Parameter, pub Parameter, pub Parameter, pub Parameter);
 
 impl Parameters {
@@ -31,6 +32,8 @@ impl Parameters {
     }
 }
 
+/// This type defines a Parameter of a Operation. It can be a Temporary Memory
+/// Reference, a Registered Memory Reference, or a Value Parameter.
 pub struct Parameter {
     raw: raw::TEEC_Parameter,
     pub param_type: ParamType,
@@ -103,18 +106,46 @@ impl From<Parameter> for raw::TEEC_Parameter {
     }
 }
 
+/// These are used to indicate the type of Parameter encoded inside the
+/// operation structure.
 #[derive(Copy, Clone)]
 pub enum ParamType {
+    /// The Parameter is not used.
     None = 0,
+    /// The Parameter is a TEEC_Value tagged as input.
     ValueInput = 1,
+    /// The Parameter is a TEEC_Value tagged as output.
     ValueOutput = 2,
+    /// The Parameter is a TEEC_Value tagged as both as input and output, i.e.,
+    /// for which both the behaviors of ValueInput and ValueOutput apply.
     ValueInout = 3,
+    /// The Parameter is a TEEC_TempMemoryReference describing a region of
+    /// memory which needs to be temporarily registered for the duration of the
+    /// Operation and is tagged as input.
     MemrefTempInput = 5,
+    /// Same as MemrefTempInput, but the Memory Reference is tagged as
+    /// output. The Implementation may update the size field to reflect the
+    /// required output size in some use cases.
     MemrefTempOutput = 6,
+    /// A Temporary Memory Reference tagged as both input and output, i.e., for
+    /// which both the behaviors of MemrefTempInput and MemrefTempOutput apply.
     MemrefTempInout = 7,
+    /// The Parameter is a Registered Memory Reference that refers to the
+    /// entirety of its parent Shared Memory block. The parameter structure is a
+    /// TEEC_MemoryReference. In this structure, the Implementation MUST read
+    /// only the parent field and MAY update the size field when the operation
+    /// completes.
     MemrefWhole = 0xC,
+    /// A Registered Memory Reference structure that refers to a partial region
+    /// of its parent Shared Memory block and is tagged as input.
     MemrefPartialInput = 0xD,
+    /// A Registered Memory Reference structure that refers to a partial region
+    /// of its parent Shared Memory block and is tagged as output.
     MemrefPartialOutput = 0xE,
+    /// The Registered Memory Reference structure that refers to a partial
+    /// region of its parent Shared Memory block and is tagged as both input and
+    /// output, i.e., for which both the behaviors of MemrefPartialInput and
+    /// MemrefPartialOutput apply.
     MemrefPartialInout = 0xF,
 }
 

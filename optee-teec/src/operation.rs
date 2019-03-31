@@ -2,6 +2,9 @@ use crate::{ParamTypes, Parameter};
 use optee_teec_sys as raw;
 use std::ptr;
 
+/// This type defines the payload of either an open session operation or an
+/// invoke command operation. It is also used for cancellation of operations,
+/// which may be desirable even if no payload is passed.
 pub struct Operation {
     pub raw: raw::TEEC_Operation,
 }
