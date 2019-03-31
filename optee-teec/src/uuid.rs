@@ -30,6 +30,13 @@ impl Uuid {
     }
 
     /// Creates a `Uuid` using the supplied big-endian bytes.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// let bytes: [u8; 16] = [70, 235, 208, 238, 14, 109, 67, 201, 185, 13, 204, 195, 90, 145, 63, 62,];
+    /// let uuid = Uuid::from_bytes(bytes);
+    /// ```
     pub fn from_bytes(bytes: [u8; 16]) -> Uuid {
         let uuid = uuid_crate::Uuid::from_bytes(bytes);
         let (time_low, time_mid, time_hi_and_version, clock_seq_and_node) = uuid.as_fields();
