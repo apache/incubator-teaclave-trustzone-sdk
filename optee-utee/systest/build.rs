@@ -11,7 +11,6 @@ fn main() {
         .header("user_ta_header.h")
         .header("tee_api.h")
         .header("utee_syscalls.h")
-        .header("tee_internal_se_api.h")
         .include(env::var("OPTEE_OS_INCLUDE").unwrap())
         .type_name(|s, _is_struct, _is_union| {
             if s == "utee_params"
@@ -42,7 +41,7 @@ fn main() {
     cfg.skip_fn(|s| s == "TEE_BigIntFMMConvertToBigInt");
     cfg.skip_const(|s| s.starts_with("TA_PROP_STR") || s == "TEE_HANDLE_NULL");
     cfg.generate("../optee-utee-sys/src/lib.rs", "all.rs");
-    println!("cargo:rustc-link-lib=static=mpa");
+    println!("cargo:rustc-link-lib=static=mbedtls");
     println!("cargo:rustc-link-lib=static=utee");
     println!("cargo:rustc-link-lib=static=utils");
 

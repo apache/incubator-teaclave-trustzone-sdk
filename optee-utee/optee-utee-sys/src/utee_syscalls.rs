@@ -206,49 +206,6 @@ extern "C" {
     pub fn utee_storage_obj_write(obj: c_ulong, data: *const c_void, len: size_t) -> TEE_Result;
     pub fn utee_storage_obj_trunc(obj: c_ulong, len: size_t) -> TEE_Result;
     pub fn utee_storage_obj_seek(obj: c_ulong, offset: int32_t, whence: c_ulong) -> TEE_Result;
-    pub fn utee_se_service_open(seServiceHandle: *mut uint32_t) -> TEE_Result;
-    pub fn utee_se_service_close(seServiceHandle: c_ulong) -> TEE_Result;
-    pub fn utee_se_service_get_readers(
-        seServiceHandle: c_ulong,
-        r: *mut uint32_t,
-        len: *mut uint64_t,
-    ) -> TEE_Result;
-    pub fn utee_se_reader_get_prop(r: c_ulong, p: *mut uint32_t) -> TEE_Result;
-    pub fn utee_se_reader_get_name(
-        r: c_ulong,
-        name: *mut c_char,
-        name_len: *mut uint64_t,
-    ) -> TEE_Result;
-    pub fn utee_se_reader_open_session(r: c_ulong, s: *mut uint32_t) -> TEE_Result;
-    pub fn utee_se_reader_close_sessions(r: c_ulong) -> TEE_Result;
-    pub fn utee_se_session_is_closed(s: c_ulong) -> TEE_Result;
-    pub fn utee_se_session_get_atr(
-        s: c_ulong,
-        atr: *mut c_void,
-        atr_len: *mut uint64_t,
-    ) -> TEE_Result;
-    pub fn utee_se_session_open_channel(
-        s: c_ulong,
-        is_logical: c_ulong,
-        aid_buffer: *const c_void,
-        aid_buffer_len: size_t,
-        c: *mut uint32_t,
-    ) -> TEE_Result;
-    pub fn utee_se_session_close(s: c_ulong) -> TEE_Result;
-    pub fn utee_se_channel_select_next(c: c_ulong) -> TEE_Result;
-    pub fn utee_se_channel_get_select_resp(
-        c: c_ulong,
-        resp: *mut c_void,
-        resp_len: *mut uint64_t,
-    ) -> TEE_Result;
-    pub fn utee_se_channel_transmit(
-        c: c_ulong,
-        cmd: *mut c_void,
-        cmd_len: size_t,
-        resp: *mut c_void,
-        resp_len: *mut uint64_t,
-    ) -> TEE_Result;
-    pub fn utee_se_channel_close(c: c_ulong) -> TEE_Result;
     pub fn utee_cache_operation(va: *mut c_void, l: size_t, op: c_ulong) -> TEE_Result;
 // unimplemented syscall
 // pub fn utee_gprof_send(buf: *mut c_void, size: size_t, id: *mut uint32_t) -> TEE_Result;
