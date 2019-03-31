@@ -17,7 +17,7 @@ optee-os:
 	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) optee-os
 
 optee-client:
-	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) optee-client
+	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) optee-client-common
 
 examples: $(EXAMPLES)
 $(EXAMPLES):
@@ -27,7 +27,7 @@ optee-os-clean:
 	make -C $(OPTEE_OS_PATH) O=out/arm clean
 
 optee-client-clean:
-	make -C $(OPTEE_CLIENT_PATH) clean
+	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) optee-client-clean-common
 
 examples-clean: $(EXAMPLES_CLEAN)
 $(EXAMPLES_CLEAN):
