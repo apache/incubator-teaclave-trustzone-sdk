@@ -34,10 +34,9 @@ impl Session {
             session_id: 0,
         };
         let mut err_origin: libc::uint32_t = 0;
-        let raw_operation = if operation.is_none() {
-            ptr::null_mut() as *mut raw::TEEC_Operation
-        } else {
-            operation.unwrap().as_mut_raw_ptr()
+        let raw_operation = match operation {
+            Some(mut o) => o.as_mut_raw_ptr(),
+            None => ptr::null_mut() as *mut raw::TEEC_Operation
         };
         unsafe {
             match raw::TEEC_OpenSession(
