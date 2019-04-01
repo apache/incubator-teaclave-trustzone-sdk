@@ -1,6 +1,9 @@
 language: rust
 rust: nightly-2019-02-27
 
+services:
+  - docker
+
 git:
   submodules: false
 
@@ -23,6 +26,7 @@ script:
   - (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
   - (cd optee-teec && cargo build --manifest-path systest/Cargo.toml --target aarch64-unknown-linux-gnu)
   - make examples
+  - docker run --rm -it -v$(pwd):/rust-optee-trustzone-sdk -w /rust-optee-trustzone-sdk mesalocklinux/rust-optee-trustzone-sdk-qemuv8-ci bash -c "cd ci && ./ci.sh"
 
 cache:
   timeout: 1000
