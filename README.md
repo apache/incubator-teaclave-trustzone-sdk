@@ -54,8 +54,10 @@ At last, you can get started with our examples.
 $ make examples
 ```
 
-Please read detailed [instructions](https://optee.readthedocs.io/building/devices/index.html) to
-run these examples on OP-TEE OS supported devices.
+Please read detailed
+[instructions](https://github.com/mesalock-linux/rust-optee-trustzone-sdk/wiki/Getting-started-with-OPTEE-for-QEMU-ARMv8)
+to run these examples on OP-TEE for QEMU. For other supported devices, please find
+more documents [here](https://optee.readthedocs.io/building/devices/index.html).
 
 ## Contributing
 
