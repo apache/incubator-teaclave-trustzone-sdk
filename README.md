@@ -1,10 +1,11 @@
 # Rust OP-TEE TrustZone SDK
 
-Rust OP-TEE TrustZone SDK provides abilities to build safe TrustZone applications in Rust.
-The SDK is based on the [OP-TEE](https://www.op-tee.org/) project which follows
-[GlobalPlatform](https://globalplatform.org/) API specifications.
-Additionally, the SDK enables capability to write TrustZone applications with
-Rust's standard library and many third-party libraries (i.e., crates).
+Rust OP-TEE TrustZone SDK provides abilities to build safe TrustZone
+applications in Rust. The SDK is based on the [OP-TEE](https://www.op-tee.org/)
+project which follows [GlobalPlatform](https://globalplatform.org/) TEE
+specifications and provides ergonomic APIs. In addition, it enables capability
+to write TrustZone applications with Rust's standard library and many
+third-party libraries (i.e., crates).
 
 Rust OP-TEE TrustZone SDK is under the [MesaTEE](https://mesatee.org) project.
 
@@ -63,7 +64,7 @@ more documents [here](https://optee.readthedocs.io/building/devices/index.html).
 
 The project is maintained by Mingshen Sun (@mssun) and Shengye Wan (@SimonWan),
 under the supervision of steering committee (Tao Wei and Yulong Zhang).
-Contributions are very welcome.
+Contributions are very welcome, please submit issues or send pull requests
 
 ## License
 
