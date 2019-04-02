@@ -22,8 +22,8 @@ screen -S qemu_screen -p 0 -X stuff "./hello_world\n"
 sleep 5
 screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
-cat screenlog.0
-cat /tmp/serial.log
+cat -v screenlog.0
+cat -v /tmp/serial.log
 grep -q "original value is 29" screenlog.0
 grep -q "inc value is 129" screenlog.0
 grep -q "dec value is 29" screenlog.0
