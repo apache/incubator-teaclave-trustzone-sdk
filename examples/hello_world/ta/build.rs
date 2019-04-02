@@ -1,5 +1,5 @@
 use std::env;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
@@ -12,7 +12,14 @@ fn main() -> std::io::Result<()> {
     write!(buffer, "\n")?;
     buffer.write_all(include_bytes!("../command_id.rs"))?;
 
-    let tee_uuid = Uuid::parse_str(&include_str!("../uuid.txt").trim()).unwrap();
+    let tee_uuid = match Path::new("../uuid.txt").exists() {
+        true => Uuid::parse_str(&fs::read_to_string("../uuid.txt").unwrap().trim()).unwrap(),
+        false => {
+            let uuid = Uuid::new_v4();
+            fs::write("../uuid.txt", uuid.to_string())?;
+            uuid
+        }
+    };
     let (time_low, time_mid, time_hi_and_version, clock_seq_and_node) = tee_uuid.as_fields();
 
     write!(buffer, "\n")?;
