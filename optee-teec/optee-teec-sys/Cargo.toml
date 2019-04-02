@@ -1,7 +1,10 @@
 [package]
 name = "optee-teec-sys"
 version = "0.1.0"
-authors = ["Mingshen Sun <mssun@mesalock-linux.org>"]
+authors = ["The Rust OP-TEE TrustZone SDK Project Developers"]
+license = "BSD 3-Clause"
+repository = "https://github.com/mesalock-linux/rust-optee-trustzone-sdk.git"
+description = "Native bindings to the libteec library."
 edition = "2018"
 
 [dependencies]
