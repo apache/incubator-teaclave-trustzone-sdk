@@ -1,5 +1,7 @@
 use std::env;
-use std::path::Path;
+use std::fs::File;
+use std::io::Write;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 
 fn main() {
@@ -46,9 +48,17 @@ fn main() {
     println!("cargo:rustc-link-lib=static=utils");
 
     let out_dir = env::var("OUT_DIR").unwrap();
+    let undefined_path = PathBuf::from(&out_dir).join("undefined.c");
 
+    let mut buffer = File::create(&undefined_path).unwrap();
+    write!(buffer, "
+        void* ta_props = 0;
+        void* ta_num_props = 0;
+        void* trace_level = 0;
+        void* trace_ext_prefix = 0;
+    ").unwrap();
     Command::new("aarch64-linux-gnu-gcc")
-        .args(&["src/undefined.c", "-c", "-fPIC", "-o"])
+        .args(&[undefined_path.to_str().unwrap(), "-c", "-fPIC", "-o"])
         .arg(&format!("{}/undefined.o", out_dir))
         .status()
         .unwrap();
