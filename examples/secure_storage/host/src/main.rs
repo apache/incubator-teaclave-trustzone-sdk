@@ -24,7 +24,7 @@ fn write_secure_object(
     let p3 = Parameter::new();
     let mut operation = Operation::new(0, p0, p1, p2, p3);
 
-    let _ = session.invoke_command(TA_SECURE_STORAGE_CMD_WRITE_RAW, &mut operation)?;
+    session.invoke_command(TA_SECURE_STORAGE_CMD_WRITE_RAW, &mut operation)?;
 
     println!("- Create and load object in the TA secure storage");
     Ok(())
@@ -49,7 +49,7 @@ fn read_secure_object(
     let p3 = Parameter::new();
     let mut operation = Operation::new(0, p0, p1, p2, p3);
 
-    let _ = session.invoke_command(TA_SECURE_STORAGE_CMD_READ_RAW, &mut operation)?;
+    session.invoke_command(TA_SECURE_STORAGE_CMD_READ_RAW, &mut operation)?;
 
     println!("- Read back the object");
     Ok(())
@@ -66,7 +66,7 @@ fn delete_secure_object(session: &mut Session, obj_id: &mut CString) -> optee_te
     let p3 = Parameter::new();
     let mut operation = Operation::new(0, p0, p1, p2, p3);
 
-    let _ = session.invoke_command(TA_SECURE_STORAGE_CMD_DELETE, &mut operation)?;
+    session.invoke_command(TA_SECURE_STORAGE_CMD_DELETE, &mut operation)?;
 
     println!("- Delete the object");
     Ok(())

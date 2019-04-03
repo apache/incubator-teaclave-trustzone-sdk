@@ -12,11 +12,11 @@ fn hello_world(session: &mut Session) -> optee_teec::Result<()> {
     let (p0, _, _, _) = operation.parameters();
     println!("original value is {}", p0.value().0);
 
-    let _ = session.invoke_command(Command::IncValue as u32, &mut operation)?;
+    session.invoke_command(Command::IncValue as u32, &mut operation)?;
     let (p0, _, _, _) = operation.parameters();
     println!("inc value is {}", p0.value().0);
 
-    let _ = session.invoke_command(Command::DecValue as u32, &mut operation)?;
+    session.invoke_command(Command::DecValue as u32, &mut operation)?;
     let (p0, _, _, _) = operation.parameters();
     println!("dec value is {}", p0.value().0);
     Ok(())

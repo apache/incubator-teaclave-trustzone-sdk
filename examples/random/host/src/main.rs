@@ -17,8 +17,9 @@ fn random(session: &mut Session) -> optee_teec::Result<()> {
     let mut operation = Operation::new(0, p0, p1, p2, p3);
 
     println!("Invoking TA to generate random UUID...");
-    let _ = session.invoke_command(TA_RANDOM_CMD_GENERATE, &mut operation)?;
+    session.invoke_command(TA_RANDOM_CMD_GENERATE, &mut operation)?;
     let generate_uuid = Uuid::from_bytes(random_uuid);
+    
     println!("Generate random UUID: {}", generate_uuid);
     Ok(())
 }
