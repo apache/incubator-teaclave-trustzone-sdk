@@ -1,6 +1,6 @@
 #![no_main]
 
-use libc::{c_void, uint32_t};
+use libc::{c_void};
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
@@ -51,7 +51,7 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
 
 pub fn delete_object(params: &mut Parameters) -> Result<()> {
     unsafe {
-        let obj_id_sz: uint32_t = (*params.first().raw).memref.size;
+        let obj_id_sz: u32 = (*params.first().raw).memref.size;
         let obj_id: *mut c_void = TEE_Malloc(obj_id_sz, 0);
         TEE_MemMove(obj_id, (*params.first().raw).memref.buffer, obj_id_sz);
 
@@ -75,7 +75,7 @@ pub fn delete_object(params: &mut Parameters) -> Result<()> {
 
 pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
     unsafe {
-        let obj_id_sz: uint32_t = (*params.first().raw).memref.size;
+        let obj_id_sz: u32 = (*params.first().raw).memref.size;
         let obj_id: *mut c_void = TEE_Malloc(obj_id_sz, 0);
         if obj_id.is_null() {
             return Err(Error::from_raw_error(TEE_ERROR_OUT_OF_MEMORY));
@@ -83,8 +83,8 @@ pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
         TEE_MemMove(obj_id, (*params.first().raw).memref.buffer, obj_id_sz);
 
         let data: *mut c_void = (*params.second().raw).memref.buffer as *mut c_void;
-        let data_sz: uint32_t = (*params.second().raw).memref.size;
-        let obj_data_flag: uint32_t = TEE_DATA_FLAG_ACCESS_READ
+        let data_sz: u32 = (*params.second().raw).memref.size;
+        let obj_data_flag: u32 = TEE_DATA_FLAG_ACCESS_READ
             | TEE_DATA_FLAG_ACCESS_WRITE
             | TEE_DATA_FLAG_ACCESS_WRITE_META
             | TEE_DATA_FLAG_OVERWRITE;
@@ -118,7 +118,7 @@ pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
 
 pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
     unsafe {
-        let obj_id_sz: uint32_t = (*params.first().raw).memref.size;
+        let obj_id_sz: u32 = (*params.first().raw).memref.size;
         let obj_id: *mut c_void = TEE_Malloc(obj_id_sz, 0);
         if obj_id.is_null() {
             return Err(Error::from_raw_error(TEE_ERROR_OUT_OF_MEMORY));
@@ -126,7 +126,7 @@ pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
         TEE_MemMove(obj_id, (*params.first().raw).memref.buffer, obj_id_sz);
 
         let data: *mut c_void = (*params.second().raw).memref.buffer as *mut c_void;
-        let data_sz: uint32_t = (*params.second().raw).memref.size;
+        let data_sz: u32 = (*params.second().raw).memref.size;
         let mut object: TEE_ObjectHandle = TEE_HANDLE_NULL as *mut _;
         let res = TEE_OpenPersistentObject(
             TEE_STORAGE_PRIVATE,
@@ -155,7 +155,7 @@ pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
             TEE_Free(obj_id);
             return Err(Error::from_raw_error(res));
         }
-        let mut read_bytes: uint32_t = 0;
+        let mut read_bytes: u32 = 0;
 
         if object_info.dataSize > data_sz {
             (*params.second().raw).memref.size = object_info.dataSize;
