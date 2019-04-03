@@ -1,43 +1,31 @@
 #![no_main]
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
 
-use libc::{c_int, c_ulong, c_void, size_t, uint32_t};
-use optee_utee;
-use optee_utee::{trace_println, Error, Parameters, Result};
-use optee_utee_sys::*;
-use std::{mem, str};
+use optee_utee::{
+    ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
+};
+use optee_utee::{Error, ErrorKind, Parameters, Result};
+use optee_utee_sys::TEE_GenerateRandom;
 
-fn MESA_CreateEntryPoint() -> Result<()> {
+#[ta_create]
+fn create() -> Result<()> {
+    trace_println!("[+] TA create");
     Ok(())
 }
 
-fn MESA_OpenSessionEntryPoint(_params: &mut Parameters, _sess_ctx: *mut *mut c_void) -> Result<()> {
+#[ta_open_session]
+fn open_session(_params: &mut Parameters) -> Result<()> {
+    trace_println!("[+] TA open session");
     Ok(())
 }
 
-fn MESA_CloseSessionEntryPoint(_sess_ctx: *mut *mut c_void) -> Result<()> {
-    Ok(())
+#[ta_close_session]
+fn close_session() {
+    trace_println!("[+] TA close session");
 }
 
-fn MESA_DestroyEntryPoint() -> Result<()> {
-    Ok(())
-}
-
-fn MESA_InvokeCommandEntryPoint(
-    _sess_ctx: *mut c_void,
-    cmd_id: u32,
-    params: &mut Parameters,
-) -> Result<()> {
-    match cmd_id {
-        TA_RANDOM_CMD_GENERATE => {
-            return random_number_generate(params);
-        }
-        _ => {
-            return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
-        }
-    }
+#[ta_destroy]
+fn destroy() {
+    trace_println!("[+] TA destroy");
 }
 
 pub fn random_number_generate(params: &mut Parameters) -> Result<()> {
@@ -50,13 +38,29 @@ pub fn random_number_generate(params: &mut Parameters) -> Result<()> {
     Ok(())
 }
 
-const ta_name: &str = "Random Generator";
+#[ta_invoke_command]
+fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
+    trace_println!("[+] TA invoke command");
+    match Command::from(cmd_id) {
+        Command::RandomGenerator => {
+            return random_number_generate(params);
+        }
+        _ => {
+            return Err(Error::new(ErrorKind::BadParameters));
+        }
+    }
+}
 
-const TA_FLAGS: uint32_t = TA_FLAG_EXEC_DDR;
-const TA_STACK_SIZE: uint32_t = 2 * 1024;
-const TA_DATA_SIZE: uint32_t = 32 * 1024;
-const EXT_PROP_VALUE_1: &[u8] =
-    b"Example of a TA that returns the output from TEE_GenerateRandom\0";
-const EXT_PROP_VALUE_2: uint32_t = 0x0010;
+// TA configurations
+const TA_FLAGS: u32 = 0;
+const TA_DATA_SIZE: u32 = 32 * 1024;
+const TA_STACK_SIZE: u32 = 2 * 1024;
+const TA_VERSION: &[u8] = b"0.1\0";
+const TA_DESCRIPTION: &[u8] = b"This is a random generator example.\0";
+const EXT_PROP_VALUE_1: &[u8] = b"Random TA\0";
+const EXT_PROP_VALUE_2: u32 = 0x0010;
+const TRACE_LEVEL: i32 = 4;
+const TRACE_EXT_PREFIX: &[u8] = b"TA\0";
+const TA_FRAMEWORK_STACK_SIZE: u32 = 2048;
 
 include!(concat!(env!("OUT_DIR"), "/user_ta_header.rs"));

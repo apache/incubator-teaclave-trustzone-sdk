@@ -10,6 +10,7 @@ fn main() -> std::io::Result<()> {
     let mut buffer = File::create(out.join("user_ta_header.rs"))?;
     buffer.write_all(include_bytes!("ta_static.rs"))?;
     write!(buffer, "\n")?;
+    buffer.write_all(include_bytes!("../command_id.rs"))?;
 
     let tee_uuid = match Path::new("../uuid.txt").exists() {
         true => Uuid::parse_str(&fs::read_to_string("../uuid.txt").unwrap().trim()).unwrap(),

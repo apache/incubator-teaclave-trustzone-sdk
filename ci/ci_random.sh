@@ -25,7 +25,7 @@ sleep 5
 cat -v screenlog.0
 cat -v /tmp/serial.log
 grep -q "Invoking TA to generate random UUID..." screenlog.0
-grep -q "Generate random UUID: *-*-*-*" screenlog.0
+grep -q "Generate random UUID: [a-z0-9]*-[a-z0-9]*-[a-z0-9]*-[a-z0-9]*" screenlog.0
 grep -q "Success" screenlog.0
 
 rm -rf screenlog.0
