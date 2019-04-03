@@ -4,7 +4,7 @@ use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{Parameters, Result};
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 #[ta_create]
 fn create() -> Result<()> {
@@ -27,7 +27,6 @@ fn close_session() {
 fn destroy() {
     trace_println!("[+] TA destroy");
 }
-
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Point {

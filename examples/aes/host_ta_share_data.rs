@@ -1,5 +1,5 @@
 pub const TA_AES_CMD_PREPARE: u32 = 0;
-pub const TA_AES_CMD_SET_KEY: u32 =  1;
+pub const TA_AES_CMD_SET_KEY: u32 = 1;
 pub const TA_AES_CMD_SET_IV: u32 = 2;
 pub const TA_AES_CMD_CIPHER: u32 = 3;
 

@@ -161,7 +161,6 @@ pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
             return Err(Error::new(ErrorKind::ShortBuffer));
         }
 
-
         let res = TEE_ReadObjectData(
             object,
             data,
