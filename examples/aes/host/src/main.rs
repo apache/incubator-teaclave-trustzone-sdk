@@ -1,4 +1,4 @@
-use libc::*;
+use libc::{c_char, size_t};
 use optee_teec::{Context, Operation, ParamType, Parameter, Session, Uuid};
 
 include!(concat!(env!("OUT_DIR"), "/host_header.rs"));
@@ -10,83 +10,85 @@ const AES_BLOCK_SIZE: usize = 16;
 const DECODE: i8 = 0;
 const ENCODE: i8 = 1;
 
-fn prepare_aes(session: &mut Session, encode: i8) {
-    let param2_value = if encode == ENCODE {
+fn prepare_aes(session: &mut Session, encode: i8) -> optee_teec::Result<()> {
+    let p2_value = if encode == ENCODE {
         TA_AES_MODE_ENCODE
     } else {
         TA_AES_MODE_DECODE
     };
-    let param0 = Parameter::from_value(TA_AES_ALGO_CTR, 0, ParamType::ValueInput);
-    let param1 = Parameter::from_value(TA_AES_SIZE_128BIT, 0, ParamType::ValueInput);
-    let param2 = Parameter::from_value(param2_value, 0, ParamType::ValueInput);
-    let param3 = Parameter::new();
-    let mut operation = Operation::new(0, param0, param1, param2, param3);
+    let p0 = Parameter::from_value(TA_AES_ALGO_CTR, 0, ParamType::ValueInput);
+    let p1 = Parameter::from_value(TA_AES_SIZE_128BIT, 0, ParamType::ValueInput);
+    let p2 = Parameter::from_value(p2_value, 0, ParamType::ValueInput);
+    let p3 = Parameter::new();
+    let mut operation = Operation::new(0, p0, p1, p2, p3);
 
-    match session.invoke_command(TA_AES_CMD_PREPARE, &mut operation) {
-        Ok(_) => println!("AES operation prepare success.\n"),
-        Err(e) => println!("{:?}", e),
-    }
+    session.invoke_command(TA_AES_CMD_PREPARE, &mut operation)?;
+
+    Ok(())
 }
 
-fn set_key(session: &mut Session, key: &mut [c_char], key_sz: size_t) {
-    let param0 = Parameter::from_tmpref(
+fn set_key(session: &mut Session, key: &mut [c_char], key_sz: size_t) -> optee_teec::Result<()> {
+    let p0 = Parameter::from_tmpref(
         key.as_ptr() as *mut c_char,
         key_sz,
         ParamType::MemrefTempInput,
     );
-    let param1 = Parameter::new();
-    let param2 = Parameter::new();
-    let param3 = Parameter::new();
-    let mut operation = Operation::new(0, param0, param1, param2, param3);
+    let p1 = Parameter::new();
+    let p2 = Parameter::new();
+    let p3 = Parameter::new();
+    let mut operation = Operation::new(0, p0, p1, p2, p3);
 
-    match session.invoke_command(TA_AES_CMD_SET_KEY, &mut operation) {
-        Ok(_) => println!("AES key has been set.\n"),
-        Err(e) => println!("{:?}", e),
-    }
+    session.invoke_command(TA_AES_CMD_SET_KEY, &mut operation)?;
+
+    Ok(())
 }
 
-fn set_iv(session: &mut Session, iv: &mut [c_char], iv_sz: size_t) {
-    let param0 = Parameter::from_tmpref(
+fn set_iv(session: &mut Session, iv: &mut [c_char], iv_sz: size_t) -> optee_teec::Result<()> {
+    let p0 = Parameter::from_tmpref(
         iv.as_ptr() as *mut c_char,
         iv_sz,
         ParamType::MemrefTempInput,
     );
-    let param1 = Parameter::new();
-    let param2 = Parameter::new();
-    let param3 = Parameter::new();
-    let mut operation = Operation::new(0, param0, param1, param2, param3);
+    let p1 = Parameter::new();
+    let p2 = Parameter::new();
+    let p3 = Parameter::new();
+    let mut operation = Operation::new(0, p0, p1, p2, p3);
 
-    match session.invoke_command(TA_AES_CMD_SET_IV, &mut operation) {
-        Ok(_) => println!("AES IV has been set.\n"),
-        Err(e) => println!("{:?}", e),
-    }
+    session.invoke_command(TA_AES_CMD_SET_IV, &mut operation)?;
+
+    Ok(())
 }
 
-fn cipher_buffer(session: &mut Session, intext: &mut [c_char], outtext: &mut [c_char], sz: size_t) {
-    let param0 = Parameter::from_tmpref(
+fn cipher_buffer(
+    session: &mut Session,
+    intext: &mut [c_char],
+    outtext: &mut [c_char],
+    sz: size_t,
+) -> optee_teec::Result<()> {
+    let p0 = Parameter::from_tmpref(
         intext.as_ptr() as *mut c_char,
         sz,
         ParamType::MemrefTempInput,
     );
-    let param1 = Parameter::from_tmpref(
+    let p1 = Parameter::from_tmpref(
         outtext.as_ptr() as *mut c_char,
         sz,
         ParamType::MemrefTempOutput,
     );
-    let param2 = Parameter::new();
-    let param3 = Parameter::new();
-    let mut operation = Operation::new(0, param0, param1, param2, param3);
+    let p2 = Parameter::new();
+    let p3 = Parameter::new();
+    let mut operation = Operation::new(0, p0, p1, p2, p3);
 
-    match session.invoke_command(TA_AES_CMD_CIPHER, &mut operation) {
-        Ok(_) => println!("AES Encode/Decode done.\n"),
-        Err(e) => println!("{:?}", e),
-    }
+    session.invoke_command(TA_AES_CMD_CIPHER, &mut operation)?;
+
+    Ok(())
 }
 
-fn main() -> Result<(), Box<std::error::Error>> {
+fn main() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
     let uuid =
-        Uuid::parse_str(&include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../uuid.txt")).trim())?;
+        Uuid::parse_str(&include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../uuid.txt")).trim())
+            .unwrap();
     let mut session = ctx.open_session(uuid)?;
 
     let mut key = [0xa5u8; AES_TEST_KEY_SIZE];
@@ -95,46 +97,46 @@ fn main() -> Result<(), Box<std::error::Error>> {
     let mut ciph = [0x00u8; AES_TEST_BUFFER_SIZE];
     let mut tmp = [0x00u8; AES_TEST_BUFFER_SIZE];
 
-    println!("Prepare encode operation...");
-    prepare_aes(&mut session, ENCODE);
+    println!("Prepare encode operation");
+    prepare_aes(&mut session, ENCODE)?;
 
-    println!("Load key in TA...");
-    set_key(&mut session, &mut key, AES_TEST_KEY_SIZE as size_t);
+    println!("Load key in TA");
+    set_key(&mut session, &mut key, AES_TEST_KEY_SIZE as size_t)?;
 
-    println!("Reset ciphering operation in TA (provides the initial vector)...");
-    set_iv(&mut session, &mut iv, AES_BLOCK_SIZE as size_t);
+    println!("Reset ciphering operation in TA (provides the initial vector)");
+    set_iv(&mut session, &mut iv, AES_BLOCK_SIZE as size_t)?;
 
-    println!("Encode buffer from TA...");
+    println!("Encode buffer from TA");
     cipher_buffer(
         &mut session,
         &mut clear,
         &mut ciph,
         AES_TEST_BUFFER_SIZE as size_t,
-    );
+    )?;
 
-    println!("\nPrepare decode operation...");
-    prepare_aes(&mut session, DECODE);
+    println!("Prepare decode operation");
+    prepare_aes(&mut session, DECODE)?;
 
     let mut key = [0xa5u8; AES_TEST_KEY_SIZE];
-    println!("Load key in TA...");
-    set_key(&mut session, &mut key, AES_TEST_KEY_SIZE as size_t);
+    println!("Load key in TA");
+    set_key(&mut session, &mut key, AES_TEST_KEY_SIZE as size_t)?;
 
     let mut iv = [0x00u8; AES_BLOCK_SIZE];
-    println!("Reset ciphering operation in TA (provides the initial vector)...");
-    set_iv(&mut session, &mut iv, AES_BLOCK_SIZE as size_t);
+    println!("Reset ciphering operation in TA (provides the initial vector)");
+    set_iv(&mut session, &mut iv, AES_BLOCK_SIZE as size_t)?;
 
-    println!("Decode buffer from TA...");
+    println!("Decode buffer from TA");
     cipher_buffer(
         &mut session,
         &mut ciph,
         &mut tmp,
         AES_TEST_BUFFER_SIZE as size_t,
-    );
+    )?;
 
     if clear.iter().zip(tmp.iter()).all(|(a, b)| a == b) {
-        println!("\nDecode the original clear text correctly.");
+        println!("Clear text and decoded text match");
     } else {
-        println!("AES function runs wrong!");
+        println!("Clear text and decoded text differ => ERROR");
     }
     Ok(())
 }
