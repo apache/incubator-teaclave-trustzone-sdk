@@ -2,7 +2,7 @@
 name = "optee-teec"
 version = "0.1.0"
 authors = ["The Rust OP-TEE TrustZone SDK Project Developers"]
-license = "BSD 3-Clause"
+license = "Apache-2.0"
 repository = "https://github.com/mesalock-linux/rust-optee-trustzone-sdk.git"
 description = "TEE client API."
 edition = "2018"

@@ -68,5 +68,5 @@ Contributions are very welcome, please submit issues or send pull requests
 
 ## License
 
-Rust OP-TEE TrustZone SDK is distributed under the BSD 3-Clause license. See
-[LICENSE](LICENSE) for details.
+Rust OP-TEE TrustZone SDK is distributed under the Apache License (Version 2.0).
+See [LICENSE](LICENSE) for details.
