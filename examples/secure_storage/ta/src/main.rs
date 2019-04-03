@@ -1,43 +1,46 @@
 #![no_main]
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
 
-use libc::*;
-use optee_utee;
-use optee_utee::{trace_println, Error, ErrorKind, Parameters, Result};
+use libc::{c_void, uint32_t};
+use optee_utee::{
+    ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
+};
+use optee_utee::{Error, ErrorKind, Parameters, Result};
 use optee_utee_sys::*;
-use std::{mem, ptr, str};
+use std::ptr;
 
-fn MESA_CreateEntryPoint() -> Result<()> {
+#[ta_create]
+fn create() -> Result<()> {
+    trace_println!("[+] TA create");
     Ok(())
 }
 
-fn MESA_OpenSessionEntryPoint(_params: &mut Parameters, _sess_ctx: *mut *mut c_void) -> Result<()> {
+#[ta_open_session]
+fn open_session(_params: &mut Parameters) -> Result<()> {
+    trace_println!("[+] TA open session");
     Ok(())
 }
 
-fn MESA_CloseSessionEntryPoint(_sess_ctx: *mut *mut c_void) -> Result<()> {
-    Ok(())
+#[ta_close_session]
+fn close_session() {
+    trace_println!("[+] TA close session");
 }
 
-fn MESA_DestroyEntryPoint() -> Result<()> {
-    Ok(())
+#[ta_destroy]
+fn destroy() {
+    trace_println!("[+] TA destroy");
 }
 
-fn MESA_InvokeCommandEntryPoint(
-    _sess_ctx: *mut c_void,
-    cmd_id: u32,
-    params: &mut Parameters,
-) -> Result<()> {
-    match cmd_id {
-        TA_SECURE_STORAGE_CMD_WRITE_RAW => {
+#[ta_invoke_command]
+fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
+    trace_println!("[+] TA invoke command");
+    match Command::from(cmd_id) {
+        Command::Write => {
             return create_raw_object(params);
         }
-        TA_SECURE_STORAGE_CMD_READ_RAW => {
+        Command::Read => {
             return read_raw_object(params);
         }
-        TA_SECURE_STORAGE_CMD_DELETE => {
+        Command::Delete => {
             return delete_object(params);
         }
         _ => {
@@ -183,12 +186,16 @@ pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
     }
 }
 
-const ta_name: &str = "Secure Storage";
-
-const TA_FLAGS: uint32_t = TA_FLAG_EXEC_DDR;
-const TA_STACK_SIZE: uint32_t = 2 * 1024;
-const TA_DATA_SIZE: uint32_t = 32 * 1024;
+// TA configurations
+const TA_FLAGS: u32 = 0;
+const TA_DATA_SIZE: u32 = 32 * 1024;
+const TA_STACK_SIZE: u32 = 2 * 1024;
+const TA_VERSION: &[u8] = b"0.1\0";
+const TA_DESCRIPTION: &[u8] = b"This is a secure storage example.\0";
 const EXT_PROP_VALUE_1: &[u8] = b"Secure Storage TA\0";
-const EXT_PROP_VALUE_2: uint32_t = 0x0010;
+const EXT_PROP_VALUE_2: u32 = 0x0010;
+const TRACE_LEVEL: i32 = 4;
+const TRACE_EXT_PREFIX: &[u8] = b"TA\0";
+const TA_FRAMEWORK_STACK_SIZE: u32 = 2048;
 
 include!(concat!(env!("OUT_DIR"), "/user_ta_header.rs"));

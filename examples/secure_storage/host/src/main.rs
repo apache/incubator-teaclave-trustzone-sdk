@@ -5,31 +5,6 @@ use std::ffi::CString;
 include!(concat!(env!("OUT_DIR"), "/host_header.rs"));
 const TEST_OBJECT_SIZE: usize = 7000;
 
-fn write_secure_object(
-    session: &mut Session,
-    obj_id: &mut CString,
-    obj_data: &mut [c_char],
-) -> optee_teec::Result<()> {
-    let p0 = Parameter::from_tmpref(
-        obj_id.as_ptr() as *mut c_char,
-        obj_id.as_bytes_with_nul().len(),
-        ParamType::MemrefTempInput,
-    );
-    let p1 = Parameter::from_tmpref(
-        obj_data.as_mut_ptr(),
-        TEST_OBJECT_SIZE,
-        ParamType::MemrefTempInput,
-    );
-    let p2 = Parameter::new();
-    let p3 = Parameter::new();
-    let mut operation = Operation::new(0, p0, p1, p2, p3);
-
-    session.invoke_command(TA_SECURE_STORAGE_CMD_WRITE_RAW, &mut operation)?;
-
-    println!("- Create and load object in the TA secure storage");
-    Ok(())
-}
-
 fn read_secure_object(
     session: &mut Session,
     obj_id: &mut CString,
@@ -49,9 +24,34 @@ fn read_secure_object(
     let p3 = Parameter::new();
     let mut operation = Operation::new(0, p0, p1, p2, p3);
 
-    session.invoke_command(TA_SECURE_STORAGE_CMD_READ_RAW, &mut operation)?;
+    session.invoke_command(Command::Read as u32, &mut operation)?;
 
     println!("- Read back the object");
+    Ok(())
+}
+
+fn write_secure_object(
+    session: &mut Session,
+    obj_id: &mut CString,
+    obj_data: &mut [c_char],
+) -> optee_teec::Result<()> {
+    let p0 = Parameter::from_tmpref(
+        obj_id.as_ptr() as *mut c_char,
+        obj_id.as_bytes_with_nul().len(),
+        ParamType::MemrefTempInput,
+    );
+    let p1 = Parameter::from_tmpref(
+        obj_data.as_mut_ptr(),
+        TEST_OBJECT_SIZE,
+        ParamType::MemrefTempInput,
+    );
+    let p2 = Parameter::new();
+    let p3 = Parameter::new();
+    let mut operation = Operation::new(0, p0, p1, p2, p3);
+
+    session.invoke_command(Command::Write as u32, &mut operation)?;
+
+    println!("- Create and load object in the TA secure storage");
     Ok(())
 }
 
@@ -66,7 +66,7 @@ fn delete_secure_object(session: &mut Session, obj_id: &mut CString) -> optee_te
     let p3 = Parameter::new();
     let mut operation = Operation::new(0, p0, p1, p2, p3);
 
-    session.invoke_command(TA_SECURE_STORAGE_CMD_DELETE, &mut operation)?;
+    session.invoke_command(Command::Delete as u32, &mut operation)?;
 
     println!("- Delete the object");
     Ok(())
