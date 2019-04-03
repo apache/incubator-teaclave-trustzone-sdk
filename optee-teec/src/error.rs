@@ -99,6 +99,9 @@ impl ErrorKind {
 }
 
 impl Error {
+    pub fn new(kind: ErrorKind) -> Error {
+        Error { code: kind as u32 }
+    }
     /// Creates a new instance of an `Error` from a particular TEE error code.
     ///
     /// # Examples
