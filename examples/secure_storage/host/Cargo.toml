@@ -10,4 +10,6 @@ edition = "2018"
 [dependencies]
 libc = "0.2.48"
 optee-teec = { path = "../../../optee-teec" }
-optee-teec-sys = { path = "../../../optee-teec/optee-teec-sys" }
+
+[build_dependencies]
+uuid = { version = "0.7", features = ["v4"] }
