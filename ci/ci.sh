@@ -7,3 +7,4 @@ set -xe
 ./ci_secure_storage.sh
 ./ci_aes.sh
 ./ci_serde.sh
+./ci_hotp.sh
