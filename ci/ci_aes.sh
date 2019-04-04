@@ -22,17 +22,18 @@ screen -S qemu_screen -p 0 -X stuff "./aes\n"
 sleep 5
 screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
-cat -v screenlog.0
-cat -v /tmp/serial.log
-grep -q "Prepare encode operation" screenlog.0
-grep -q "Load key in TA" screenlog.0
-grep -q "Reset ciphering operation in TA (provides the initial vector)" screenlog.0
-grep -q "Encode buffer from TA" screenlog.0
-grep -q "Prepare decode operation" screenlog.0
-grep -q "Load key in TA" screenlog.0
-grep -q "Reset ciphering operation in TA (provides the initial vector)" screenlog.0
-grep -q "Decode buffer from TA" screenlog.0
-grep -q "Clear text and decoded text match" screenlog.0
+
+{
+	grep -q "Prepare encode operation" screenlog.0
+	grep -q "Load key in TA" screenlog.0
+	grep -q "Reset ciphering operation in TA (provides the initial vector)" screenlog.0
+	grep -q "Encode buffer from TA" screenlog.0
+	grep -q "Prepare decode operation" screenlog.0
+	grep -q "Clear text and decoded text match" screenlog.0
+} || {
+	cat -v screenlog.0
+	cat -v /tmp/serial.log
+}
 
 rm -rf screenlog.0
 rm -rf optee-qemuv8-3.4.0

@@ -22,11 +22,15 @@ screen -S qemu_screen -p 0 -X stuff "./serde\n"
 sleep 5
 screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
-cat -v screenlog.0
-cat -v /tmp/serial.log
-grep -q "Success" screenlog.0
-grep -q "serialized = " /tmp/serial.log
-grep -q "deserialized = " /tmp/serial.log
+
+{
+	grep -q "Success" screenlog.0
+	grep -q "serialized = " /tmp/serial.log
+	grep -q "deserialized = " /tmp/serial.log
+} || {
+        cat -v screenlog.0
+        cat -v /tmp/serial.log
+}
 
 rm -rf screenlog.0
 rm -rf optee-qemuv8-3.4.0
