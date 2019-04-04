@@ -1,6 +1,6 @@
 #![no_main]
 
-use libc::{c_void};
+use libc::c_void;
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
@@ -44,7 +44,7 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
             return delete_object(params);
         }
         _ => {
-            return Err(Error::from_raw_error(TEE_ERROR_NOT_SUPPORTED));
+            return Err(Error::new(ErrorKind::NotSupported));
         }
     }
 }
@@ -78,7 +78,7 @@ pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
         let obj_id_sz: u32 = (*params.first().raw).memref.size;
         let obj_id: *mut c_void = TEE_Malloc(obj_id_sz, 0);
         if obj_id.is_null() {
-            return Err(Error::from_raw_error(TEE_ERROR_OUT_OF_MEMORY));
+            return Err(Error::new(ErrorKind::OutOfMemory));
         }
         TEE_MemMove(obj_id, (*params.first().raw).memref.buffer, obj_id_sz);
 
@@ -121,7 +121,7 @@ pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
         let obj_id_sz: u32 = (*params.first().raw).memref.size;
         let obj_id: *mut c_void = TEE_Malloc(obj_id_sz, 0);
         if obj_id.is_null() {
-            return Err(Error::from_raw_error(TEE_ERROR_OUT_OF_MEMORY));
+            return Err(Error::new(ErrorKind::OutOfMemory));
         }
         TEE_MemMove(obj_id, (*params.first().raw).memref.buffer, obj_id_sz);
 

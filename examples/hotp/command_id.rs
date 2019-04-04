@@ -1,2 +1,16 @@
-pub const TA_HOTP_CMD_REGISTER_SHARED_KEY: u32 = 0;
-pub const TA_HOTP_CMD_GET_HOTP: u32 = 1;
+pub enum Command {
+    RegisterSharedKey,
+    GetHOTP,
+    Unknown,
+}
+
+impl From<u32> for Command {
+    #[inline]
+    fn from(value: u32) -> Command {
+        match value {
+            0 => Command::RegisterSharedKey,
+            1 => Command::GetHOTP,
+            _ => Command::Unknown,
+        }
+    }
+}

@@ -25,7 +25,7 @@ fn register_shared_key(session: &mut Session) -> optee_teec::Result<()> {
     let p3 = Parameter::new();
     let mut operation = Operation::new(0, p0, p1, p2, p3);
 
-    session.invoke_command(TA_HOTP_CMD_REGISTER_SHARED_KEY, &mut operation)?;
+    session.invoke_command(Command::RegisterSharedKey as u32, &mut operation)?;
     Ok(())
 }
 
@@ -42,7 +42,7 @@ fn get_hotp(session: &mut Session) -> optee_teec::Result<()> {
     let mut operation = Operation::new(0, p0, p1, p2, p3);
 
     for i in 0..TEST_SIZE {
-        session.invoke_command(TA_HOTP_CMD_GET_HOTP, &mut operation)?;
+        session.invoke_command(Command::GetHOTP as u32, &mut operation)?;
         let (p0, _, _, _) = operation.parameters();
         let (hotp_value, _) = p0.value();
 

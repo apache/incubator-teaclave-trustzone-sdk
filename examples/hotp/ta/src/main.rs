@@ -1,13 +1,11 @@
 #![no_main]
-#![allow(non_upper_case_globals)]
-#![allow(non_camel_case_types)]
-#![allow(non_snake_case)]
 
-use libc::{c_int, c_ulong, c_void, size_t, uint32_t};
-use optee_utee;
-use optee_utee::{trace_println, Error, Parameters, Result};
+use optee_utee::{
+    ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
+};
+use optee_utee::{Error, ErrorKind, Parameters, Result};
 use optee_utee_sys::*;
-use std::{mem, ptr, str};
+use std::ptr;
 
 pub const SHA1_HASH_SIZE: u32 = 20;
 
@@ -16,41 +14,45 @@ pub const MIN_KEY_SIZE: u32 = 10;
 
 pub const DBC2_MODULO: u32 = 1000000;
 
-pub static mut k: [u8; MAX_KEY_SIZE as usize] = [0; MAX_KEY_SIZE as usize];
+pub static mut K: [u8; MAX_KEY_SIZE as usize] = [0; MAX_KEY_SIZE as usize];
 pub static mut K_LEN: u32 = 0;
 
-pub static mut counter: [u8; 8] = [0x0; 8];
+pub static mut COUNTER: [u8; 8] = [0x0; 8];
 
-fn MESA_CreateEntryPoint() -> Result<()> {
+#[ta_create]
+fn create() -> Result<()> {
+    trace_println!("[+] TA create");
     Ok(())
 }
 
-fn MESA_OpenSessionEntryPoint(_params: &mut Parameters, _sess_ctx: *mut *mut c_void) -> Result<()> {
+#[ta_open_session]
+fn open_session(_params: &mut Parameters) -> Result<()> {
+    trace_println!("[+] TA open session");
     Ok(())
 }
 
-fn MESA_CloseSessionEntryPoint(_sess_ctx: *mut *mut c_void) -> Result<()> {
-    Ok(())
+#[ta_close_session]
+fn close_session() {
+    trace_println!("[+] TA close session");
 }
 
-fn MESA_DestroyEntryPoint() -> Result<()> {
-    Ok(())
+#[ta_destroy]
+fn destroy() {
+    trace_println!("[+] TA destroy");
 }
 
-fn MESA_InvokeCommandEntryPoint(
-    _sess_ctx: *mut c_void,
-    cmd_id: u32,
-    params: &mut Parameters,
-) -> Result<()> {
-    match cmd_id {
-        TA_HOTP_CMD_REGISTER_SHARED_KEY => {
+#[ta_invoke_command]
+fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
+    trace_println!("[+] TA invoke command");
+    match Command::from(cmd_id) {
+        Command::RegisterSharedKey => {
             return register_shared_key(params);
         }
-        TA_HOTP_CMD_GET_HOTP => {
+        Command::GetHOTP => {
             return get_hotp(params);
         }
         _ => {
-            return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
+            return Err(Error::new(ErrorKind::BadParameters));
         }
     }
 }
@@ -60,9 +62,8 @@ pub fn register_shared_key(params: &mut Parameters) -> Result<()> {
         K_LEN = (*params.first().raw).memref.size;
         let tmp: *mut [u8; MAX_KEY_SIZE as usize] = (*params.first().raw).memref.buffer as *mut _;
         for i in 0..K_LEN {
-            k[i as usize] = (*tmp)[i as usize];
+            K[i as usize] = (*tmp)[i as usize];
         }
-        //trace_println!("[+] Got shared key {}, whose size is {}.", k, K_LEN);
     }
     Ok(())
 }
@@ -74,9 +75,9 @@ pub fn get_hotp(params: &mut Parameters) -> Result<()> {
 
     unsafe {
         hmac_sha1(&mut mac, &mut mac_len)?;
-        for i in (0..counter.len()).rev() {
-            counter[i] += 1;
-            if counter[i] > 0 {
+        for i in (0..COUNTER.len()).rev() {
+            COUNTER[i] += 1;
+            if COUNTER[i] > 0 {
                 break;
             }
         }
@@ -102,12 +103,12 @@ pub fn hmac_sha1(out: *mut [u8; SHA1_HASH_SIZE as usize], outlen: *mut u32) -> R
 
     unsafe {
         if K_LEN < MIN_KEY_SIZE || K_LEN > MAX_KEY_SIZE {
-            return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
+            return Err(Error::new(ErrorKind::BadParameters));
         }
 
-        //original code check counter pointer which is useless here
+        //original code check COUNTER pointer which is useless here
         if out.is_null() || outlen.is_null() {
-            return Err(Error::from_raw_error(TEE_ERROR_BAD_PARAMETERS));
+            return Err(Error::new(ErrorKind::BadParameters));
         }
 
         let mut res = TEE_AllocateOperation(
@@ -130,7 +131,7 @@ pub fn hmac_sha1(out: *mut [u8; SHA1_HASH_SIZE as usize], outlen: *mut u32) -> R
             TEE_InitRefAttribute(
                 &mut attr,
                 TEE_ATTR_SECRET_VALUE,
-                &mut k as *mut [u8; MAX_KEY_SIZE as usize] as *mut _,
+                &mut K as *mut [u8; MAX_KEY_SIZE as usize] as *mut _,
                 K_LEN,
             );
             res = TEE_PopulateTransientObject(key_handle, &mut attr, 1);
@@ -146,8 +147,8 @@ pub fn hmac_sha1(out: *mut [u8; SHA1_HASH_SIZE as usize], outlen: *mut u32) -> R
             TEE_MACInit(op_handle, ptr::null() as *const _, 0);
             TEE_MACUpdate(
                 op_handle,
-                &mut counter as *mut [u8; 8] as *mut _,
-                counter.len() as u32,
+                &mut COUNTER as *mut [u8; 8] as *mut _,
+                COUNTER.len() as u32,
             );
 
             res = TEE_MACComputeFinal(op_handle, ptr::null() as *const _, 0, out as *mut _, outlen);
@@ -180,12 +181,16 @@ pub fn truncate(hmac_result: *mut [u8; SHA1_HASH_SIZE as usize], bin_code: *mut 
     Ok(())
 }
 
-const ta_name: &str = "HMAC OTP";
-
-const TA_FLAGS: uint32_t = TA_FLAG_EXEC_DDR;
-const TA_STACK_SIZE: uint32_t = 2 * 1024;
-const TA_DATA_SIZE: uint32_t = 32 * 1024;
-const EXT_PROP_VALUE_1: &[u8] = b"HMAC OTP\0";
-const EXT_PROP_VALUE_2: uint32_t = 0x0010;
+// TA configurations
+const TA_FLAGS: u32 = 0;
+const TA_DATA_SIZE: u32 = 32 * 1024;
+const TA_STACK_SIZE: u32 = 2 * 1024;
+const TA_VERSION: &[u8] = b"0.1\0";
+const TA_DESCRIPTION: &[u8] = b"This is an HOTP example.\0";
+const EXT_PROP_VALUE_1: &[u8] = b"HOTP TA\0";
+const EXT_PROP_VALUE_2: u32 = 0x0010;
+const TRACE_LEVEL: i32 = 4;
+const TRACE_EXT_PREFIX: &[u8] = b"TA\0";
+const TA_FRAMEWORK_STACK_SIZE: u32 = 2048;
 
 include!(concat!(env!("OUT_DIR"), "/user_ta_header.rs"));
