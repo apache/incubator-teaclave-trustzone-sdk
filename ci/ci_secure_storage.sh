@@ -24,15 +24,15 @@ screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
 
 {
-	grep -q "Test on object \"object#1\"" screenlog.0
-	grep -q "\- Create and load object in the TA secure storage" screenlog.0
-	grep -q "\- Read back the object" screenlog.0
-	grep -q "\- Content read-out correctly" screenlog.0
-	grep -q "\- Delete the object" screenlog.0
+	grep -q "Test on object \"object#1\"" screenlog.0 &&
+	grep -q "\- Create and load object in the TA secure storage" screenlog.0 &&
+	grep -q "\- Read back the object" screenlog.0 &&
+	grep -q "\- Content read-out correctly" screenlog.0 &&
+	grep -q "\- Delete the object" screenlog.0 &&
 
-	grep -q "Test on object \"object#2\"" screenlog.0
+	grep -q "Test on object \"object#2\"" screenlog.0 &&
 	#miss the read correctly output
-	grep -Eq "\- Object not found in TA secure storage, create it|\- Object found in TA secure storage, delete it" screenlog.0
+	grep -Eq "\- Object not found in TA secure storage, create it|\- Object found in TA secure storage, delete it" screenlog.0 &&
 
 	grep -q "We're done, close and release TEE resources" screenlog.0
 } || {

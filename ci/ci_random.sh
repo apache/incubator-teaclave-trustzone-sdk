@@ -24,8 +24,8 @@ screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
 
 {
-	grep -q "Invoking TA to generate random UUID..." screenlog.0
-	grep -q "Generate random UUID: [a-z0-9]*-[a-z0-9]*-[a-z0-9]*-[a-z0-9]*" screenlog.0
+	grep -q "Invoking TA to generate random UUID..." screenlog.0 &&
+	grep -q "Generate random UUID: [a-z0-9]*-[a-z0-9]*-[a-z0-9]*-[a-z0-9]*" screenlog.0 &&
 	grep -q "Success" screenlog.0
 } || {
         cat -v screenlog.0

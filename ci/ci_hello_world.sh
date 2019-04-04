@@ -24,9 +24,9 @@ screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
 
 {
-	grep -q "original value is 29" screenlog.0
-	grep -q "inc value is 129" screenlog.0
-	grep -q "dec value is 29" screenlog.0
+	grep -q "original value is 29" screenlog.0 &&
+	grep -q "inc value is 129" screenlog.0 &&
+	grep -q "dec value is 29" screenlog.0 &&
 	grep -q "Success" screenlog.0
 } || {
 	cat -v screenlog.0

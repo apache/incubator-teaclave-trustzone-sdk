@@ -24,11 +24,11 @@ screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
 
 {
-	grep -q "Prepare encode operation" screenlog.0
-	grep -q "Load key in TA" screenlog.0
-	grep -q "Reset ciphering operation in TA (provides the initial vector)" screenlog.0
-	grep -q "Encode buffer from TA" screenlog.0
-	grep -q "Prepare decode operation" screenlog.0
+	grep -q "Prepare encode operation" screenlog.0 &&
+	grep -q "Load key in TA" screenlog.0 &&
+	grep -q "Reset ciphering operation in TA (provides the initial vector)" screenlog.0 &&
+	grep -q "Encode buffer from TA" screenlog.0 &&
+	grep -q "Prepare decode operation" screenlog.0 &&
 	grep -q "Clear text and decoded text match" screenlog.0
 } || {
 	cat -v screenlog.0

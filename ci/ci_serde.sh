@@ -24,8 +24,8 @@ screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
 
 {
-	grep -q "Success" screenlog.0
-	grep -q "serialized = " /tmp/serial.log
+	grep -q "Success" screenlog.0 &&
+	grep -q "serialized = " /tmp/serial.log &&
 	grep -q "deserialized = " /tmp/serial.log
 } || {
         cat -v screenlog.0
