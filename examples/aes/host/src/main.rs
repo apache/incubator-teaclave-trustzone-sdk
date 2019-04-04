@@ -12,17 +12,17 @@ const ENCODE: i8 = 1;
 
 fn prepare_aes(session: &mut Session, encode: i8) -> optee_teec::Result<()> {
     let p2_value = if encode == ENCODE {
-        TA_AES_MODE_ENCODE
+        Mode::Encode as u32
     } else {
-        TA_AES_MODE_DECODE
+        Mode::Decode as u32
     };
-    let p0 = Parameter::from_value(TA_AES_ALGO_CTR, 0, ParamType::ValueInput);
+    let p0 = Parameter::from_value(Algo::CTR as u32, 0, ParamType::ValueInput);
     let p1 = Parameter::from_value(TA_AES_SIZE_128BIT, 0, ParamType::ValueInput);
     let p2 = Parameter::from_value(p2_value, 0, ParamType::ValueInput);
     let p3 = Parameter::new();
     let mut operation = Operation::new(0, p0, p1, p2, p3);
 
-    session.invoke_command(TA_AES_CMD_PREPARE, &mut operation)?;
+    session.invoke_command(Command::Prepare as u32, &mut operation)?;
 
     Ok(())
 }
@@ -38,7 +38,7 @@ fn set_key(session: &mut Session, key: &mut [c_char], key_sz: size_t) -> optee_t
     let p3 = Parameter::new();
     let mut operation = Operation::new(0, p0, p1, p2, p3);
 
-    session.invoke_command(TA_AES_CMD_SET_KEY, &mut operation)?;
+    session.invoke_command(Command::SetKey as u32, &mut operation)?;
 
     Ok(())
 }
@@ -54,7 +54,7 @@ fn set_iv(session: &mut Session, iv: &mut [c_char], iv_sz: size_t) -> optee_teec
     let p3 = Parameter::new();
     let mut operation = Operation::new(0, p0, p1, p2, p3);
 
-    session.invoke_command(TA_AES_CMD_SET_IV, &mut operation)?;
+    session.invoke_command(Command::SetIV as u32, &mut operation)?;
 
     Ok(())
 }
@@ -79,7 +79,7 @@ fn cipher_buffer(
     let p3 = Parameter::new();
     let mut operation = Operation::new(0, p0, p1, p2, p3);
 
-    session.invoke_command(TA_AES_CMD_CIPHER, &mut operation)?;
+    session.invoke_command(Command::Cipher as u32, &mut operation)?;
 
     Ok(())
 }

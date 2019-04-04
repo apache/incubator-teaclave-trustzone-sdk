@@ -1,6 +1,6 @@
 #![no_main]
 
-use libc::{c_char, c_int, uint32_t};
+use libc::c_char;
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
@@ -64,17 +64,17 @@ fn destroy() {
 #[ta_invoke_command]
 fn invoke_command(sess_ctx: &mut AesCipher, cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
-    match cmd_id {
-        TA_AES_CMD_PREPARE => {
+    match Command::from(cmd_id) {
+        Command::Prepare => {
             return alloc_resources(sess_ctx, params);
         }
-        TA_AES_CMD_SET_KEY => {
+        Command::SetKey => {
             return set_aes_key(sess_ctx, params);
         }
-        TA_AES_CMD_SET_IV => {
+        Command::SetIV => {
             return reset_aes_iv(sess_ctx, params);
         }
-        TA_AES_CMD_CIPHER => {
+        Command::Cipher => {
             return cipher_buffer(sess_ctx, params);
         }
         _ => {
@@ -83,17 +83,17 @@ fn invoke_command(sess_ctx: &mut AesCipher, cmd_id: u32, params: &mut Parameters
     }
 }
 
-pub fn ta2tee_algo_id(param: uint32_t, aes: &mut AesCipher) -> Result<()> {
-    match param {
-        TA_AES_ALGO_ECB => {
+pub fn ta2tee_algo_id(algo_id: u32, aes: &mut AesCipher) -> Result<()> {
+    match Algo::from(algo_id) {
+        Algo::ECB => {
             aes.algo = TEE_ALG_AES_ECB_NOPAD;
             return Ok(());
         }
-        TA_AES_ALGO_CBC => {
+        Algo::CBC => {
             aes.algo = TEE_ALG_AES_CBC_NOPAD;
             return Ok(());
         }
-        TA_AES_ALGO_CTR => {
+        Algo::CTR => {
             aes.algo = TEE_ALG_AES_CTR;
             return Ok(());
         }
@@ -103,10 +103,10 @@ pub fn ta2tee_algo_id(param: uint32_t, aes: &mut AesCipher) -> Result<()> {
     }
 }
 
-pub fn ta2tee_key_size(param: uint32_t, aes: &mut AesCipher) -> Result<()> {
-    match param {
+pub fn ta2tee_key_size(key_sz: u32, aes: &mut AesCipher) -> Result<()> {
+    match key_sz {
         AES128_KEY_BYTE_SIZE | AES256_KEY_BYTE_SIZE => {
-            aes.key_size = param;
+            aes.key_size = key_sz;
             return Ok(());
         }
         _ => {
@@ -115,14 +115,14 @@ pub fn ta2tee_key_size(param: uint32_t, aes: &mut AesCipher) -> Result<()> {
     }
 }
 
-pub fn ta2tee_mode_id(param: uint32_t, aes: &mut AesCipher) -> Result<()> {
-    match param {
-        TA_AES_MODE_ENCODE => {
-            aes.mode = TEE_OperationMode::TEE_MODE_ENCRYPT as uint32_t;
+pub fn ta2tee_mode_id(mode: u32, aes: &mut AesCipher) -> Result<()> {
+    match Mode::from(mode) {
+        Mode::Encode => {
+            aes.mode = TEE_OperationMode::TEE_MODE_ENCRYPT as u32;
             return Ok(());
         }
-        TA_AES_MODE_DECODE => {
-            aes.mode = TEE_OperationMode::TEE_MODE_DECRYPT as uint32_t;
+        Mode::Decode => {
+            aes.mode = TEE_OperationMode::TEE_MODE_DECRYPT as u32;
             return Ok(());
         }
         _ => {
@@ -204,6 +204,7 @@ pub fn alloc_resources(aes: &mut AesCipher, params: &mut Parameters) -> Result<(
             trace_println!("[+] TA set operation key failed.");
             break 'correct_handle;
         }
+        trace_println!("[+] TA prepare cipher success!");
         return Ok(());
     }
     trace_println!("[+] Error id is {}.", res);
@@ -292,15 +293,15 @@ pub fn cipher_buffer(aes: &mut AesCipher, params: &mut Parameters) -> Result<()>
     }
 }
 
-const TA_FLAGS: uint32_t = TA_FLAG_EXEC_DDR;
-const TA_STACK_SIZE: uint32_t = 2 * 1024;
-const TA_DATA_SIZE: uint32_t = 1 * 1024 * 1024;
+const TA_FLAGS: u32 = TA_FLAG_EXEC_DDR;
+const TA_STACK_SIZE: u32 = 2 * 1024;
+const TA_DATA_SIZE: u32 = 1 * 1024 * 1024;
 const TA_VERSION: &[u8] = b"Undefined version\0";
-const TA_DESCRIPTION: &[u8] = b"Undefined description\0";
-const EXT_PROP_VALUE_1: &[u8] = b"Example of TA using an AES sequence\0";
-const EXT_PROP_VALUE_2: uint32_t = 0x0010;
-const TRACE_LEVEL: c_int = 4;
+const TA_DESCRIPTION: &[u8] = b"This is an AES example\0";
+const EXT_PROP_VALUE_1: &[u8] = b"AES TA\0";
+const EXT_PROP_VALUE_2: u32 = 0x0010;
+const TRACE_LEVEL: i32 = 4;
 const TRACE_EXT_PREFIX: &[u8] = b"TA\0";
-const TA_FRAMEWORK_STACK_SIZE: uint32_t = 2048;
+const TA_FRAMEWORK_STACK_SIZE: u32 = 2048;
 
 include!(concat!(env!("OUT_DIR"), "/user_ta_header.rs"));
