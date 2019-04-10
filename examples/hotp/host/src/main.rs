@@ -1,5 +1,7 @@
-use libc::c_char;
-use optee_teec::{Context, Error, ErrorKind, Operation, ParamType, Parameter, Session, Uuid};
+use optee_teec::{
+    Context, Error, ErrorKind, Operation, ParamNone, ParamTmpRef, ParamType, ParamValue, Session,
+    Uuid,
+};
 
 include!(concat!(env!("OUT_DIR"), "/host_header.rs"));
 
@@ -15,36 +17,21 @@ fn register_shared_key(session: &mut Session) -> optee_teec::Result<()> {
         0x36, 0x37, 0x38, 0x39, 0x30,
     ];
 
-    let p0 = Parameter::from_tmpref(
-        (&mut k).as_ptr() as *mut c_char,
-        SIZE_K,
-        ParamType::MemrefTempInput,
-    );
-    let p1 = Parameter::new();
-    let p2 = Parameter::new();
-    let p3 = Parameter::new();
-    let mut operation = Operation::new(0, p0, p1, p2, p3);
+    let p0 = ParamTmpRef::new(&mut k, ParamType::MemrefTempInput);
+    let mut operation = Operation::new(0, p0, ParamNone, ParamNone, ParamNone);
 
     session.invoke_command(Command::RegisterSharedKey as u32, &mut operation)?;
     Ok(())
 }
 
 fn get_hotp(session: &mut Session) -> optee_teec::Result<()> {
-    let mut res = [0u8; SIZE_K];
-    let p0 = Parameter::from_value(
-        (&mut res) as *mut _ as u32,
-        SIZE_K as u32,
-        ParamType::ValueOutput,
-    );
-    let p1 = Parameter::new();
-    let p2 = Parameter::new();
-    let p3 = Parameter::new();
-    let mut operation = Operation::new(0, p0, p1, p2, p3);
+    let p0 = ParamValue::new(0, 0, ParamType::ValueOutput);
+    let mut operation = Operation::new(0, p0, ParamNone, ParamNone, ParamNone);
 
     for i in 0..TEST_SIZE {
         session.invoke_command(Command::GetHOTP as u32, &mut operation)?;
         let (p0, _, _, _) = operation.parameters();
-        let (hotp_value, _) = p0.value();
+        let hotp_value = p0.a();
 
         println!("Get HOTP: {}", hotp_value);
 

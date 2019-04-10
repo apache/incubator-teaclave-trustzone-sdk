@@ -1,13 +1,9 @@
-use optee_teec::{Context, Operation, Parameter, Session, Uuid};
+use optee_teec::{Context, Operation, ParamNone, Session, Uuid};
 
 include!(concat!(env!("OUT_DIR"), "/host_header.rs"));
 
 fn serde(session: &mut Session) -> optee_teec::Result<()> {
-    let p0 = Parameter::new();
-    let p1 = Parameter::new();
-    let p2 = Parameter::new();
-    let p3 = Parameter::new();
-    let mut operation = Operation::new(0, p0, p1, p2, p3);
+    let mut operation = Operation::new(0, ParamNone, ParamNone, ParamNone, ParamNone);
 
     session.invoke_command(Command::DefaultOp as u32, &mut operation)?;
 

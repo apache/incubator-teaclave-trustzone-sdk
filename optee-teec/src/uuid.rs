@@ -3,6 +3,7 @@ use hex;
 use optee_teec_sys as raw;
 use uuid as uuid_crate;
 use uuid_crate::parser::ParseError;
+use uuid_crate::BytesError;
 
 /// A Universally Unique Resource Identifier (UUID) type as defined in RFC4122.
 /// The value is used to identify a trusted application.
@@ -41,6 +42,17 @@ impl Uuid {
         let uuid = uuid_crate::Uuid::from_bytes(bytes);
         let (time_low, time_mid, time_hi_and_version, clock_seq_and_node) = uuid.as_fields();
         Self::new_raw(time_low, time_mid, time_hi_and_version, *clock_seq_and_node)
+    }
+
+    pub fn from_slice(b: &[u8]) -> Result<Uuid, BytesError> {
+        let uuid = uuid_crate::Uuid::from_slice(b)?;
+        let (time_low, time_mid, time_hi_and_version, clock_seq_and_node) = uuid.as_fields();
+        Ok(Self::new_raw(
+            time_low,
+            time_mid,
+            time_hi_and_version,
+            *clock_seq_and_node,
+        ))
     }
 
     /// Crates a raw TEE client uuid object with specified parameters.

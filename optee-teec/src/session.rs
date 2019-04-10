@@ -2,6 +2,7 @@ use libc;
 use optee_teec_sys as raw;
 use std::ptr;
 
+use crate::Param;
 use crate::{Context, Error, Operation, Result, Uuid};
 
 /// Session login methods.
@@ -28,7 +29,11 @@ pub struct Session {
 
 impl Session {
     /// Initializes a TEE session object with specified context and uuid.
-    pub fn new(context: &mut Context, uuid: Uuid, operation: Option<Operation>) -> Result<Self> {
+    pub fn new<A: Param, B: Param, C: Param, D: Param>(
+        context: &mut Context,
+        uuid: Uuid,
+        operation: Option<Operation<A, B, C, D>>,
+    ) -> Result<Self> {
         let mut raw_session = raw::TEEC_Session {
             ctx: context.as_mut_raw_ptr(),
             session_id: 0,
@@ -36,7 +41,7 @@ impl Session {
         let mut err_origin: libc::uint32_t = 0;
         let raw_operation = match operation {
             Some(mut o) => o.as_mut_raw_ptr(),
-            None => ptr::null_mut() as *mut raw::TEEC_Operation
+            None => ptr::null_mut() as *mut raw::TEEC_Operation,
         };
         unsafe {
             match raw::TEEC_OpenSession(
@@ -48,9 +53,7 @@ impl Session {
                 raw_operation,
                 &mut err_origin,
             ) {
-                raw::TEEC_SUCCESS => Ok(Self {
-                    raw: raw_session,
-                }),
+                raw::TEEC_SUCCESS => Ok(Self { raw: raw_session }),
                 code => Err(Error::from_raw_error(code)),
             }
         }
@@ -62,7 +65,11 @@ impl Session {
     }
 
     /// Invokes a command with an operation with this session.
-    pub fn invoke_command(&mut self, command_id: u32, operation: &mut Operation) -> Result<()> {
+    pub fn invoke_command<A: Param, B: Param, C: Param, D: Param>(
+        &mut self,
+        command_id: u32,
+        operation: &mut Operation<A, B, C, D>,
+    ) -> Result<()> {
         let mut err_origin: libc::uint32_t = 0;
         unsafe {
             match raw::TEEC_InvokeCommand(
