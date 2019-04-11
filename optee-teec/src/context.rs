@@ -70,7 +70,7 @@ impl Context {
         Session::new(
             self,
             uuid,
-            None::<Operation<ParamNone, ParamNone, ParamNone, ParamNone>>,
+            None::<&mut Operation<ParamNone, ParamNone, ParamNone, ParamNone>>,
         )
     }
 
@@ -94,7 +94,7 @@ impl Context {
     pub fn open_session_with_operation<A: Param, B: Param, C: Param, D: Param>(
         &mut self,
         uuid: Uuid,
-        operation: Operation<A, B, C, D>,
+        operation: &mut Operation<A, B, C, D>,
     ) -> Result<Session> {
         Session::new(self, uuid, Some(operation))
     }
