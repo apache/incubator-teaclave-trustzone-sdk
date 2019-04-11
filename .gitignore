@@ -1,5 +1,6 @@
 optee-utee/Cargo.lock
 optee-teec/Cargo.lock
+examples/**/proto/Cargo.lock
 **/*.rs.bk
 .user_ta_header.o.d
 **/target
