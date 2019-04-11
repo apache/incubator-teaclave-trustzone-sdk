@@ -18,7 +18,7 @@ fn hello_world(session: &mut Session) -> optee_teec::Result<()> {
 
 fn main() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
-    let uuid = Uuid::parse_str(proto::UUID).unwrap();
+    let uuid = Uuid::parse_str(proto::UUID.trim()).unwrap();
     let mut session = ctx.open_session(uuid)?;
 
     hello_world(&mut session)?;
