@@ -5,3 +5,4 @@ examples/**/proto/Cargo.lock
 .user_ta_header.o.d
 **/target
 optee/toolchains
+out

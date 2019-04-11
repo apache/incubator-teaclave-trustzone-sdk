@@ -5,6 +5,7 @@ OPTEE_CLIENT_PATH ?= $(OPTEE_PATH)/optee_client
 VENDOR            ?= qemu_v8.mk
 
 EXAMPLES = $(wildcard examples/*)
+EXAMPLES_INSTALL = $(EXAMPLES:%=%-install)
 EXAMPLES_CLEAN  = $(EXAMPLES:%=%-clean)
 
 all: toolchains optee-os optee-client examples
@@ -23,15 +24,23 @@ examples: $(EXAMPLES)
 $(EXAMPLES):
 	make -C $@
 
+examples-install: $(EXAMPLES_INSTALL)
+$(EXAMPLES_INSTALL):
+	install -D $(@:%-install=%)/host/target/aarch64-unknown-linux-gnu/debug/$(@:examples/%-install=%) -t out/host/
+	install -D $(@:%-install=%)/ta/target/aarch64-unknown-optee-trustzone/debug/*.ta -t out/ta/
+
 optee-os-clean:
 	make -C $(OPTEE_OS_PATH) O=out/arm clean
 
 optee-client-clean:
 	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) optee-client-clean-common
 
-examples-clean: $(EXAMPLES_CLEAN)
+examples-clean: $(EXAMPLES_CLEAN) out-clean
 $(EXAMPLES_CLEAN):
 	make -C $(@:-clean=) clean
+
+out-clean:
+	rm -rf out
 
 .PHONY: clean optee-os-clean optee-client-clean $(EXAMPLES) $(EXAMPLES_CLEAN)
 
