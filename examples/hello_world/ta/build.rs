@@ -11,7 +11,7 @@ fn main() -> std::io::Result<()> {
     let mut buffer = File::create(out.join("user_ta_header.rs"))?;
     buffer.write_all(include_bytes!("ta_static.rs"))?;
 
-    let tee_uuid = Uuid::parse_str(proto::UUID.trim()).unwrap();
+    let tee_uuid = Uuid::parse_str(proto::UUID).unwrap();
     let (time_low, time_mid, time_hi_and_version, clock_seq_and_node) = tee_uuid.as_fields();
 
     write!(buffer, "\n")?;

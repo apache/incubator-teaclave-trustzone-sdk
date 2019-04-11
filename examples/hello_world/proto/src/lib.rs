@@ -15,4 +15,4 @@ impl From<u32> for Command {
     }
 }
 
-pub const UUID: &str = &include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../uuid.txt"));
+pub const UUID: &str = &include_str!(concat!(env!("OUT_DIR"), "/uuid.txt"));
