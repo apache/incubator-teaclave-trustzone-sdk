@@ -8,40 +8,32 @@ pub trait Param {
 }
 
 pub struct ParamValue {
-    a: u32,
-    b: u32,
+    raw: raw::TEEC_Value,
     param_type: ParamType,
 }
 
 impl ParamValue {
     pub fn new(a: u32, b: u32, param_type: ParamType) -> Self {
-        Self { a, b, param_type }
+        let raw = raw::TEEC_Value { a, b };
+        Self { raw, param_type }
     }
     pub fn a(&self) -> u32 {
-        self.a
+        self.raw.a
     }
     pub fn b(&self) -> u32 {
-        self.b
+        self.raw.b
     }
 }
 
 impl Param for ParamValue {
     fn into_raw(&mut self) -> raw::TEEC_Parameter {
-        let raw = raw::TEEC_Parameter {
-            value: raw::TEEC_Value {
-                a: self.a,
-                b: self.b,
-            },
-        };
-        raw
+        raw::TEEC_Parameter {
+            value: self.raw
+        }
     }
 
     fn from_raw(raw: raw::TEEC_Parameter, param_type: ParamType) -> Self {
-        Self {
-            a: unsafe { raw.value.a },
-            b: unsafe { raw.value.b },
-            param_type: param_type,
-        }
+        Self { raw: unsafe { raw.value }, param_type: param_type }
     }
 
     fn param_type(&self) -> ParamType {
@@ -67,32 +59,30 @@ impl Param for ParamNone {
 }
 
 pub struct ParamTmpRef<'a> {
+    raw: raw::TEEC_TempMemoryReference,
     buffer: &'a mut [u8],
     param_type: ParamType,
 }
 
 impl<'a> ParamTmpRef<'a> {
     pub fn new(buffer: &'a mut [u8], param_type: ParamType) -> Self {
-        Self {
-            buffer: buffer,
-            param_type,
-        }
+        let raw = raw::TEEC_TempMemoryReference {
+            buffer: buffer.as_ptr() as _,
+            size: buffer.len(),
+        };
+        Self { raw, buffer, param_type }
     }
 
-    pub fn buffer(&mut self) -> &mut [u8] {
+    pub fn buffer(&self) -> &[u8] {
         self.buffer
     }
 }
 
 impl<'a> Param for ParamTmpRef<'a> {
     fn into_raw(&mut self) -> raw::TEEC_Parameter {
-        let raw = raw::TEEC_Parameter {
-            tmpref: raw::TEEC_TempMemoryReference {
-                buffer: self.buffer.as_ptr() as _,
-                size: self.buffer.len(),
-            },
-        };
-        raw
+        raw::TEEC_Parameter {
+            tmpref: self.raw
+        }
     }
 
     fn param_type(&self) -> ParamType {
@@ -104,6 +94,7 @@ impl<'a> Param for ParamTmpRef<'a> {
             std::slice::from_raw_parts_mut(raw.tmpref.buffer as *mut u8, raw.tmpref.size)
         };
         Self {
+            raw: unsafe { raw.tmpref },
             buffer: buffer,
             param_type: param_type,
         }

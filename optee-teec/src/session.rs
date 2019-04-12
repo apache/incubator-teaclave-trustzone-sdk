@@ -24,7 +24,7 @@ pub enum ConnectionMethods {
 
 /// Represents a connection between a client application and a trusted application.
 pub struct Session {
-    raw: *mut raw::TEEC_Session,
+    raw: raw::TEEC_Session,
 }
 
 impl Session {
@@ -34,10 +34,10 @@ impl Session {
         uuid: Uuid,
         operation: Option<&mut Operation<A, B, C, D>>,
     ) -> Result<Self> {
-        let raw_session = Box::into_raw(Box::new(raw::TEEC_Session {
+        let mut raw_session = raw::TEEC_Session {
             ctx: context.as_mut_raw_ptr(),
             session_id: 0,
-        }));
+        };
         let mut err_origin: libc::uint32_t = 0;
         let raw_operation = match operation {
             Some(o) => o.as_mut_raw_ptr(),
@@ -46,7 +46,7 @@ impl Session {
         unsafe {
             match raw::TEEC_OpenSession(
                 context.as_mut_raw_ptr(),
-                raw_session,
+                &mut raw_session,
                 uuid.as_raw_ptr(),
                 ConnectionMethods::LoginPublic as u32,
                 ptr::null() as *const libc::c_void,
@@ -61,7 +61,7 @@ impl Session {
 
     /// Converts a TEE client context to a raw pointer.
     pub fn as_mut_raw_ptr(&mut self) -> *mut raw::TEEC_Session {
-        self.raw
+        &mut self.raw
     }
 
     /// Invokes a command with an operation with this session.
@@ -73,7 +73,7 @@ impl Session {
         let mut err_origin: libc::uint32_t = 0;
         unsafe {
             match raw::TEEC_InvokeCommand(
-                self.raw,
+                &mut self.raw,
                 command_id,
                 operation.as_mut_raw_ptr(),
                 &mut err_origin,
@@ -88,8 +88,7 @@ impl Session {
 impl Drop for Session {
     fn drop(&mut self) {
         unsafe {
-            raw::TEEC_CloseSession(self.raw);
-            Box::from_raw(self.raw);
+            raw::TEEC_CloseSession(&mut self.raw);
         }
     }
 }
