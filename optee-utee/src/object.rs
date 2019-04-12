@@ -225,7 +225,7 @@ impl ObjectHandle {
         }
     }
 
-    pub fn seek(&self, offset: u32, whence: Whence) -> Result<()> {
+    pub fn seek(&self, offset: i32, whence: Whence) -> Result<()> {
         match unsafe { raw::TEE_SeekObjectData(self.get_handle(), offset, whence.to_raw()) } {
             raw::TEE_SUCCESS => return Ok(()),
             code => Err(Error::from_raw_error(code)),
@@ -431,7 +431,7 @@ impl TransientObject {
         self.0.truncate(size)
     }
 
-    pub fn seek(&self, offset: u32, whence: Whence) -> Result<()> {
+    pub fn seek(&self, offset: i32, whence: Whence) -> Result<()> {
         self.0.seek(offset, whence)
     }
 }
@@ -543,7 +543,7 @@ impl PersistentObject {
         self.0.truncate(size)
     }
 
-    pub fn seek(&self, offset: u32, whence: Whence) -> Result<()> {
+    pub fn seek(&self, offset: i32, whence: Whence) -> Result<()> {
         self.0.seek(offset, whence)
     }
 }

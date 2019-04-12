@@ -219,7 +219,7 @@ extern "C" {
     pub fn TEE_TruncateObjectData(object: TEE_ObjectHandle, size: uint32_t) -> TEE_Result;
     pub fn TEE_SeekObjectData(
         object: TEE_ObjectHandle,
-        offset: uint32_t,
+        offset: int32_t,
         whence: TEE_Whence,
     ) -> TEE_Result;
 
