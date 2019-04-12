@@ -93,12 +93,14 @@ pub enum TEE_Whence {
     TEE_DATA_SEEK_END,
 }
 
+#[derive(Copy, Clone)]
 #[repr(C)]
 pub union content {
     pub memref: Memref,
     pub value: Value,
 }
 
+#[derive(Copy, Clone)]
 #[repr(C)]
 pub struct TEE_Attribute {
     pub attributeID: uint32_t,

@@ -105,6 +105,7 @@ extern "C" {
         objectInfo: *mut TEE_ObjectInfo,
     ) -> TEE_Result;
     pub fn TEE_RestrictObjectUsage(object: TEE_ObjectHandle, objectUsage: uint32_t);
+    pub fn TEE_RestrictObjectUsage1(object: TEE_ObjectHandle, objectUsage: uint32_t) -> TEE_Result;
     pub fn TEE_GetObjectBufferAttribute(
         object: TEE_ObjectHandle,
         attributeID: uint32_t,
@@ -218,7 +219,7 @@ extern "C" {
     pub fn TEE_TruncateObjectData(object: TEE_ObjectHandle, size: uint32_t) -> TEE_Result;
     pub fn TEE_SeekObjectData(
         object: TEE_ObjectHandle,
-        offset: int32_t,
+        offset: uint32_t,
         whence: TEE_Whence,
     ) -> TEE_Result;
 
