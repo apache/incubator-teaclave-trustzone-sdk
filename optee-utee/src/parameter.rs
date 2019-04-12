@@ -111,19 +111,12 @@ impl Parameter {
 pub struct ParamTypes(u32);
 
 impl ParamTypes {
-    pub fn into_flags(
-        &self,
-    ) -> (
-        ParamType,
-        ParamType,
-        ParamType,
-        ParamType,
-    ) {
+    pub fn into_flags(&self) -> (ParamType, ParamType, ParamType, ParamType) {
         (
             (0x000fu32 & self.0).into(),
-            ((0x00f0u32 & self.0)>>4).into(),
-            ((0x0f00u32 & self.0)>>8).into(),
-            ((0xf000u32 & self.0)>>12).into(),
+            ((0x00f0u32 & self.0) >> 4).into(),
+            ((0x0f00u32 & self.0) >> 8).into(),
+            ((0xf000u32 & self.0) >> 12).into(),
         )
     }
 }
