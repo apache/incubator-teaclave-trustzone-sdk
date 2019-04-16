@@ -80,11 +80,8 @@ impl Context {
     /// ```
     /// let mut ctx = Context::new().unwrap();
     /// let uuid = Uuid::parse_str("8abcf200-2450-11e4-abe2-0002a5d5c51b").unwrap();
-    /// let p0 = Parameter::from_value(42, 0, ParamType::ValueInout);
-    /// let p1 = Parameter::new();
-    /// let p2 = Parameter::new();
-    /// let p3 = Parameter::new();
-    /// let mut operation = Operation::new(0, p0, p1, p2, p3);
+    /// let p0 = ParamValue(42, 0, ParamType::ValueInout);
+    /// let mut operation = Operation::new(0, p0, ParamNone, ParamNone, ParamNone);
     /// let session = ctx.open_session_with_operation(uuid, operation).unwrap();
     /// ```
     pub fn open_session_with_operation<A: Param, B: Param, C: Param, D: Param>(

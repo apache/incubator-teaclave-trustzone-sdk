@@ -1,5 +1,6 @@
 use optee_teec_sys as raw;
 use std::mem;
+use std::marker;
 
 pub trait Param {
     fn into_raw(&mut self) -> raw::TEEC_Parameter;
@@ -7,19 +8,29 @@ pub trait Param {
     fn from_raw(raw: raw::TEEC_Parameter, param_type: ParamType) -> Self;
 }
 
+/// This type defines a parameter that is not referencing shared memory, but
+/// carries instead small raw data passed by value. It is used as a `Operation`
+/// parameter when the corresponding parameter type is one of `ValueInput`,
+/// `ValueOutput`, or `ValueInout`.
 pub struct ParamValue {
     raw: raw::TEEC_Value,
     param_type: ParamType,
 }
 
 impl ParamValue {
+    /// Creates a value parameter with two `u32` integer and `ParamType` for
+    /// operation.
     pub fn new(a: u32, b: u32, param_type: ParamType) -> Self {
         let raw = raw::TEEC_Value { a, b };
         Self { raw, param_type }
     }
+
+    /// Returns the first value in the value parameter.
     pub fn a(&self) -> u32 {
         self.raw.a
     }
+
+    /// Returns the second value in the value parameter.
     pub fn b(&self) -> u32 {
         self.raw.b
     }
@@ -41,6 +52,7 @@ impl Param for ParamValue {
     }
 }
 
+/// Represents none parameter which carries no information.
 pub struct ParamNone;
 
 impl Param for ParamNone {
@@ -58,23 +70,29 @@ impl Param for ParamNone {
     }
 }
 
+/// This type defines a temporary memory reference. It is used as a
+/// `Operation` parameter when the corresponding parameter type is one of
+/// `MemrefTempInput`, `MemrefTempOutput`, or `MemrefTempInout`.
 pub struct ParamTmpRef<'a> {
     raw: raw::TEEC_TempMemoryReference,
-    buffer: &'a mut [u8],
     param_type: ParamType,
+    _marker: marker::PhantomData<&'a mut [u8]>,
 }
 
 impl<'a> ParamTmpRef<'a> {
+    /// Creates a temporary memory reference. `buffer` is a region of memory
+    /// which needs to be temporarily registered for the duration of the
+    /// `Operation`.
     pub fn new(buffer: &'a mut [u8], param_type: ParamType) -> Self {
         let raw = raw::TEEC_TempMemoryReference {
             buffer: buffer.as_ptr() as _,
             size: buffer.len(),
         };
-        Self { raw, buffer, param_type }
+        Self { raw, param_type, _marker: marker::PhantomData }
     }
 
-    pub fn buffer(&self) -> &[u8] {
-        self.buffer
+    pub fn updated_size(&self) -> usize {
+        self.raw.size
     }
 }
 
@@ -90,13 +108,10 @@ impl<'a> Param for ParamTmpRef<'a> {
     }
 
     fn from_raw(raw: raw::TEEC_Parameter, param_type: ParamType) -> Self {
-        let buffer: &mut [u8] = unsafe {
-            std::slice::from_raw_parts_mut(raw.tmpref.buffer as *mut u8, raw.tmpref.size)
-        };
         Self {
             raw: unsafe { raw.tmpref },
-            buffer: buffer,
             param_type: param_type,
+            _marker: marker::PhantomData,
         }
     }
 }

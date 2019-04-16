@@ -132,9 +132,9 @@ pub fn ta2tee_mode_id(mode: u32, aes: &mut AesCipher) -> Result<()> {
 }
 
 pub fn alloc_resources(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
-    let algo_value = params.0.get_value_a()?;
-    let key_size_value = params.1.get_value_a()?;
-    let mode_id_value = params.2.get_value_a()?;
+    let algo_value = unsafe { params.0.as_value().unwrap().a() };
+    let key_size_value = unsafe { params.1.as_value().unwrap().a() };
+    let mode_id_value = unsafe { params.2.as_value().unwrap().a() };
 
     ta2tee_algo_id(algo_value, aes)?;
     ta2tee_key_size(key_size_value, aes)?;
@@ -229,14 +229,15 @@ pub fn set_aes_key(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
         },
     };
 
-    let (key, key_sz) = params.0.get_memref()?;
+    let mut param0 = unsafe { params.0.as_memref().unwrap() };
+    let key = param0.buffer();
 
-    if key_sz != aes.key_size {
+    if key.len() as u32 != aes.key_size {
         trace_println!("[+] Get wrong key size !\n");
         return Err(Error::new(ErrorKind::BadParameters));
     }
 
-    unsafe { TEE_InitRefAttribute(&mut attr, TEE_ATTR_SECRET_VALUE, key, key_sz) };
+    unsafe { TEE_InitRefAttribute(&mut attr, TEE_ATTR_SECRET_VALUE, key.as_mut_ptr() as _, key.len() as u32) };
     unsafe { TEE_ResetTransientObject(aes.key_handle) };
     let res = unsafe { TEE_PopulateTransientObject(aes.key_handle, &mut attr, 1) };
 
@@ -257,10 +258,11 @@ pub fn set_aes_key(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
 }
 
 pub fn reset_aes_iv(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
-    let (iv, iv_sz) = params.0.get_memref()?;
+    let mut param0 = unsafe { params.0.as_memref().unwrap() };
+    let iv = param0.buffer();
 
     unsafe {
-        TEE_CipherInit(aes.op_handle, iv, iv_sz);
+        TEE_CipherInit(aes.op_handle, iv.as_mut_ptr() as _, iv.len() as u32);
     }
 
     trace_println!("[+] TA initial vectore reset done!");
@@ -268,10 +270,13 @@ pub fn reset_aes_iv(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> 
 }
 
 pub fn cipher_buffer(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
-    let (input_ptr, input_size) = params.0.get_memref()?;
-    let (output_ptr, mut output_size) = params.1.get_memref()?;
+    let mut param0 = unsafe { params.0.as_memref().unwrap() };
+    let mut param1 = unsafe { params.1.as_memref().unwrap() };
 
-    if output_size < input_size {
+    let input = param0.buffer();
+    let output = param1.buffer();
+
+    if output.len() < input.len() {
         return Err(Error::new(ErrorKind::BadParameters));
     }
 
@@ -280,10 +285,10 @@ pub fn cipher_buffer(aes: &mut AesCipher, params: &mut Parameters) -> Result<()>
     let res = unsafe {
         TEE_CipherUpdate(
             aes.op_handle,
-            input_ptr,
-            input_size,
-            output_ptr,
-            &mut output_size as *mut _,
+            input.as_mut_ptr() as _,
+            input.len() as u32,
+            output.as_mut_ptr() as _,
+            &mut (*params.1.as_memref().unwrap().raw()).size
         )
     };
     if res == TEE_SUCCESS {

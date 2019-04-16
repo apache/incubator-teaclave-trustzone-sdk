@@ -29,10 +29,11 @@ fn destroy() {
 }
 
 pub fn random_number_generate(params: &mut Parameters) -> Result<()> {
+    let mut p = unsafe { params.0.as_memref().unwrap()};
     unsafe {
         TEE_GenerateRandom(
-            (*params.first().raw).memref.buffer,
-            (*params.first().raw).memref.size,
+            p.buffer().as_mut_ptr() as _,
+            p.buffer().len() as _,
         );
     }
     Ok(())

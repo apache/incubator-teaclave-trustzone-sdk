@@ -1,6 +1,6 @@
 use crate::{Error, ErrorKind, Result};
-use libc::c_void;
 use optee_utee_sys as raw;
+use std::marker;
 
 pub struct Parameters(pub Parameter, pub Parameter, pub Parameter, pub Parameter);
 
@@ -14,21 +14,55 @@ impl Parameters {
 
         Parameters(p0, p1, p2, p3)
     }
+}
 
-    pub fn first(&self) -> &Parameter {
-        &self.0
+pub struct ParamValue<'parameter> {
+    raw: *mut raw::Value,
+    param_type: ParamType,
+    _marker: marker::PhantomData<&'parameter mut u32>,
+}
+
+impl<'parameter> ParamValue<'parameter> {
+    pub fn a(&self) -> u32 {
+        unsafe { (*self.raw).a }
     }
 
-    pub fn second(&self) -> &Parameter {
-        &self.1
+    pub fn b(&self) -> u32 {
+        unsafe { (*self.raw).b }
     }
 
-    pub fn third(&self) -> &Parameter {
-        &self.2
+    pub fn set_a(&mut self, a: u32) {
+        unsafe { (*self.raw).a = a; }
     }
 
-    pub fn fourth(&self) -> &Parameter {
-        &self.3
+    pub fn set_b(&mut self, b: u32) {
+        unsafe { (*self.raw).b = b; }
+    }
+
+    pub fn param_type(&self) -> ParamType {
+        self.param_type
+    }
+}
+
+pub struct ParamMemref<'parameter> {
+    raw: *mut raw::Memref,
+    param_type: ParamType,
+    _marker: marker::PhantomData<&'parameter mut [u8]>,
+}
+
+impl<'parameter> ParamMemref<'parameter> {
+    pub fn buffer(&mut self) -> &mut [u8] {
+        unsafe {
+            std::slice::from_raw_parts_mut((*self.raw).buffer as *mut u8, (*self.raw).size as usize)
+        }
+    }
+
+    pub fn param_type(&self) -> ParamType {
+        self.param_type
+    }
+
+    pub fn raw(&mut self) -> *mut raw::Memref {
+        self.raw
     }
 }
 
@@ -45,60 +79,33 @@ impl Parameter {
         }
     }
 
+    pub unsafe fn as_value(&mut self) -> Result<ParamValue> {
+        match self.param_type {
+            ParamType::ValueInput | ParamType::ValueInout | ParamType::ValueOutput => {
+                Ok(ParamValue {
+                    raw: &mut (*self.raw).value,
+                    param_type: self.param_type,
+                    _marker: marker::PhantomData,
+                })
+            },
+            _ => Err(Error::new(ErrorKind::BadParameters)),
+        }
+    }
+
+    pub unsafe fn as_memref(&mut self) -> Result<ParamMemref> {
+        match self.param_type {
+            ParamType::MemrefInout | ParamType::MemrefInput | ParamType::MemrefOutput => {
+                Ok(ParamMemref {
+                    raw: &mut (*self.raw).memref,
+                    param_type: self.param_type,
+                    _marker: marker::PhantomData,
+                })
+            },
+            _ => Err(Error::new(ErrorKind::BadParameters)),
+        }
+    }
+
     pub fn raw(&self) -> *mut raw::TEE_Param { self.raw }
-
-    pub fn get_value_a(&self) -> Result<u32> {
-        match self.param_type {
-            ParamType::ValueInput | ParamType::ValueInout => {
-                let value = unsafe { (*self.raw).value.a };
-                Ok(value)
-            }
-            _ => Err(Error::new(ErrorKind::BadParameters)),
-        }
-    }
-
-    pub fn set_value_a(&mut self, value: u32) -> Result<()> {
-        match self.param_type {
-            ParamType::ValueOutput | ParamType::ValueInout => {
-                unsafe { (*self.raw).value.a = value };
-                Ok(())
-            }
-            _ => Err(Error::new(ErrorKind::BadParameters)),
-        }
-    }
-
-    pub fn get_value_b(&self) -> Result<u32> {
-        match self.param_type {
-            ParamType::ValueInput | ParamType::ValueInout => {
-                let value = unsafe { (*self.raw).value.b };
-                Ok(value)
-            }
-            _ => Err(Error::new(ErrorKind::BadParameters)),
-        }
-    }
-
-    pub fn set_value_b(&mut self, value: u32) -> Result<()> {
-        match self.param_type {
-            ParamType::ValueOutput | ParamType::ValueInout => {
-                unsafe { (*self.raw).value.b = value };
-                Ok(())
-            }
-            _ => Err(Error::new(ErrorKind::BadParameters)),
-        }
-    }
-
-    pub fn get_memref(&mut self) -> Result<(*mut c_void, u32)> {
-        match self.param_type {
-            ParamType::MemrefInput
-            | ParamType::MemrefOutput
-            | ParamType::MemrefInout => {
-                let buffer = unsafe { (*self.raw).memref.buffer };
-                let size = unsafe { (*self.raw).memref.size };
-                Ok((buffer, size))
-            }
-            _ => Err(Error::new(ErrorKind::BadParameters)),
-        }
-    }
 }
 
 pub struct ParamTypes(u32);

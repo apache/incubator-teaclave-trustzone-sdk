@@ -25,6 +25,7 @@ sleep 5
 
 {
 	grep -q "Success" screenlog.0 &&
+	grep -q "Point { x: 1, y: 2 }" screenlog.0 &&
 	grep -q "serialized = " /tmp/serial.log &&
 	grep -q "deserialized = " /tmp/serial.log
 } || {

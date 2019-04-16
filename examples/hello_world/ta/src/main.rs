@@ -31,15 +31,14 @@ fn destroy() {
 #[ta_invoke_command]
 fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
+    let mut values = unsafe { params.0.as_value().unwrap() };
     match Command::from(cmd_id) {
         Command::IncValue => {
-            let ori_value = params.0.get_value_a()?;
-            params.0.set_value_a(ori_value + 100)?;
+            values.set_a(values.a() + 100);
             Ok(())
         }
         Command::DecValue => {
-            let ori_value = params.0.get_value_a()?;
-            params.0.set_value_a(ori_value - 100)?;
+            values.set_a(values.a() - 100);
             Ok(())
         }
         _ => Err(Error::new(ErrorKind::BadParameters)),

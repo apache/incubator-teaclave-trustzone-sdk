@@ -5,6 +5,7 @@ use optee_utee::{
 };
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use serde::{Deserialize, Serialize};
+use std::io::Write;
 
 #[ta_create]
 fn create() -> Result<()> {
@@ -35,14 +36,20 @@ struct Point {
 }
 
 #[ta_invoke_command]
-fn invoke_command(cmd_id: u32, _params: &mut Parameters) -> Result<()> {
+fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
     match Command::from(cmd_id) {
         Command::DefaultOp => {
+            let mut p = unsafe { params.0.as_memref().unwrap() };
+            let mut buffer = p.buffer();
             let point = Point { x: 1, y: 2 };
 
             // Convert the Point to a JSON string.
             let serialized = serde_json::to_string(&point).unwrap();
+            let len = buffer.write(serialized.as_bytes()).unwrap();
+
+            // update size of output buffer
+            unsafe { (*p.raw()).size = len as u32 };
 
             // Prints serialized = {"x":1,"y":2}
             trace_println!("serialized = {}", serialized);
