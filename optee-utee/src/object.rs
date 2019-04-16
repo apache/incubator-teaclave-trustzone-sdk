@@ -1,18 +1,16 @@
-#![allow(unused)]
-use crate::{Error, ErrorKind, Result};
+use crate::{Error, Result};
 use bitflags::bitflags;
 use optee_utee_sys as raw;
 use std::mem;
 use std::ptr;
 
-#[derive(Copy, Clone)]
 pub struct Attribute {
     raw: raw::TEE_Attribute,
 }
 
 impl Attribute {
     pub fn new_ref() -> Self {
-        let mut raw = raw::TEE_Attribute {
+        let raw = raw::TEE_Attribute {
             attributeID: 0,
             content: raw::content {
                 memref: raw::Memref {
@@ -25,7 +23,7 @@ impl Attribute {
     }
 
     pub fn new_value() -> Self {
-        let mut raw = raw::TEE_Attribute {
+        let raw = raw::TEE_Attribute {
             attributeID: 0,
             content: raw::content {
                 value: raw::Value { a: 0, b: 0 },
@@ -62,15 +60,7 @@ pub struct ObjectInfo {
 
 impl ObjectInfo {
     pub fn new() -> Self {
-        let raw = raw::TEE_ObjectInfo {
-            objectType: 0u32,
-            objectSize: 0u32,
-            maxObjectSize: 0u32,
-            objectUsage: 0u32,
-            dataSize: 0u32,
-            dataPosition: 0u32,
-            handleFlags: 0u32,
-        };
+        let raw: raw::TEE_ObjectInfo = unsafe { mem::zeroed() };
         Self { raw }
     }
 }
@@ -81,8 +71,8 @@ pub enum Whence {
     DataSeekEnd,
 }
 
-impl Whence {
-    fn to_raw(&self) -> raw::TEE_Whence {
+impl Into<raw::TEE_Whence> for Whence {
+    fn into(self) -> raw::TEE_Whence {
         match self {
             Whence::DataSeekSet => raw::TEE_Whence::TEE_DATA_SEEK_SET,
             Whence::DataSeekCur => raw::TEE_Whence::TEE_DATA_SEEK_CUR,
@@ -96,32 +86,30 @@ pub struct ObjectHandle {
 }
 
 impl ObjectHandle {
-    pub fn from_raw(raw: *mut raw::TEE_ObjectHandle) -> ObjectHandle {
-        Self { raw }
+    fn handle(&self) -> raw::TEE_ObjectHandle {
+        unsafe { *(self.raw) }
     }
 
-    pub fn new_empty() -> ObjectHandle {
-        ObjectHandle::from_raw(&mut (ptr::null_mut() as raw::TEE_ObjectHandle))
+    pub fn from_raw(raw: *mut raw::TEE_ObjectHandle) -> ObjectHandle {
+        Self { raw }
     }
 
     pub fn raw(&self) -> *mut raw::TEE_ObjectHandle {
         self.raw
     }
 
-    pub fn get_handle(&self) -> raw::TEE_ObjectHandle {
-        unsafe { *(self.raw) }
-    }
+    pub fn info(&self) -> Result<ObjectInfo> {
+        let mut info = ObjectInfo::new();
 
-    pub fn get_info(&self, obj_info: &mut ObjectInfo) -> Result<()> {
-        match unsafe { raw::TEE_GetObjectInfo1(self.get_handle(), &mut obj_info.raw) } {
-            raw::TEE_SUCCESS => return Ok(()),
+        match unsafe { raw::TEE_GetObjectInfo1(self.handle(), &mut info.raw) } {
+            raw::TEE_SUCCESS => Ok(info),
             code => Err(Error::from_raw_error(code)),
         }
     }
 
     pub fn restrict_usage(&mut self, obj_usage: u32) -> Result<()> {
-        match unsafe { raw::TEE_RestrictObjectUsage1(self.get_handle(), obj_usage) } {
-            raw::TEE_SUCCESS => return Ok(()),
+        match unsafe { raw::TEE_RestrictObjectUsage1(self.handle(), obj_usage) } {
+            raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -129,13 +117,13 @@ impl ObjectHandle {
     pub fn ref_attribute(&self, id: u32, ref_attr: &mut Attribute) -> Result<()> {
         match unsafe {
             raw::TEE_GetObjectBufferAttribute(
-                self.get_handle(),
+                self.handle(),
                 id,
-                ref_attr.raw.content.memref.buffer as *mut _,
-                &mut ref_attr.raw.content.memref.size as *mut _,
+                ref_attr.raw.content.memref.buffer as _,
+                &mut ref_attr.raw.content.memref.size as _,
             )
         } {
-            raw::TEE_SUCCESS => return Ok(()),
+            raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -143,49 +131,35 @@ impl ObjectHandle {
     pub fn value_attribute(&self, id: u32, value_attr: &mut Attribute) -> Result<()> {
         match unsafe {
             raw::TEE_GetObjectValueAttribute(
-                self.get_handle(),
+                self.handle(),
                 id,
                 &mut value_attr.raw.content.value.a as *mut _,
                 &mut value_attr.raw.content.value.b as *mut _,
             )
         } {
-            raw::TEE_SUCCESS => return Ok(()),
+            raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
         }
     }
 
     pub fn copy_attribute_from(&mut self, src_handle: &ObjectHandle) -> Result<()> {
-        match unsafe { raw::TEE_CopyObjectAttributes1(self.get_handle(), src_handle.get_handle()) }
-        {
-            raw::TEE_SUCCESS => return Ok(()),
+        match unsafe { raw::TEE_CopyObjectAttributes1(self.handle(), src_handle.handle()) } {
+            raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
         }
     }
 
     pub fn generate_key(&self, key_size: u32, params: &[Attribute]) -> Result<()> {
-        let param_count = params.len();
-        let mut raw_params = Vec::with_capacity(param_count);
-
-        for i in 0..param_count {
-            raw_params.push(params[i].raw);
-        }
-
-        let raw_ptr = Box::into_raw(raw_params.into_boxed_slice());
-        match unsafe {
-            raw::TEE_GenerateKey(
-                self.get_handle(),
+        let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw).collect();
+        unsafe {
+            match raw::TEE_GenerateKey(
+                self.handle(),
                 key_size,
-                raw_ptr as *mut _,
-                param_count as u32,
-            )
-        } {
-            raw::TEE_SUCCESS => {
-                let raw_box = unsafe { Box::from_raw(raw_ptr) };
-                return Ok(());
-            }
-            code => {
-                let raw_box = unsafe { Box::from_raw(raw_ptr) };
-                return Err(Error::from_raw_error(code));
+                p.as_slice().as_ptr() as _,
+                params.len() as u32,
+            ) {
+                raw::TEE_SUCCESS => Ok(()),
+                code => Err(Error::from_raw_error(code)),
             }
         }
     }
@@ -194,51 +168,41 @@ impl ObjectHandle {
         let mut count: u32 = 0;
         match unsafe {
             raw::TEE_ReadObjectData(
-                self.get_handle(),
-                buf as *mut [u8] as *mut _,
+                self.handle(),
+                buf.as_mut_ptr() as _,
                 buf.len() as u32,
                 &mut count,
             )
         } {
-            raw::TEE_SUCCESS => return Ok(count),
+            raw::TEE_SUCCESS => Ok(count),
             code => Err(Error::from_raw_error(code)),
         }
     }
 
-    pub fn write(&self, buf: &[u8]) -> Result<()> {
+    pub fn write(&mut self, buf: &[u8]) -> Result<()> {
         match unsafe {
-            raw::TEE_WriteObjectData(
-                self.get_handle(),
-                std::mem::transmute::<&[u8], *mut [u8]>(buf) as *mut _,
-                buf.len() as u32,
-            )
+            raw::TEE_WriteObjectData(self.handle(), buf.as_ptr() as _, buf.len() as u32)
         } {
-            raw::TEE_SUCCESS => return Ok(()),
+            raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
         }
     }
 
     pub fn truncate(&self, size: u32) -> Result<()> {
-        match unsafe { raw::TEE_TruncateObjectData(self.get_handle(), size) } {
-            raw::TEE_SUCCESS => return Ok(()),
+        match unsafe { raw::TEE_TruncateObjectData(self.handle(), size) } {
+            raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
         }
     }
 
     pub fn seek(&self, offset: i32, whence: Whence) -> Result<()> {
-        match unsafe { raw::TEE_SeekObjectData(self.get_handle(), offset, whence.to_raw()) } {
-            raw::TEE_SUCCESS => return Ok(()),
+        match unsafe { raw::TEE_SeekObjectData(self.handle(), offset, whence.into()) } {
+            raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
         }
     }
 }
 
-///handle is dropped with object struct.
-impl Drop for ObjectHandle {
-    fn drop(&mut self) {}
-}
-
-#[derive(Copy, Clone)]
 pub enum ObjectStorageConstants {
     Private = 0x00000001,
     IllegalValue = 0x7FFFFFFF,
@@ -397,14 +361,14 @@ pub enum TransientObjectType {
 pub struct TransientObject(ObjectHandle);
 
 impl TransientObject {
-    pub fn object_handle(&self) -> Result<raw::TEE_ObjectHandle> {
-        Ok((self.0.get_handle()))
+    pub fn handle(&self) -> raw::TEE_ObjectHandle {
+        self.0.handle()
     }
 
-    pub fn allocate(object_type: TransientObjectType, max_object_size: usize) -> Result<Self> {
-        let mut raw_handle: *mut raw::TEE_ObjectHandle = Box::into_raw(Box::new(ptr::null_mut()));
+    pub fn allocate(object_type: TransientObjectType, max_object_size: u32) -> Result<Self> {
+        let raw_handle: *mut raw::TEE_ObjectHandle = Box::into_raw(Box::new(ptr::null_mut()));
         match unsafe {
-            raw::TEE_AllocateTransientObject(object_type as u32, max_object_size as u32, raw_handle)
+            raw::TEE_AllocateTransientObject(object_type as u32, max_object_size, raw_handle)
         } {
             raw::TEE_SUCCESS => {
                 let handle = ObjectHandle::from_raw(raw_handle);
@@ -416,46 +380,29 @@ impl TransientObject {
 
     pub fn reset(&mut self) {
         unsafe {
-            raw::TEE_ResetTransientObject(*self.0.raw);
+            raw::TEE_ResetTransientObject(self.handle());
         }
     }
 
     pub fn populate(&mut self, attrs: &mut [Attribute]) -> Result<()> {
-        let attr_count = attrs.len();
-        let mut raw_attrs = Vec::with_capacity(attr_count);
-
-        for i in 0..attr_count {
-            raw_attrs.push(attrs[i].raw);
-        }
-
-        let raw_ptr = Box::into_raw(raw_attrs.into_boxed_slice());
+        let p: Vec<raw::TEE_Attribute> = attrs.iter().map(|p| p.raw).collect();
         match unsafe {
-            raw::TEE_PopulateTransientObject(
-                self.0.get_handle(),
-                raw_ptr as *mut _,
-                attr_count as u32,
-            )
+            raw::TEE_PopulateTransientObject(self.0.handle(), p.as_ptr() as _, attrs.len() as u32)
         } {
-            raw::TEE_SUCCESS => {
-                let raw_box = unsafe { Box::from_raw(raw_ptr) };
-                return Ok(());
-            }
-            code => {
-                let raw_box = unsafe { Box::from_raw(raw_ptr) };
-                return Err(Error::from_raw_error(code));
-            }
+            raw::TEE_SUCCESS => Ok(()),
+            code => return Err(Error::from_raw_error(code)),
         }
     }
 
-    pub fn get_info(&self, obj_info: &mut ObjectInfo) -> Result<()> {
-        self.0.get_info(obj_info)
+    pub fn info(&self) -> Result<ObjectInfo> {
+        self.0.info()
     }
 
     pub fn read(&self, buf: &mut [u8]) -> Result<u32> {
         self.0.read(buf)
     }
 
-    pub fn write(&self, buf: &[u8]) -> Result<()> {
+    pub fn write(&mut self, buf: &[u8]) -> Result<()> {
         self.0.write(buf)
     }
 
@@ -471,7 +418,7 @@ impl TransientObject {
 impl Drop for TransientObject {
     fn drop(&mut self) {
         unsafe {
-            raw::TEE_FreeTransientObject(*self.0.raw);
+            raw::TEE_FreeTransientObject(self.handle());
             Box::from_raw(self.0.raw);
         }
     }
@@ -482,14 +429,14 @@ pub struct PersistentObject(ObjectHandle);
 impl PersistentObject {
     pub fn open(
         storage_id: ObjectStorageConstants,
-        object_id: &mut [u8],
+        object_id: &[u8],
         flags: DataFlag,
     ) -> Result<Self> {
-        let mut raw_handle: *mut raw::TEE_ObjectHandle = Box::into_raw(Box::new(ptr::null_mut()));
+        let raw_handle: *mut raw::TEE_ObjectHandle = Box::into_raw(Box::new(ptr::null_mut()));
         match unsafe {
             raw::TEE_OpenPersistentObject(
                 storage_id as u32,
-                object_id as *mut [u8] as *mut _,
+                object_id.as_ptr() as _,
                 object_id.len() as u32,
                 flags.bits(),
                 raw_handle as *mut _,
@@ -499,56 +446,69 @@ impl PersistentObject {
                 let handle = ObjectHandle::from_raw(raw_handle);
                 Ok(Self(handle))
             }
-            code => Err(Error::from_raw_error(code)),
+            code => {
+                unsafe {
+                    Box::from_raw(raw_handle);
+                }
+                Err(Error::from_raw_error(code))
+            }
         }
     }
 
     pub fn create(
         storage_id: ObjectStorageConstants,
-        object_id: &mut [u8],
+        object_id: &[u8],
         flags: DataFlag,
-        attributes: ObjectHandle,
-        initial_data: &mut [u8],
+        attributes: Option<ObjectHandle>,
+        initial_data: &[u8],
     ) -> Result<Self> {
-        let mut raw_handle: *mut raw::TEE_ObjectHandle = Box::into_raw(Box::new(ptr::null_mut()));
+        let raw_handle: *mut raw::TEE_ObjectHandle = Box::into_raw(Box::new(ptr::null_mut()));
+        let attributes = match attributes {
+            Some(a) => a.handle(),
+            None => ptr::null_mut(),
+        };
         match unsafe {
             raw::TEE_CreatePersistentObject(
                 storage_id as u32,
-                object_id as *mut [u8] as *mut _,
+                object_id.as_ptr() as _,
                 object_id.len() as u32,
                 flags.bits(),
-                attributes.get_handle(),
-                initial_data as *mut [u8] as *mut _,
+                attributes,
+                initial_data.as_ptr() as _,
                 initial_data.len() as u32,
                 raw_handle as *mut _,
             )
         } {
             raw::TEE_SUCCESS => {
                 let handle = ObjectHandle::from_raw(raw_handle);
-                trace_println!("open success {}", raw_handle as u32);
-                return Ok(Self(handle));
+                Ok(Self(handle))
             }
-            code => Err(Error::from_raw_error(code)),
+            code => {
+                unsafe {
+                    Box::from_raw(raw_handle);
+                }
+                Err(Error::from_raw_error(code))
+            }
         }
     }
 
-    pub fn rename(&mut self, new_object_id: &mut [u8]) -> Result<()> {
+    pub fn rename(&mut self, new_object_id: &[u8]) -> Result<()> {
         match unsafe {
             raw::TEE_RenamePersistentObject(
-                self.0.get_handle(),
-                new_object_id as *mut [u8] as *mut _,
+                self.0.handle(),
+                new_object_id.as_ptr() as _,
                 new_object_id.len() as u32,
             )
         } {
-            raw::TEE_SUCCESS => return Ok(()),
+            raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
         }
     }
 
-    ///this function is conflicted with Drop implementation, when use this one to avoid panic:
-    ///1) call mem::forget for this structure to avoid double drop the object
+    // this function is conflicted with Drop implementation, when use this one to avoid panic:
+    // 1) call mem::forget for this structure to avoid double drop the object
     pub fn close_and_delete(&mut self) -> Result<()> {
-        match unsafe { raw::TEE_CloseAndDeletePersistentObject1(self.0.get_handle()) } {
+        match unsafe { raw::TEE_CloseAndDeletePersistentObject1(self.0.handle()) } {
             raw::TEE_SUCCESS => {
                 unsafe {
                     Box::from_raw(self.0.raw);
@@ -559,15 +519,15 @@ impl PersistentObject {
         }
     }
 
-    pub fn get_info(&self, obj_info: &mut ObjectInfo) -> Result<()> {
-        self.0.get_info(obj_info)
+    pub fn info(&self) -> Result<ObjectInfo> {
+        self.0.info()
     }
 
     pub fn read(&self, buf: &mut [u8]) -> Result<u32> {
         self.0.read(buf)
     }
 
-    pub fn write(&self, buf: &[u8]) -> Result<()> {
+    pub fn write(&mut self, buf: &[u8]) -> Result<()> {
         self.0.write(buf)
     }
 
@@ -583,7 +543,7 @@ impl PersistentObject {
 impl Drop for PersistentObject {
     fn drop(&mut self) {
         unsafe {
-            raw::TEE_CloseObject(self.0.get_handle());
+            raw::TEE_CloseObject(self.0.handle());
             Box::from_raw(self.0.raw);
         }
     }
@@ -593,13 +553,16 @@ pub struct ObjectEnumHandle {
     raw: *mut raw::TEE_ObjectEnumHandle,
 }
 impl ObjectEnumHandle {
-    pub fn allocate(object_type: u32, max_object_size: u32) -> Result<Self> {
-        let raw_object_handle = ptr::null_mut();
-        match unsafe { raw::TEE_AllocatePersistentObjectEnumerator(raw_object_handle) } {
-            raw::TEE_SUCCESS => Ok(Self {
-                raw: raw_object_handle,
-            }),
-            code => Err(Error::from_raw_error(code)),
+    pub fn allocate() -> Result<Self> {
+        let raw_handle: *mut raw::TEE_ObjectEnumHandle = Box::into_raw(Box::new(ptr::null_mut()));
+        match unsafe { raw::TEE_AllocatePersistentObjectEnumerator(raw_handle) } {
+            raw::TEE_SUCCESS => Ok(Self { raw: raw_handle }),
+            code => {
+                unsafe {
+                    Box::from_raw(raw_handle);
+                }
+                Err(Error::from_raw_error(code))
+            }
         }
     }
 
@@ -611,26 +574,26 @@ impl ObjectEnumHandle {
 
     pub fn start(&mut self, storage_id: u32) -> Result<()> {
         match unsafe { raw::TEE_StartPersistentObjectEnumerator(*self.raw, storage_id) } {
-            raw::TEE_SUCCESS => return Ok(()),
+            raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
         }
     }
 
-    pub fn get_next<T, D>(
+    pub fn get_next<T>(
         &mut self,
         object_info: &mut ObjectInfo,
-        object_id: &mut T,
-        object_id_len: &mut D,
-    ) -> Result<()> {
+        object_id: &mut [u8],
+    ) -> Result<u32> {
+        let mut object_id_len: u32 = 0;
         match unsafe {
             raw::TEE_GetNextPersistentObject(
                 *self.raw,
                 &mut object_info.raw,
-                object_id as *mut T as *mut _,
-                object_id_len as *mut D as *mut _,
+                object_id.as_mut_ptr() as _,
+                &mut object_id_len,
             )
         } {
-            raw::TEE_SUCCESS => return Ok(()),
+            raw::TEE_SUCCESS => Ok(object_id_len),
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -640,6 +603,7 @@ impl Drop for ObjectEnumHandle {
     fn drop(&mut self) {
         unsafe {
             raw::TEE_FreePersistentObjectEnumerator(*self.raw);
+            Box::from_raw(self.raw);
         }
     }
 }

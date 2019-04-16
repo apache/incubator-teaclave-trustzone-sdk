@@ -113,7 +113,7 @@ pub fn hmac_sha1(out: *mut [u8; SHA1_HASH_SIZE], outlen: *mut usize) -> Result<(
                 break 'correct_handle;
             }
 
-            match TransientObject::allocate(TransientObjectType::HmacSha1, KEY_LEN * 8) {
+            match TransientObject::allocate(TransientObjectType::HmacSha1, KEY_LEN as u32 * 8) {
                 Err(e) => {
                     if op_handle != TEE_HANDLE_NULL as *mut _ {
                         TEE_FreeOperation(op_handle);
@@ -128,7 +128,7 @@ pub fn hmac_sha1(out: *mut [u8; SHA1_HASH_SIZE], outlen: *mut usize) -> Result<(
 
                     let mut tmp_attrs: [Attribute; 1] = [attr];
                     key_object.populate(&mut tmp_attrs)?;
-                    res = TEE_SetOperationKey(op_handle, key_object.object_handle().unwrap());
+                    res = TEE_SetOperationKey(op_handle, key_object.handle());
                     if res != TEE_SUCCESS {
                         break 'correct_handle;
                     }

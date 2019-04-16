@@ -77,7 +77,7 @@ pub type TEE_ObjectType = uint32_t;
 #[repr(C)]
 pub struct TEE_ObjectInfo {
     pub objectType: uint32_t,
-    //remove to 2 unions here, only keep 1.1.1 spec version
+    // remove to 2 unions here, only keep 1.1.1 spec version
     pub objectSize: uint32_t,
     pub maxObjectSize: uint32_t,
     pub objectUsage: uint32_t,

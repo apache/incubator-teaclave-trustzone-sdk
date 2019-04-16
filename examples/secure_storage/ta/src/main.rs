@@ -3,7 +3,7 @@
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
-use optee_utee::{DataFlag, ObjectHandle, ObjectInfo, ObjectStorageConstants, PersistentObject};
+use optee_utee::{DataFlag, ObjectStorageConstants, PersistentObject};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 
 #[ta_create]
@@ -105,7 +105,7 @@ pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
         ObjectStorageConstants::Private,
         &mut obj_id,
         obj_data_flag,
-        ObjectHandle::new_empty(),
+        None,
         &mut init_data,
     ) {
         Err(e) => {
@@ -150,8 +150,7 @@ pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
         Err(e) => return Err(e),
 
         Ok(object) => {
-            let mut obj_info = ObjectInfo::new();
-            object.get_info(&mut obj_info)?;
+            let obj_info = object.info()?;
 
             if obj_info.raw.dataSize > data.len() as u32 {
                 unsafe {
