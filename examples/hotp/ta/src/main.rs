@@ -3,19 +3,21 @@
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
+use optee_utee::{Attribute, AttributeId, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use optee_utee_sys::*;
 use std::ptr;
 
-pub const SHA1_HASH_SIZE: u32 = 20;
+pub const SHA1_HASH_SIZE: usize = 20;
 
-pub const MAX_KEY_SIZE: u32 = 64;
-pub const MIN_KEY_SIZE: u32 = 10;
+pub const MAX_KEY_SIZE: usize = 64;
+pub const MIN_KEY_SIZE: usize = 10;
 
 pub const DBC2_MODULO: u32 = 1000000;
 
-pub static mut K: [u8; MAX_KEY_SIZE as usize] = [0; MAX_KEY_SIZE as usize];
-pub static mut K_LEN: u32 = 0;
+pub static mut KEY: [u8; MAX_KEY_SIZE] = [0; MAX_KEY_SIZE];
+
+pub static mut KEY_LEN: usize = 0;
 
 pub static mut COUNTER: [u8; 8] = [0x0; 8];
 
@@ -58,51 +60,39 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
 }
 
 pub fn register_shared_key(params: &mut Parameters) -> Result<()> {
+    unsafe { KEY_LEN = (*params.first().raw).memref.size as usize };
+    let key_slice: &[u8] = unsafe {
+        std::slice::from_raw_parts((*params.first().raw).memref.buffer as *mut u8, KEY_LEN)
+    };
     unsafe {
-        K_LEN = (*params.first().raw).memref.size;
-        let tmp: *mut [u8; MAX_KEY_SIZE as usize] = (*params.first().raw).memref.buffer as *mut _;
-        for i in 0..K_LEN {
-            K[i as usize] = (*tmp)[i as usize];
-        }
+        KEY[0..KEY_LEN].clone_from_slice(key_slice);
     }
     Ok(())
 }
 
 pub fn get_hotp(params: &mut Parameters) -> Result<()> {
-    let mut mac: [u8; SHA1_HASH_SIZE as usize] = [0x0; SHA1_HASH_SIZE as usize];
-    let mut mac_len: u32 = SHA1_HASH_SIZE;
+    let mut mac: [u8; SHA1_HASH_SIZE] = [0x0; SHA1_HASH_SIZE];
+    let mut mac_len: usize = SHA1_HASH_SIZE;
     let mut hotp_val: u32 = 0;
 
+    hmac_sha1(&mut mac, &mut mac_len)?;
     unsafe {
-        hmac_sha1(&mut mac, &mut mac_len)?;
         for i in (0..COUNTER.len()).rev() {
             COUNTER[i] += 1;
             if COUNTER[i] > 0 {
                 break;
             }
         }
-        truncate(&mut mac, &mut hotp_val)?;
-        (*params.first().raw).value.a = hotp_val;
     }
+    truncate(&mut mac, &mut hotp_val)?;
+    unsafe { (*params.first().raw).value.a = hotp_val };
     Ok(())
 }
 
-pub fn hmac_sha1(out: *mut [u8; SHA1_HASH_SIZE as usize], outlen: *mut u32) -> Result<()> {
-    let mut attr = TEE_Attribute {
-        attributeID: 0,
-        content: content {
-            memref: Memref {
-                buffer: 0 as *mut _,
-                size: 0,
-            },
-        },
-    };
-
-    let mut key_handle: TEE_ObjectHandle = TEE_HANDLE_NULL as *mut _;
+pub fn hmac_sha1(out: *mut [u8; SHA1_HASH_SIZE], outlen: *mut usize) -> Result<()> {
     let mut op_handle: TEE_OperationHandle = TEE_HANDLE_NULL as *mut _;
-
     unsafe {
-        if K_LEN < MIN_KEY_SIZE || K_LEN > MAX_KEY_SIZE {
+        if KEY_LEN < MIN_KEY_SIZE || KEY_LEN > MAX_KEY_SIZE {
             return Err(Error::new(ErrorKind::BadParameters));
         }
 
@@ -115,7 +105,7 @@ pub fn hmac_sha1(out: *mut [u8; SHA1_HASH_SIZE as usize], outlen: *mut u32) -> R
             &mut op_handle,
             TEE_ALG_HMAC_SHA1,
             TEE_OperationMode::TEE_MODE_MAC as u32,
-            K_LEN * 8,
+            KEY_LEN as u32 * 8,
         );
 
         'correct_handle: loop {
@@ -123,42 +113,45 @@ pub fn hmac_sha1(out: *mut [u8; SHA1_HASH_SIZE as usize], outlen: *mut u32) -> R
                 break 'correct_handle;
             }
 
-            res = TEE_AllocateTransientObject(TEE_TYPE_HMAC_SHA1, K_LEN * 8, &mut key_handle);
-            if res != TEE_SUCCESS {
-                break 'correct_handle;
-            }
+            match TransientObject::allocate(TransientObjectType::HmacSha1, KEY_LEN * 8) {
+                Err(e) => {
+                    if op_handle != TEE_HANDLE_NULL as *mut _ {
+                        TEE_FreeOperation(op_handle);
+                        return Err(e);
+                    }
+                }
+                Ok(mut key_object) => {
+                    //KEY size can be larger than KEY_LEN
+                    let mut tmp_key = KEY.to_vec();
+                    tmp_key.truncate(KEY_LEN);
+                    let attr = Attribute::from_ref(AttributeId::SecretValue, &mut tmp_key);
 
-            TEE_InitRefAttribute(
-                &mut attr,
-                TEE_ATTR_SECRET_VALUE,
-                &mut K as *mut [u8; MAX_KEY_SIZE as usize] as *mut _,
-                K_LEN,
-            );
-            res = TEE_PopulateTransientObject(key_handle, &mut attr, 1);
-            if res != TEE_SUCCESS {
-                break 'correct_handle;
+                    let mut tmp_attrs: [Attribute; 1] = [attr];
+                    key_object.populate(&mut tmp_attrs)?;
+                    res = TEE_SetOperationKey(op_handle, key_object.object_handle().unwrap());
+                    if res != TEE_SUCCESS {
+                        break 'correct_handle;
+                    }
+                }
             }
-
-            res = TEE_SetOperationKey(op_handle, key_handle);
-            if res != TEE_SUCCESS {
-                break 'correct_handle;
-            }
-
             TEE_MACInit(op_handle, ptr::null() as *const _, 0);
             TEE_MACUpdate(
                 op_handle,
                 &mut COUNTER as *mut [u8; 8] as *mut _,
                 COUNTER.len() as u32,
             );
-
-            res = TEE_MACComputeFinal(op_handle, ptr::null() as *const _, 0, out as *mut _, outlen);
+            res = TEE_MACComputeFinal(
+                op_handle,
+                ptr::null() as *const _,
+                0,
+                out as *mut _,
+                outlen as *mut u32,
+            );
             break 'correct_handle;
         }
-
         if op_handle != TEE_HANDLE_NULL as *mut _ {
             TEE_FreeOperation(op_handle);
         }
-        TEE_FreeTransientObject(key_handle);
         if res == TEE_SUCCESS {
             return Ok(());
         } else {
@@ -167,7 +160,7 @@ pub fn hmac_sha1(out: *mut [u8; SHA1_HASH_SIZE as usize], outlen: *mut u32) -> R
     }
 }
 
-pub fn truncate(hmac_result: *mut [u8; SHA1_HASH_SIZE as usize], bin_code: *mut u32) -> Result<()> {
+pub fn truncate(hmac_result: *mut [u8; SHA1_HASH_SIZE], bin_code: *mut u32) -> Result<()> {
     unsafe {
         let offset: usize = ((*hmac_result)[19] & 0xf) as usize;
 

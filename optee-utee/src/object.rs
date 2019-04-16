@@ -34,23 +34,23 @@ impl Attribute {
         Self { raw }
     }
 
-    pub fn from_ref<T>(id: u32, buffer: &mut T) -> Self {
+    pub fn from_ref(id: AttributeId, buffer: &mut [u8]) -> Self {
         let mut res = Attribute::new_ref();
         unsafe {
             raw::TEE_InitRefAttribute(
                 &mut res.raw,
-                id,
-                buffer as *mut T as *mut _,
-                mem::size_of::<T>() as u32,
+                id as u32,
+                buffer as *mut [u8] as *mut _,
+                buffer.len() as u32,
             );
         }
         res
     }
 
-    pub fn from_value(id: u32, a: u32, b: u32) -> Self {
+    pub fn from_value(id: AttributeId, a: u32, b: u32) -> Self {
         let mut res = Attribute::new_value();
         unsafe {
-            raw::TEE_InitValueAttribute(&mut res.raw, id, a, b);
+            raw::TEE_InitValueAttribute(&mut res.raw, id as u32, a, b);
         }
         res
     }
@@ -370,16 +370,44 @@ pub enum AttributeId {
     BitValue = (1 << 29),
 }
 
+pub enum TransientObjectType {
+    Aes = 0xA0000010,
+    Des = 0xA0000011,
+    Des3 = 0xA0000013,
+    HmacMd5 = 0xA0000001,
+    HmacSha1 = 0xA0000002,
+    HmacSha224 = 0xA0000003,
+    HmacSha256 = 0xA0000004,
+    HmacSha384 = 0xA0000005,
+    HmacSha512 = 0xA0000006,
+    RsaPublicKey = 0xA0000030,
+    RsaKeypair = 0xA1000030,
+    DsaPublicKey = 0xA0000031,
+    DsaKeypair = 0xA1000031,
+    DhKeypair = 0xA1000032,
+    EcdsaPublicKey = 0xA0000041,
+    EcdsaKeypair = 0xA1000041,
+    EcdhPublicKey = 0xA0000042,
+    EcdhKeypair = 0xA1000042,
+    GenericSecret = 0xA0000000,
+    CorruptedObject = 0xA00000BE,
+    Data = 0xA00000BF,
+}
+
 pub struct TransientObject(ObjectHandle);
 
 impl TransientObject {
-    pub fn allocate(object_type: u32, max_object_size: u32) -> Result<Self> {
-        let raw_object_handle = ptr::null_mut();
+    pub fn object_handle(&self) -> Result<raw::TEE_ObjectHandle> {
+        Ok((self.0.get_handle()))
+    }
+
+    pub fn allocate(object_type: TransientObjectType, max_object_size: usize) -> Result<Self> {
+        let mut raw_handle: *mut raw::TEE_ObjectHandle = Box::into_raw(Box::new(ptr::null_mut()));
         match unsafe {
-            raw::TEE_AllocateTransientObject(object_type, max_object_size, raw_object_handle)
+            raw::TEE_AllocateTransientObject(object_type as u32, max_object_size as u32, raw_handle)
         } {
             raw::TEE_SUCCESS => {
-                let handle = ObjectHandle::from_raw(raw_object_handle);
+                let handle = ObjectHandle::from_raw(raw_handle);
                 Ok(Self(handle))
             }
             code => Err(Error::from_raw_error(code)),
@@ -392,7 +420,7 @@ impl TransientObject {
         }
     }
 
-    pub fn populate(&mut self, attrs: &[Attribute]) -> Result<()> {
+    pub fn populate(&mut self, attrs: &mut [Attribute]) -> Result<()> {
         let attr_count = attrs.len();
         let mut raw_attrs = Vec::with_capacity(attr_count);
 
@@ -402,7 +430,11 @@ impl TransientObject {
 
         let raw_ptr = Box::into_raw(raw_attrs.into_boxed_slice());
         match unsafe {
-            raw::TEE_PopulateTransientObject(*self.0.raw, raw_ptr as *mut _, attr_count as u32)
+            raw::TEE_PopulateTransientObject(
+                self.0.get_handle(),
+                raw_ptr as *mut _,
+                attr_count as u32,
+            )
         } {
             raw::TEE_SUCCESS => {
                 let raw_box = unsafe { Box::from_raw(raw_ptr) };
@@ -500,12 +532,12 @@ impl PersistentObject {
         }
     }
 
-    pub fn rename<T>(&mut self, new_object_id: &mut T, new_object_id_len: u32) -> Result<()> {
+    pub fn rename(&mut self, new_object_id: &mut [u8]) -> Result<()> {
         match unsafe {
             raw::TEE_RenamePersistentObject(
                 self.0.get_handle(),
-                new_object_id as *mut T as *mut _,
-                new_object_id_len,
+                new_object_id as *mut [u8] as *mut _,
+                new_object_id.len() as u32,
             )
         } {
             raw::TEE_SUCCESS => return Ok(()),
