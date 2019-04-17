@@ -266,16 +266,6 @@ bitflags! {
     }
 }
 
-pub enum OperationId {
-    Cipher = 1,
-    Mac = 3,
-    Ae = 4,
-    Digest = 5,
-    AsymmetricCipher = 6,
-    AsymmetricSignature = 7,
-    KeyDerivation = 8,
-}
-
 pub enum OperationStates {
     Initial = 0x00000000,
     Active = 0x00000001,
@@ -424,7 +414,9 @@ impl Handle for TransientObject {
 impl Drop for TransientObject {
     fn drop(&mut self) {
         unsafe {
-            raw::TEE_FreeTransientObject(self.handle());
+            if self.0.raw != Box::into_raw(Box::new(ptr::null_mut())) {
+                raw::TEE_FreeTransientObject(self.0.handle());
+            }
             Box::from_raw(self.0.raw);
         }
     }
@@ -546,10 +538,18 @@ impl PersistentObject {
     }
 }
 
+impl Handle for PersistentObject {
+    fn handle(&self) -> raw::TEE_ObjectHandle {
+        self.0.handle()
+    }
+}
+
 impl Drop for PersistentObject {
     fn drop(&mut self) {
         unsafe {
-            raw::TEE_CloseObject(self.0.handle());
+            if self.0.raw != Box::into_raw(Box::new(ptr::null_mut())) {
+                raw::TEE_CloseObject(self.0.handle());
+            }
             Box::from_raw(self.0.raw);
         }
     }
