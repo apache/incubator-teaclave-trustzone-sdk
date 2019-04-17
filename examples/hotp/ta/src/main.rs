@@ -60,12 +60,11 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
 }
 
 pub fn register_shared_key(params: &mut Parameters) -> Result<()> {
-    unsafe { KEY_LEN = (*params.first().raw).memref.size as usize };
-    let key_slice: &[u8] = unsafe {
-        std::slice::from_raw_parts((*params.first().raw).memref.buffer as *mut u8, KEY_LEN)
-    };
+    let mut p = unsafe { params.0.as_memref().unwrap() };
+    let buffer = p.buffer();
+    unsafe { KEY_LEN  = buffer.len() };
     unsafe {
-        KEY[0..KEY_LEN].clone_from_slice(key_slice);
+        KEY[..KEY_LEN].clone_from_slice(buffer);
     }
     Ok(())
 }
@@ -85,7 +84,8 @@ pub fn get_hotp(params: &mut Parameters) -> Result<()> {
         }
     }
     truncate(&mut mac, &mut hotp_val)?;
-    unsafe { (*params.first().raw).value.a = hotp_val };
+    let mut p = unsafe { params.0.as_value().unwrap() };
+    p.set_a(hotp_val);
     Ok(())
 }
 

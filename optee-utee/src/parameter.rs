@@ -64,6 +64,10 @@ impl<'parameter> ParamMemref<'parameter> {
     pub fn raw(&mut self) -> *mut raw::Memref {
         self.raw
     }
+
+    pub fn set_updated_size(&mut self, size: u32) {
+        unsafe { (*self.raw).size = size };
+    }
 }
 
 pub struct Parameter {

@@ -48,18 +48,10 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
 }
 
 pub fn delete_object(params: &mut Parameters) -> Result<()> {
-    let obj_id_sz: u32 = unsafe { (*params.first().raw).memref.size };
+    let mut p0 = unsafe { params.0.as_memref().unwrap() };
 
-    //TEE_Malloc
-    let mut obj_id = vec![0; obj_id_sz as usize];
-    //TEE_MemMove
-    let id_slice: &[u8] = unsafe {
-        std::slice::from_raw_parts(
-            (*params.first().raw).memref.buffer as *mut u8,
-            obj_id_sz as usize,
-        )
-    };
-    obj_id.clone_from_slice(id_slice);
+    let mut obj_id = vec![0; p0.buffer().len() as usize];
+    obj_id.clone_from_slice(p0.buffer());
 
     match PersistentObject::open(
         ObjectStorageConstants::Private,
@@ -79,22 +71,11 @@ pub fn delete_object(params: &mut Parameters) -> Result<()> {
 }
 
 pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
-    let obj_id_sz: u32 = unsafe { (*params.first().raw).memref.size };
-    let mut obj_id = vec![0; obj_id_sz as usize];
-    let id_slice: &[u8] = unsafe {
-        std::slice::from_raw_parts(
-            (*params.first().raw).memref.buffer as *mut u8,
-            obj_id_sz as usize,
-        )
-    };
-    obj_id.clone_from_slice(id_slice);
+    let mut p0 = unsafe { params.0.as_memref().unwrap() };
+    let mut p1 = unsafe { params.1.as_memref().unwrap() };
+    let mut obj_id = vec![0; p0.buffer().len() as usize];
+    obj_id.clone_from_slice(p0.buffer());
 
-    let data: &[u8] = unsafe {
-        std::slice::from_raw_parts(
-            (*params.second().raw).memref.buffer as *mut u8,
-            (*params.second().raw).memref.size as usize,
-        )
-    };
     let obj_data_flag = DataFlag::ACCESS_READ
         | DataFlag::ACCESS_WRITE
         | DataFlag::ACCESS_WRITE_META
@@ -112,7 +93,7 @@ pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
             return Err(e);
         }
 
-        Ok(mut object) => match object.write(data) {
+        Ok(mut object) => match object.write(p1.buffer()) {
             Ok(()) => {
                 return Ok(());
             }
@@ -126,22 +107,11 @@ pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
 }
 
 pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
-    let obj_id_sz: u32 = unsafe { (*params.first().raw).memref.size };
-    let mut obj_id = vec![0; obj_id_sz as usize];
-    let id_slice: &[u8] = unsafe {
-        std::slice::from_raw_parts(
-            (*params.first().raw).memref.buffer as *mut u8,
-            obj_id_sz as usize,
-        )
-    };
-    obj_id.clone_from_slice(id_slice);
+    let mut p0 = unsafe { params.0.as_memref().unwrap() };
+    let mut p1 = unsafe { params.1.as_memref().unwrap() };
+    let mut obj_id = vec![0; p0.buffer().len() as usize];
+    obj_id.clone_from_slice(p0.buffer());
 
-    let data: &mut [u8] = unsafe {
-        std::slice::from_raw_parts_mut(
-            (*params.second().raw).memref.buffer as *mut u8,
-            (*params.second().raw).memref.size as usize,
-        )
-    };
     match PersistentObject::open(
         ObjectStorageConstants::Private,
         &mut obj_id,
@@ -152,22 +122,18 @@ pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
         Ok(object) => {
             let obj_info = object.info()?;
 
-            if obj_info.raw.dataSize > data.len() as u32 {
-                unsafe {
-                    (*params.second().raw).memref.size = obj_info.raw.dataSize;
-                }
+            if obj_info.raw.dataSize > p1.buffer().len() as u32 {
+                p1.set_updated_size(obj_info.raw.dataSize);
                 return Err(Error::new(ErrorKind::ShortBuffer));
             }
 
-            let read_bytes = object.read(data).unwrap();
+            let read_bytes = object.read(p1.buffer()).unwrap();
 
             if read_bytes != obj_info.raw.dataSize {
                 return Err(Error::new(ErrorKind::ExcessData));
             }
 
-            unsafe {
-                (*params.second().raw).memref.size = read_bytes;
-            }
+            p1.set_updated_size(read_bytes);
             Ok(())
         }
     }
