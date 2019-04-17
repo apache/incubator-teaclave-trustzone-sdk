@@ -271,6 +271,16 @@ pub enum OperationStates {
     Active = 0x00000001,
 }
 
+pub enum OperationConstant {
+    Cipher = 1,
+    Mac = 3,
+    Ae = 4,
+    Digest = 5,
+    AsymmetricCipher = 6,
+    AsymmetricSignature = 7,
+    KeyDerivation = 8,
+}
+
 pub enum AttributeId {
     /// Used for all secret keys for symmetric ciphers, MACs, and HMACs
     SecretValue = 0xC0000000,

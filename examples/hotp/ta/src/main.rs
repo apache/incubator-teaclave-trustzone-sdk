@@ -5,14 +5,11 @@ use optee_utee::{
 };
 use optee_utee::{Attribute, AttributeId, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
-use optee_utee::{Operation, MAC};
-use optee_utee_sys::*;
+use optee_utee::{Operation, OperationMode, AlgorithmId, MAC};
 
 pub const SHA1_HASH_SIZE: usize = 20;
-
 pub const MAX_KEY_SIZE: usize = 64;
 pub const MIN_KEY_SIZE: usize = 10;
-
 pub const DBC2_MODULO: u32 = 1000000;
 
 pub struct HmacOtp {
@@ -98,8 +95,8 @@ pub fn hmac_sha1(hotp: &mut HmacOtp, out: &mut [u8]) -> Result<usize> {
     }
 
     match Operation::allocate(
-        TEE_ALG_HMAC_SHA1,
-        TEE_OperationMode::TEE_MODE_MAC as u32,
+        AlgorithmId::HmacSha1,
+        OperationMode::Mac,
         hotp.key_len * 8,
     ) {
         Err(e) => return Err(e),
