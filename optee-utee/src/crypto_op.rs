@@ -19,6 +19,16 @@ impl OperationHandle {
     }
 }
 
+pub enum OperationId {
+    Cipher = 1,
+    Mac = 3,
+    Ae = 4,
+    Digest = 5,
+    AsymmetricCipher = 6,
+    AsymmetricSignature = 7,
+    KeyDerivation = 8,
+}
+
 pub struct Operation(OperationHandle);
 
 impl Operation {
@@ -56,14 +66,11 @@ impl Operation {
     }
 }
 /// free before check it's not null
-/// Objects need the checks too
-/// Objects above print need to be removed
-/// Add obj_handle function for persistent object
 impl Drop for Operation {
     fn drop(&mut self) {
         unsafe {
             if self.0.raw != Box::into_raw(Box::new(ptr::null_mut())) {
-                raw::TEE_FreeOperation(*self.0.raw);
+                raw::TEE_FreeOperation(self.0.handle());
             }
             Box::from_raw(self.0.raw);
         }
