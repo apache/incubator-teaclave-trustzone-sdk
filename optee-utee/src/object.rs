@@ -358,13 +358,13 @@ pub enum TransientObjectType {
     Data = 0xA00000BF,
 }
 
+pub trait Handle {
+    fn handle(&self) -> raw::TEE_ObjectHandle;
+}
+
 pub struct TransientObject(ObjectHandle);
 
 impl TransientObject {
-    pub fn handle(&self) -> raw::TEE_ObjectHandle {
-        self.0.handle()
-    }
-
     pub fn allocate(object_type: TransientObjectType, max_object_size: u32) -> Result<Self> {
         let raw_handle: *mut raw::TEE_ObjectHandle = Box::into_raw(Box::new(ptr::null_mut()));
         match unsafe {
@@ -412,6 +412,12 @@ impl TransientObject {
 
     pub fn seek(&self, offset: i32, whence: Whence) -> Result<()> {
         self.0.seek(offset, whence)
+    }
+}
+
+impl Handle for TransientObject {
+    fn handle(&self) -> raw::TEE_ObjectHandle {
+        self.0.handle()
     }
 }
 
