@@ -5,8 +5,8 @@ use optee_utee::{
 };
 use optee_utee::{Attribute, AttributeId, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
+use optee_utee::{Operation, MAC};
 use optee_utee_sys::*;
-use std::ptr;
 
 pub const SHA1_HASH_SIZE: usize = 20;
 
@@ -15,11 +15,11 @@ pub const MIN_KEY_SIZE: usize = 10;
 
 pub const DBC2_MODULO: u32 = 1000000;
 
-pub static mut KEY: [u8; MAX_KEY_SIZE] = [0; MAX_KEY_SIZE];
-
-pub static mut KEY_LEN: usize = 0;
-
-pub static mut COUNTER: [u8; 8] = [0x0; 8];
+pub struct HmacOtp {
+    pub counter: [u8; 8],
+    pub key: [u8; MAX_KEY_SIZE],
+    pub key_len: usize,
+}
 
 #[ta_create]
 fn create() -> Result<()> {
@@ -28,8 +28,16 @@ fn create() -> Result<()> {
 }
 
 #[ta_open_session]
-fn open_session(_params: &mut Parameters) -> Result<()> {
+fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut HmacOtp) -> Result<()> {
     trace_println!("[+] TA open session");
+    let ptr = Box::into_raw(Box::new(HmacOtp {
+        counter: [0u8; 8],
+        key: [0u8; MAX_KEY_SIZE],
+        key_len: 0,
+    }));
+    unsafe {
+        *sess_ctx = ptr;
+    }
     Ok(())
 }
 
@@ -44,14 +52,14 @@ fn destroy() {
 }
 
 #[ta_invoke_command]
-fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
+fn invoke_command(sess_ctx: &mut HmacOtp, cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
     match Command::from(cmd_id) {
         Command::RegisterSharedKey => {
-            return register_shared_key(params);
+            return register_shared_key(sess_ctx, params);
         }
         Command::GetHOTP => {
-            return get_hotp(params);
+            return get_hotp(sess_ctx, params);
         }
         _ => {
             return Err(Error::new(ErrorKind::BadParameters));
@@ -59,119 +67,76 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
     }
 }
 
-pub fn register_shared_key(params: &mut Parameters) -> Result<()> {
+pub fn register_shared_key(hotp: &mut HmacOtp, params: &mut Parameters) -> Result<()> {
     let mut p = unsafe { params.0.as_memref().unwrap() };
     let buffer = p.buffer();
-    unsafe { KEY_LEN  = buffer.len() };
-    unsafe {
-        KEY[..KEY_LEN].clone_from_slice(buffer);
-    }
+    hotp.key_len = buffer.len();
+    hotp.key[..hotp.key_len].clone_from_slice(buffer);
     Ok(())
 }
 
-pub fn get_hotp(params: &mut Parameters) -> Result<()> {
+pub fn get_hotp(hotp: &mut HmacOtp, params: &mut Parameters) -> Result<()> {
     let mut mac: [u8; SHA1_HASH_SIZE] = [0x0; SHA1_HASH_SIZE];
-    let mut mac_len: usize = SHA1_HASH_SIZE;
-    let mut hotp_val: u32 = 0;
 
-    hmac_sha1(&mut mac, &mut mac_len)?;
-    unsafe {
-        for i in (0..COUNTER.len()).rev() {
-            COUNTER[i] += 1;
-            if COUNTER[i] > 0 {
-                break;
-            }
+    hmac_sha1(hotp, &mut mac)?;
+
+    for i in (0..hotp.counter.len()).rev() {
+        hotp.counter[i] += 1;
+        if hotp.counter[i] > 0 {
+            break;
         }
     }
-    truncate(&mut mac, &mut hotp_val)?;
+    let hotp_val = truncate(&mut mac);
     let mut p = unsafe { params.0.as_value().unwrap() };
     p.set_a(hotp_val);
     Ok(())
 }
 
-pub fn hmac_sha1(out: *mut [u8; SHA1_HASH_SIZE], outlen: *mut usize) -> Result<()> {
-    let mut op_handle: TEE_OperationHandle = TEE_HANDLE_NULL as *mut _;
-    unsafe {
-        if KEY_LEN < MIN_KEY_SIZE || KEY_LEN > MAX_KEY_SIZE {
-            return Err(Error::new(ErrorKind::BadParameters));
-        }
+pub fn hmac_sha1(hotp: &mut HmacOtp, out: &mut [u8]) -> Result<usize> {
+    if hotp.key_len < MIN_KEY_SIZE || hotp.key_len > MAX_KEY_SIZE {
+        return Err(Error::new(ErrorKind::BadParameters));
+    }
 
-        //original code check COUNTER pointer which is useless here
-        if out.is_null() || outlen.is_null() {
-            return Err(Error::new(ErrorKind::BadParameters));
-        }
-
-        let mut res = TEE_AllocateOperation(
-            &mut op_handle,
-            TEE_ALG_HMAC_SHA1,
-            TEE_OperationMode::TEE_MODE_MAC as u32,
-            KEY_LEN as u32 * 8,
-        );
-
-        'correct_handle: loop {
-            if res != TEE_SUCCESS {
-                break 'correct_handle;
-            }
-
-            match TransientObject::allocate(TransientObjectType::HmacSha1, KEY_LEN as u32 * 8) {
-                Err(e) => {
-                    if op_handle != TEE_HANDLE_NULL as *mut _ {
-                        TEE_FreeOperation(op_handle);
-                        return Err(e);
-                    }
-                }
+    match Operation::allocate(
+        TEE_ALG_HMAC_SHA1,
+        TEE_OperationMode::TEE_MODE_MAC as u32,
+        hotp.key_len * 8,
+    ) {
+        Err(e) => return Err(e),
+        Ok(operation) => {
+            match TransientObject::allocate(TransientObjectType::HmacSha1, hotp.key_len as u32 * 8)
+            {
+                Err(e) => return Err(e),
                 Ok(mut key_object) => {
-                    //KEY size can be larger than KEY_LEN
-                    let mut tmp_key = KEY.to_vec();
-                    tmp_key.truncate(KEY_LEN);
+                    //KEY size can be larger than hotp.key_len
+                    let mut tmp_key = hotp.key.to_vec();
+                    tmp_key.truncate(hotp.key_len);
                     let attr = Attribute::from_ref(AttributeId::SecretValue, &mut tmp_key);
 
                     let mut tmp_attrs: [Attribute; 1] = [attr];
                     key_object.populate(&mut tmp_attrs)?;
-                    res = TEE_SetOperationKey(op_handle, key_object.handle());
-                    if res != TEE_SUCCESS {
-                        break 'correct_handle;
-                    }
+                    operation.set_key(&key_object)?;
                 }
             }
-            TEE_MACInit(op_handle, ptr::null() as *const _, 0);
-            TEE_MACUpdate(
-                op_handle,
-                &mut COUNTER as *mut [u8; 8] as *mut _,
-                COUNTER.len() as u32,
-            );
-            res = TEE_MACComputeFinal(
-                op_handle,
-                ptr::null() as *const _,
-                0,
-                out as *mut _,
-                outlen as *mut u32,
-            );
-            break 'correct_handle;
-        }
-        if op_handle != TEE_HANDLE_NULL as *mut _ {
-            TEE_FreeOperation(op_handle);
-        }
-        if res == TEE_SUCCESS {
-            return Ok(());
-        } else {
-            return Err(Error::from_raw_error(res));
+            let mac = MAC::init(operation, &[0u8; 0]);
+            mac.update(&hotp.counter);
+            let out_len = mac.compute_final(&[0u8; 0], out).unwrap();
+            Ok(out_len)
         }
     }
 }
 
-pub fn truncate(hmac_result: *mut [u8; SHA1_HASH_SIZE], bin_code: *mut u32) -> Result<()> {
-    unsafe {
-        let offset: usize = ((*hmac_result)[19] & 0xf) as usize;
+pub fn truncate(hmac_result: &mut [u8]) -> u32 {
+    let mut bin_code: u32;
+    let offset: usize = (hmac_result[19] & 0xf) as usize;
 
-        *bin_code = (((*hmac_result)[offset] & 0x7f) as u32) << 24
-            | (((*hmac_result)[offset + 1] & 0xff) as u32) << 16
-            | (((*hmac_result)[offset + 2] & 0xff) as u32) << 8
-            | (((*hmac_result)[offset + 3] & 0xff) as u32);
+    bin_code = ((hmac_result[offset] & 0x7f) as u32) << 24
+        | ((hmac_result[offset + 1] & 0xff) as u32) << 16
+        | ((hmac_result[offset + 2] & 0xff) as u32) << 8
+        | ((hmac_result[offset + 3] & 0xff) as u32);
 
-        *bin_code %= DBC2_MODULO;
-    }
-    Ok(())
+    bin_code %= DBC2_MODULO;
+    return bin_code;
 }
 
 // TA configurations

@@ -32,11 +32,15 @@ impl<'parameter> ParamValue<'parameter> {
     }
 
     pub fn set_a(&mut self, a: u32) {
-        unsafe { (*self.raw).a = a; }
+        unsafe {
+            (*self.raw).a = a;
+        }
     }
 
     pub fn set_b(&mut self, b: u32) {
-        unsafe { (*self.raw).b = b; }
+        unsafe {
+            (*self.raw).b = b;
+        }
     }
 
     pub fn param_type(&self) -> ParamType {
@@ -91,7 +95,7 @@ impl Parameter {
                     param_type: self.param_type,
                     _marker: marker::PhantomData,
                 })
-            },
+            }
             _ => Err(Error::new(ErrorKind::BadParameters)),
         }
     }
@@ -104,12 +108,14 @@ impl Parameter {
                     param_type: self.param_type,
                     _marker: marker::PhantomData,
                 })
-            },
+            }
             _ => Err(Error::new(ErrorKind::BadParameters)),
         }
     }
 
-    pub fn raw(&self) -> *mut raw::TEE_Param { self.raw }
+    pub fn raw(&self) -> *mut raw::TEE_Param {
+        self.raw
+    }
 }
 
 pub struct ParamTypes(u32);
