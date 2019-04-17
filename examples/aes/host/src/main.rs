@@ -1,8 +1,7 @@
 use optee_teec::{
     Context, Operation, ParamNone, ParamTmpRef, ParamType, ParamValue, Session, Uuid,
 };
-
-include!(concat!(env!("OUT_DIR"), "/host_header.rs"));
+use proto::*;
 
 const AES_TEST_BUFFER_SIZE: usize = 4096;
 const AES_TEST_KEY_SIZE: usize = 16;

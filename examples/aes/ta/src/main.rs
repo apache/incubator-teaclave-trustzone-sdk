@@ -7,6 +7,7 @@ use optee_utee::{
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use optee_utee_sys::*;
 use std::boxed::Box;
+use proto::*;
 
 pub const AES128_KEY_BIT_SIZE: u32 = 128;
 pub const AES128_KEY_BYTE_SIZE: u32 = AES128_KEY_BIT_SIZE / 8;

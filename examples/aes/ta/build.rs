@@ -3,16 +3,15 @@ use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
+use proto;
 
 fn main() -> std::io::Result<()> {
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
 
     let mut buffer = File::create(out.join("user_ta_header.rs"))?;
     buffer.write_all(include_bytes!("ta_static.rs"))?;
-    write!(buffer, "\n")?;
-    buffer.write_all(include_bytes!("../host_ta_share_data.rs"))?;
 
-    let tee_uuid = Uuid::parse_str(&include_str!("../uuid.txt").trim()).unwrap();
+    let tee_uuid = Uuid::parse_str(proto::UUID).unwrap();
     let (time_low, time_mid, time_hi_and_version, clock_seq_and_node) = tee_uuid.as_fields();
 
     write!(buffer, "\n")?;

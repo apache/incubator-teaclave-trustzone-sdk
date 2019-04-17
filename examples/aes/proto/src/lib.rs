@@ -56,3 +56,4 @@ impl From<u32> for Mode {
 
 pub const TA_AES_SIZE_128BIT: u32 = (128 / 8);
 pub const TA_AES_SIZE_256BIT: u32 = (256 / 8);
+pub const UUID: &str = &include_str!(concat!(env!("OUT_DIR"), "/uuid.txt"));
