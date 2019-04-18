@@ -122,18 +122,18 @@ pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
         Ok(object) => {
             let obj_info = object.info()?;
 
-            if obj_info.raw.dataSize > p1.buffer().len() as u32 {
-                p1.set_updated_size(obj_info.raw.dataSize);
+            if obj_info.data_size() > p1.buffer().len() {
+                p1.set_updated_size(obj_info.data_size());
                 return Err(Error::new(ErrorKind::ShortBuffer));
             }
 
             let read_bytes = object.read(p1.buffer()).unwrap();
 
-            if read_bytes != obj_info.raw.dataSize {
+            if read_bytes != obj_info.data_size() as u32 {
                 return Err(Error::new(ErrorKind::ExcessData));
             }
 
-            p1.set_updated_size(read_bytes);
+            p1.set_updated_size(read_bytes as usize);
             Ok(())
         }
     }
