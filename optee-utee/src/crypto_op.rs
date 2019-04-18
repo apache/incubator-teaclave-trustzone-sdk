@@ -185,3 +185,16 @@ impl Drop for Operation {
         }
     }
 }
+
+pub struct Random();
+
+impl Random {
+    pub fn generate(res_buffer: &mut [u8]) {
+        unsafe {
+        raw::TEE_GenerateRandom(
+            res_buffer.as_mut_ptr() as _,
+            res_buffer.len() as _,
+        );
+        }
+    }
+}

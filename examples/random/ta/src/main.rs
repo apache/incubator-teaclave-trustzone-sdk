@@ -4,7 +4,7 @@ use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{Error, ErrorKind, Parameters, Result};
-use optee_utee_sys::TEE_GenerateRandom;
+use optee_utee::{Random};
 
 #[ta_create]
 fn create() -> Result<()> {
@@ -30,12 +30,7 @@ fn destroy() {
 
 pub fn random_number_generate(params: &mut Parameters) -> Result<()> {
     let mut p = unsafe { params.0.as_memref().unwrap()};
-    unsafe {
-        TEE_GenerateRandom(
-            p.buffer().as_mut_ptr() as _,
-            p.buffer().len() as _,
-        );
-    }
+    Random::generate(p.buffer());
     Ok(())
 }
 
