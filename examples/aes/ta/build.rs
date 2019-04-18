@@ -1,9 +1,9 @@
+use proto;
 use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
-use proto;
 
 fn main() -> std::io::Result<()> {
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());

@@ -31,8 +31,8 @@ pub enum OperationMode {
 }
 
 pub enum AlgorithmId {
-    EcbNopad = 0x10000010,
-    CbcNopad = 0x10000110,
+    AesEcbNopad = 0x10000010,
+    AesCbcNopad = 0x10000110,
     AesCtr = 0x10000210,
     AesCts = 0x10000310,
     AesXts = 0x10000410,
@@ -85,11 +85,16 @@ pub enum AlgorithmId {
     HmacSha256 = 0x30000004,
     HmacSha384 = 0x30000005,
     HmacSha512 = 0x30000006,
+    IllegalValue = 0xefffffff,
 }
 
 pub struct Operation(OperationHandle);
 
 impl Operation {
+    pub fn null_operation() -> Self {
+        Self(OperationHandle::from_raw(ptr::null_mut()))
+    }
+
     pub fn handle(&self) -> raw::TEE_OperationHandle {
         self.0.handle()
     }
@@ -112,43 +117,46 @@ impl Operation {
             code => Err(Error::from_raw_error(code)),
         }
     }
+
     pub fn set_key<T: Handle>(&self, object: &T) -> Result<()> {
         match unsafe { raw::TEE_SetOperationKey(self.handle(), object.handle()) } {
             raw::TEE_SUCCESS => return Ok(()),
             code => Err(Error::from_raw_error(code)),
         }
     }
-}
-/// free before check it's not null
-impl Drop for Operation {
-    fn drop(&mut self) {
-        unsafe {
-            if self.0.raw != Box::into_raw(Box::new(ptr::null_mut())) {
-                raw::TEE_FreeOperation(self.0.handle());
+
+    pub fn cipher_init(&self, iv: &[u8]) {
+        unsafe { raw::TEE_CipherInit(self.handle(), iv.as_ptr() as _, iv.len() as u32) };
+    }
+
+    pub fn cipher_update(&self, src: &[u8], dest: &mut [u8]) -> Result<usize> {
+        let mut out_len: u32 = dest.len() as u32;
+        match unsafe {
+            raw::TEE_CipherUpdate(
+                self.handle(),
+                src.as_ptr() as _,
+                src.len() as u32,
+                dest.as_mut_ptr() as _,
+                &mut out_len,
+            )
+        } {
+            raw::TEE_SUCCESS => {
+                return Ok(out_len as usize);
             }
-            Box::from_raw(self.0.raw);
+            code => Err(Error::from_raw_error(code)),
         }
     }
-}
 
-pub struct MAC(Operation);
-
-impl MAC {
-    pub fn handle(&self) -> raw::TEE_OperationHandle {
-        self.0.handle()
+    pub fn mac_init(&self, iv: &[u8]) {
+        unsafe { raw::TEE_MACInit(self.handle(), iv.as_ptr() as _, iv.len() as u32) };
     }
 
-    pub fn init(op: Operation, iv: &[u8]) -> Self {
-        unsafe { raw::TEE_MACInit(op.handle(), iv.as_ptr() as _, iv.len() as u32) };
-        Self(op)
-    }
-
-    pub fn update(&self, chunk: &[u8]) {
+    pub fn mac_update(&self, chunk: &[u8]) {
         unsafe { raw::TEE_MACUpdate(self.handle(), chunk.as_ptr() as _, chunk.len() as u32) };
     }
 
     /// output mac size is unsure when passed in, so we return its result
-    pub fn compute_final(&self, message: &[u8], mac: &mut [u8]) -> Result<usize> {
+    pub fn mac_compute_final(&self, message: &[u8], mac: &mut [u8]) -> Result<usize> {
         let mut out_len: usize = mac.len();
         match unsafe {
             raw::TEE_MACComputeFinal(
@@ -166,9 +174,14 @@ impl MAC {
         }
     }
 }
-
-impl Drop for MAC {
+/// free before check it's not null
+impl Drop for Operation {
     fn drop(&mut self) {
-        drop(Operation);
+        unsafe {
+            if self.0.raw != ptr::null_mut() {
+                raw::TEE_FreeOperation(self.0.handle());
+            }
+            Box::from_raw(self.0.raw);
+        }
     }
 }
