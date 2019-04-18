@@ -158,7 +158,8 @@ pub fn cipher_buffer(aes: &mut AesCipher, params: &mut Parameters) -> Result<()>
 
     trace_println!("[+] TA tries to update ciphers!");
 
-    unsafe { (*param1.raw()).size = aes.operation.cipher_update(input, output).unwrap() as u32 };
+    let tmp_size = aes.operation.cipher_update(input, output).unwrap();
+    param1.set_updated_size(tmp_size);
     Ok(())
 }
 

@@ -59,8 +59,13 @@ pub struct ObjectInfo {
 }
 
 impl ObjectInfo {
-    pub fn new() -> Self {
-        let raw: raw::TEE_ObjectInfo = unsafe { mem::zeroed() };
+    /// Raw struct is not implemented Copy attribute yet.
+    /// Every item in raw struct needs a function to extract.
+    pub fn data_size(&self) -> usize {
+        self.raw.dataSize as usize
+    }
+
+    pub fn from_raw (raw: raw::TEE_ObjectInfo) -> Self {
         Self { raw }
     }
 }
@@ -99,10 +104,9 @@ impl ObjectHandle {
     }
 
     pub fn info(&self) -> Result<ObjectInfo> {
-        let mut info = ObjectInfo::new();
-
-        match unsafe { raw::TEE_GetObjectInfo1(self.handle(), &mut info.raw) } {
-            raw::TEE_SUCCESS => Ok(info),
+        let mut raw_info: raw::TEE_ObjectInfo = unsafe { mem::zeroed() };
+        match unsafe { raw::TEE_GetObjectInfo1(self.handle(), &mut raw_info) } {
+            raw::TEE_SUCCESS => Ok(ObjectInfo::from_raw(raw_info)),
             code => Err(Error::from_raw_error(code)),
         }
     }

@@ -5,6 +5,17 @@ use optee_utee_sys as raw;
 use std::mem;
 use std::ptr;
 
+pub enum OperationMode {
+    Encrypt = 0,
+    Decrypt = 1,
+    Sign = 2,
+    Verify = 3,
+    Mac = 4,
+    Digest = 5,
+    Derive = 6,
+    IllegalValue = 0x7fffffff,
+}
+
 pub struct OperationHandle {
     raw: *mut raw::TEE_OperationHandle,
 }
@@ -17,17 +28,6 @@ impl OperationHandle {
     pub fn handle(&self) -> raw::TEE_OperationHandle {
         unsafe { *(self.raw) }
     }
-}
-
-pub enum OperationMode {
-    Encrypt = 0,
-    Decrypt = 1,
-    Sign = 2,
-    Verify = 3,
-    Mac = 4,
-    Digest = 5,
-    Derive = 6,
-    IllegalValue = 0x7fffffff,
 }
 
 pub enum AlgorithmId {
