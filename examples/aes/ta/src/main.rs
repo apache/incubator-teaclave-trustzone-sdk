@@ -3,7 +3,7 @@
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
-use optee_utee::{AlgorithmId, Operation, OperationMode};
+use optee_utee::{AlgorithmId, Cipher, OperationMode};
 use optee_utee::{Attribute, AttributeId, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::*;
@@ -16,7 +16,7 @@ pub const AES256_KEY_BYTE_SIZE: u32 = AES256_KEY_BIT_SIZE / 8;
 
 pub struct AesCipher {
     pub key_size: usize,
-    pub operation: Operation,
+    pub cipher: Cipher,
     pub key_object: TransientObject,
 }
 
@@ -31,7 +31,7 @@ fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut AesCipher) -> Resu
     trace_println!("[+] TA open session");
     let ptr = Box::into_raw(Box::new(AesCipher {
         key_size: 0,
-        operation: Operation::null_operation(),
+        cipher: Cipher::null(),
         key_object: TransientObject::null_object(),
     }));
     unsafe {
@@ -103,7 +103,7 @@ pub fn alloc_resources(aes: &mut AesCipher, params: &mut Parameters) -> Result<(
 
     aes.key_size = ta2tee_key_size(key_size_value).unwrap();
 
-    aes.operation = Operation::allocate(
+    aes.cipher = Cipher::allocate(
         ta2tee_algo_id(algo_value).unwrap(),
         ta2tee_mode_id(mode_id_value).unwrap(),
         aes.key_size * 8,
@@ -113,7 +113,7 @@ pub fn alloc_resources(aes: &mut AesCipher, params: &mut Parameters) -> Result<(
     let mut key = vec![0u8; aes.key_size as usize];
     let attr = Attribute::from_ref(AttributeId::SecretValue, &mut key);
     aes.key_object.populate(&mut [attr])?;
-    aes.operation.set_key(&mut aes.key_object)?;
+    aes.cipher.set_key(&mut aes.key_object)?;
     Ok(())
 }
 
@@ -131,7 +131,7 @@ pub fn set_aes_key(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
     aes.key_object.reset();
     aes.key_object.populate(&mut [attr])?;
 
-    aes.operation.set_key(&mut aes.key_object)?;
+    aes.cipher.set_key(&mut aes.key_object)?;
     Ok(())
 }
 
@@ -139,7 +139,7 @@ pub fn reset_aes_iv(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> 
     let mut param0 = unsafe { params.0.as_memref().unwrap() };
     let iv = param0.buffer();
 
-    aes.operation.cipher_init(iv);
+    aes.cipher.init(iv);
 
     trace_println!("[+] TA initial vectore reset done!");
     Ok(())
@@ -158,7 +158,7 @@ pub fn cipher_buffer(aes: &mut AesCipher, params: &mut Parameters) -> Result<()>
 
     trace_println!("[+] TA tries to update ciphers!");
 
-    let tmp_size = aes.operation.cipher_update(input, output).unwrap();
+    let tmp_size = aes.cipher.update(input, output).unwrap();
     param1.set_updated_size(tmp_size);
     Ok(())
 }

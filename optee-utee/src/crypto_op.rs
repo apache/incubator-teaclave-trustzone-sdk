@@ -1,5 +1,5 @@
 #![allow(unused)]
-use crate::{Error, ErrorKind, Handle, Result};
+use crate::{Error, ErrorKind, ObjHandle, Result};
 use bitflags::bitflags;
 use optee_utee_sys as raw;
 use std::mem;
@@ -16,6 +16,21 @@ pub enum OperationMode {
     IllegalValue = 0x7fffffff,
 }
 
+pub struct OperationInfo {
+    raw: raw::TEE_OperationInfo,
+}
+
+impl OperationInfo {
+    pub fn from_raw(raw: raw::TEE_OperationInfo) -> Self {
+        Self { raw }
+    }
+}
+
+pub struct OperationInfoMultiple {
+    raw: *mut raw::TEE_OperationInfoMultiple,
+    size: usize,
+}
+
 pub struct OperationHandle {
     raw: *mut raw::TEE_OperationHandle,
 }
@@ -27,6 +42,340 @@ impl OperationHandle {
 
     pub fn handle(&self) -> raw::TEE_OperationHandle {
         unsafe { *(self.raw) }
+    }
+
+    pub fn null() -> Self {
+        OperationHandle::from_raw(ptr::null_mut())
+    }
+
+    pub fn allocate(algo: AlgorithmId, mode: OperationMode, max_key_size: usize) -> Result<Self> {
+        let mut raw_handle: *mut raw::TEE_OperationHandle =
+            Box::into_raw(Box::new(ptr::null_mut()));
+        match unsafe {
+            raw::TEE_AllocateOperation(
+                raw_handle as *mut _,
+                algo as u32,
+                mode as u32,
+                max_key_size as u32,
+            )
+        } {
+            raw::TEE_SUCCESS => Ok(Self::from_raw(raw_handle)),
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn info(&self) -> OperationInfo {
+        let mut raw_info: raw::TEE_OperationInfo = unsafe { mem::zeroed() };
+        unsafe { raw::TEE_GetOperationInfo(self.handle(), &mut raw_info) };
+        OperationInfo::from_raw(raw_info)
+    }
+
+    /// Here the multiple info total size is not sure
+    /// Passed in array is supposed to provide enough size for this struct
+    pub fn info_multiple(&self, info_buf: &mut [u8]) -> Result<OperationInfoMultiple> {
+        let mut tmp_size: usize = 0;
+        match unsafe {
+            raw::TEE_GetOperationInfoMultiple(
+                self.handle(),
+                info_buf.as_ptr() as _,
+                &mut (tmp_size as u32),
+            )
+        } {
+            raw::TEE_SUCCESS => Ok(OperationInfoMultiple {
+                raw: info_buf.as_ptr() as _,
+                size: tmp_size,
+            }),
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn reset(&mut self) {
+        unsafe {
+            raw::TEE_ResetOperation(self.handle());
+        }
+    }
+
+    pub fn set_key<T: ObjHandle>(&self, object: &T) -> Result<()> {
+        match unsafe { raw::TEE_SetOperationKey(self.handle(), object.handle()) } {
+            raw::TEE_SUCCESS => return Ok(()),
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn set_key_2<T: ObjHandle, D: ObjHandle>(&self, object1: &T, object2: &D) -> Result<()> {
+        match unsafe {
+            raw::TEE_SetOperationKey2(self.handle(), object1.handle(), object2.handle())
+        } {
+            raw::TEE_SUCCESS => return Ok(()),
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn copy<T: OpHandle>(&mut self, src: &T) {
+        unsafe {
+            raw::TEE_CopyOperation(self.handle(), src.handle());
+        }
+    }
+}
+
+/// free before check it's not null
+impl Drop for OperationHandle {
+    fn drop(&mut self) {
+        unsafe {
+            if self.raw != ptr::null_mut() {
+                raw::TEE_FreeOperation(self.handle());
+            }
+            Box::from_raw(self.raw);
+        }
+    }
+}
+
+pub trait OpHandle {
+    fn handle(&self) -> raw::TEE_OperationHandle;
+}
+
+struct Digest(OperationHandle);
+
+impl Digest {
+    pub fn digest_update(&self, chunk: &[u8]) {
+        unsafe {
+            raw::TEE_DigestUpdate(self.handle(), chunk.as_ptr() as _, chunk.len() as u32);
+        }
+    }
+
+    //hash size is dynamic changed so we returned it's updated size
+    pub fn digest_do_final(&self, chunk: &[u8], hash: &mut [u8]) -> Result<usize> {
+        let mut hash_size: usize = hash.len();
+        match unsafe {
+            raw::TEE_DigestDoFinal(
+                self.handle(),
+                chunk.as_ptr() as _,
+                chunk.len() as u32,
+                hash.as_mut_ptr() as _,
+                &mut (hash_size as u32),
+            )
+        } {
+            raw::TEE_SUCCESS => return Ok(hash_size),
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn null() -> Self {
+        Self(OperationHandle::null())
+    }
+
+    pub fn allocate(algo: AlgorithmId, max_key_size: usize) -> Result<Self> {
+        match OperationHandle::allocate(algo, OperationMode::Digest, max_key_size) {
+            Ok(handle) => Ok(Self(handle)),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn info(&self) -> OperationInfo {
+        self.0.info()
+    }
+
+    pub fn info_multiple(&self, info_buf: &mut [u8]) -> Result<OperationInfoMultiple> {
+        self.0.info_multiple(info_buf)
+    }
+
+    pub fn reset(&mut self) {
+        self.0.reset()
+    }
+
+    pub fn set_key<T: ObjHandle>(&self, object: &T) -> Result<()> {
+        self.0.set_key(object)
+    }
+
+    pub fn set_key_2<T: ObjHandle, D: ObjHandle>(&self, object1: &T, object2: &D) -> Result<()> {
+        self.0.set_key_2(object1, object2)
+    }
+
+    pub fn copy<T: OpHandle>(&mut self, src: &T) {
+        self.0.copy(src)
+    }
+}
+
+impl OpHandle for Digest {
+    fn handle(&self) -> raw::TEE_OperationHandle {
+        self.0.handle()
+    }
+}
+
+pub struct Mac(OperationHandle);
+
+impl Mac {
+    pub fn init(&self, iv: &[u8]) {
+        unsafe { raw::TEE_MACInit(self.handle(), iv.as_ptr() as _, iv.len() as u32) };
+    }
+
+    pub fn update(&self, chunk: &[u8]) {
+        unsafe { raw::TEE_MACUpdate(self.handle(), chunk.as_ptr() as _, chunk.len() as u32) };
+    }
+
+    pub fn compute_final(&self, message: &[u8], mac: &mut [u8]) -> Result<usize> {
+        let mut mac_size: usize = mac.len();
+        match unsafe {
+            raw::TEE_MACComputeFinal(
+                self.handle(),
+                message.as_ptr() as _,
+                message.len() as u32,
+                mac.as_mut_ptr() as _,
+                &mut (mac_size as u32),
+            )
+        } {
+            raw::TEE_SUCCESS => Ok(mac_size),
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn compare_final(&self, message: &[u8], mac: &[u8]) -> Result<()> {
+        match unsafe {
+            raw::TEE_MACCompareFinal(
+                self.handle(),
+                message.as_ptr() as _,
+                message.len() as u32,
+                mac.as_ptr() as _,
+                mac.len() as u32,
+            )
+        } {
+            raw::TEE_SUCCESS => Ok(()),
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn null() -> Self {
+        Self(OperationHandle::null())
+    }
+
+    pub fn allocate(algo: AlgorithmId, max_key_size: usize) -> Result<Self> {
+        match OperationHandle::allocate(algo, OperationMode::Mac, max_key_size) {
+            Ok(handle) => Ok(Self(handle)),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn info(&self) -> OperationInfo {
+        self.0.info()
+    }
+
+    pub fn info_multiple(&self, info_buf: &mut [u8]) -> Result<OperationInfoMultiple> {
+        self.0.info_multiple(info_buf)
+    }
+
+    pub fn reset(&mut self) {
+        self.0.reset()
+    }
+
+    pub fn set_key<T: ObjHandle>(&self, object: &T) -> Result<()> {
+        self.0.set_key(object)
+    }
+
+    pub fn set_key_2<T: ObjHandle, D: ObjHandle>(&self, object1: &T, object2: &D) -> Result<()> {
+        self.0.set_key_2(object1, object2)
+    }
+
+    pub fn copy<T: OpHandle>(&mut self, src: &T) {
+        self.0.copy(src)
+    }
+}
+
+impl OpHandle for Mac {
+    fn handle(&self) -> raw::TEE_OperationHandle {
+        self.0.handle()
+    }
+}
+
+pub struct Cipher(OperationHandle);
+
+impl Cipher {
+    pub fn init(&self, iv: &[u8]) {
+        unsafe { raw::TEE_CipherInit(self.handle(), iv.as_ptr() as _, iv.len() as u32) };
+    }
+
+    pub fn update(&self, src: &[u8], dest: &mut [u8]) -> Result<usize> {
+        let mut out_len: u32 = dest.len() as u32;
+        match unsafe {
+            raw::TEE_CipherUpdate(
+                self.handle(),
+                src.as_ptr() as _,
+                src.len() as u32,
+                dest.as_mut_ptr() as _,
+                &mut out_len,
+            )
+        } {
+            raw::TEE_SUCCESS => {
+                return Ok(out_len as usize);
+            }
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn do_final(&self, src: &[u8], dest: &mut [u8]) -> Result<usize> {
+        let mut dest_size: usize = dest.len();
+        match unsafe {
+            raw::TEE_CipherDoFinal(
+                self.handle(),
+                src.as_ptr() as _,
+                src.len() as u32,
+                dest.as_mut_ptr() as _,
+                &mut (dest_size as u32),
+            )
+        } {
+            raw::TEE_SUCCESS => return Ok(dest_size),
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn null() -> Self {
+        Self(OperationHandle::null())
+    }
+
+    pub fn allocate(algo: AlgorithmId, mode: OperationMode, max_key_size: usize) -> Result<Self> {
+        match OperationHandle::allocate(algo, mode, max_key_size) {
+            Ok(handle) => Ok(Self(handle)),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn info(&self) -> OperationInfo {
+        self.0.info()
+    }
+
+    pub fn info_multiple(&self, info_buf: &mut [u8]) -> Result<OperationInfoMultiple> {
+        self.0.info_multiple(info_buf)
+    }
+
+    pub fn reset(&mut self) {
+        self.0.reset()
+    }
+
+    pub fn set_key<T: ObjHandle>(&self, object: &T) -> Result<()> {
+        self.0.set_key(object)
+    }
+
+    pub fn set_key_2<T: ObjHandle, D: ObjHandle>(&self, object1: &T, object2: &D) -> Result<()> {
+        self.0.set_key_2(object1, object2)
+    }
+
+    pub fn copy<T: OpHandle>(&mut self, src: &T) {
+        self.0.copy(src)
+    }
+}
+
+impl OpHandle for Cipher {
+    fn handle(&self) -> raw::TEE_OperationHandle {
+        self.0.handle()
+    }
+}
+
+pub struct Random();
+
+impl Random {
+    pub fn generate(res_buffer: &mut [u8]) {
+        unsafe {
+            raw::TEE_GenerateRandom(res_buffer.as_mut_ptr() as _, res_buffer.len() as _);
+        }
     }
 }
 
@@ -87,114 +436,23 @@ pub enum AlgorithmId {
     HmacSha512 = 0x30000006,
     IllegalValue = 0xefffffff,
 }
+/* OP-TEE does not implement function: TEE_IsAlgorithmSupported
+pub enum ElementId {
+    EccCurveNistP192 = 0x00000001,
+    EccCurveNistP224 = 0x00000002,
+    EccCurveNistP256 = 0x00000003,
+    EccCurveNistP384 = 0x00000004,
+    EccCurveNistP521 = 0x00000005,
+}
+pub struct Verification ();
 
-pub struct Operation(OperationHandle);
-
-impl Operation {
-    pub fn null_operation() -> Self {
-        Self(OperationHandle::from_raw(ptr::null_mut()))
-    }
-
-    pub fn handle(&self) -> raw::TEE_OperationHandle {
-        self.0.handle()
-    }
-
-    pub fn allocate(algo: AlgorithmId, mode: OperationMode, max_key_size: usize) -> Result<Self> {
-        let mut raw_handle: *mut raw::TEE_OperationHandle =
-            Box::into_raw(Box::new(ptr::null_mut()));
-        match unsafe {
-            raw::TEE_AllocateOperation(
-                raw_handle as *mut _,
+impl Verification {
+    pub fn algorithm_support (algo: AlgorithmId, element: ElementId) {
+        match unsafe {raw::TEE_IsAlgorithmSupported (
                 algo as u32,
-                mode as u32,
-                max_key_size as u32,
-            )
-        } {
-            raw::TEE_SUCCESS => {
-                let handle = OperationHandle::from_raw(raw_handle);
-                return Ok(Self(handle));
-            }
+                element as u32 ) } {
+            raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
         }
     }
-
-    pub fn set_key<T: Handle>(&self, object: &T) -> Result<()> {
-        match unsafe { raw::TEE_SetOperationKey(self.handle(), object.handle()) } {
-            raw::TEE_SUCCESS => return Ok(()),
-            code => Err(Error::from_raw_error(code)),
-        }
-    }
-
-    pub fn cipher_init(&self, iv: &[u8]) {
-        unsafe { raw::TEE_CipherInit(self.handle(), iv.as_ptr() as _, iv.len() as u32) };
-    }
-
-    pub fn cipher_update(&self, src: &[u8], dest: &mut [u8]) -> Result<usize> {
-        let mut out_len: u32 = dest.len() as u32;
-        match unsafe {
-            raw::TEE_CipherUpdate(
-                self.handle(),
-                src.as_ptr() as _,
-                src.len() as u32,
-                dest.as_mut_ptr() as _,
-                &mut out_len,
-            )
-        } {
-            raw::TEE_SUCCESS => {
-                return Ok(out_len as usize);
-            }
-            code => Err(Error::from_raw_error(code)),
-        }
-    }
-
-    pub fn mac_init(&self, iv: &[u8]) {
-        unsafe { raw::TEE_MACInit(self.handle(), iv.as_ptr() as _, iv.len() as u32) };
-    }
-
-    pub fn mac_update(&self, chunk: &[u8]) {
-        unsafe { raw::TEE_MACUpdate(self.handle(), chunk.as_ptr() as _, chunk.len() as u32) };
-    }
-
-    /// output mac size is unsure when passed in, so we return its result
-    pub fn mac_compute_final(&self, message: &[u8], mac: &mut [u8]) -> Result<usize> {
-        let mut out_len: usize = mac.len();
-        match unsafe {
-            raw::TEE_MACComputeFinal(
-                self.handle(),
-                message.as_ptr() as _,
-                message.len() as u32,
-                mac.as_mut_ptr() as _,
-                &mut (out_len as u32),
-            )
-        } {
-            raw::TEE_SUCCESS => {
-                return Ok(out_len);
-            }
-            code => Err(Error::from_raw_error(code)),
-        }
-    }
-}
-/// free before check it's not null
-impl Drop for Operation {
-    fn drop(&mut self) {
-        unsafe {
-            if self.0.raw != ptr::null_mut() {
-                raw::TEE_FreeOperation(self.0.handle());
-            }
-            Box::from_raw(self.0.raw);
-        }
-    }
-}
-
-pub struct Random();
-
-impl Random {
-    pub fn generate(res_buffer: &mut [u8]) {
-        unsafe {
-        raw::TEE_GenerateRandom(
-            res_buffer.as_mut_ptr() as _,
-            res_buffer.len() as _,
-        );
-        }
-    }
-}
+}*/

@@ -65,7 +65,7 @@ impl ObjectInfo {
         self.raw.dataSize as usize
     }
 
-    pub fn from_raw (raw: raw::TEE_ObjectInfo) -> Self {
+    pub fn from_raw(raw: raw::TEE_ObjectInfo) -> Self {
         Self { raw }
     }
 }
@@ -362,7 +362,7 @@ pub enum TransientObjectType {
     Data = 0xA00000BF,
 }
 
-pub trait Handle {
+pub trait ObjHandle {
     fn handle(&self) -> raw::TEE_ObjectHandle;
 }
 
@@ -423,7 +423,7 @@ impl TransientObject {
     }
 }
 
-impl Handle for TransientObject {
+impl ObjHandle for TransientObject {
     fn handle(&self) -> raw::TEE_ObjectHandle {
         self.0.handle()
     }
@@ -556,7 +556,7 @@ impl PersistentObject {
     }
 }
 
-impl Handle for PersistentObject {
+impl ObjHandle for PersistentObject {
     fn handle(&self) -> raw::TEE_ObjectHandle {
         self.0.handle()
     }

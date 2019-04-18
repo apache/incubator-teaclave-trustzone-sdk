@@ -3,7 +3,7 @@
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
-use optee_utee::{AlgorithmId, Operation, OperationMode};
+use optee_utee::{AlgorithmId, Mac};
 use optee_utee::{Attribute, AttributeId, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 
@@ -94,9 +94,9 @@ pub fn hmac_sha1(hotp: &mut HmacOtp, out: &mut [u8]) -> Result<usize> {
         return Err(Error::new(ErrorKind::BadParameters));
     }
 
-    match Operation::allocate(AlgorithmId::HmacSha1, OperationMode::Mac, hotp.key_len * 8) {
+    match Mac::allocate(AlgorithmId::HmacSha1, hotp.key_len * 8) {
         Err(e) => return Err(e),
-        Ok(operation) => {
+        Ok(mac) => {
             match TransientObject::allocate(TransientObjectType::HmacSha1, hotp.key_len * 8) {
                 Err(e) => return Err(e),
                 Ok(mut key_object) => {
@@ -105,12 +105,12 @@ pub fn hmac_sha1(hotp: &mut HmacOtp, out: &mut [u8]) -> Result<usize> {
                     tmp_key.truncate(hotp.key_len);
                     let attr = Attribute::from_ref(AttributeId::SecretValue, &mut tmp_key);
                     key_object.populate(&mut [attr])?;
-                    operation.set_key(&key_object)?;
+                    mac.set_key(&key_object)?;
                 }
             }
-            operation.mac_init(&[0u8; 0]);
-            operation.mac_update(&hotp.counter);
-            let out_len = operation.mac_compute_final(&[0u8; 0], out).unwrap();
+            mac.init(&[0u8; 0]);
+            mac.update(&hotp.counter);
+            let out_len = mac.compute_final(&[0u8; 0], out).unwrap();
             Ok(out_len)
         }
     }
