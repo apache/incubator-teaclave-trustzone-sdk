@@ -365,10 +365,14 @@ pub trait Handle {
 pub struct TransientObject(ObjectHandle);
 
 impl TransientObject {
-    pub fn allocate(object_type: TransientObjectType, max_object_size: u32) -> Result<Self> {
+    pub fn null_object() -> Self {
+        Self(ObjectHandle::from_raw(ptr::null_mut()))
+    }
+
+    pub fn allocate(object_type: TransientObjectType, max_object_size: usize) -> Result<Self> {
         let raw_handle: *mut raw::TEE_ObjectHandle = Box::into_raw(Box::new(ptr::null_mut()));
         match unsafe {
-            raw::TEE_AllocateTransientObject(object_type as u32, max_object_size, raw_handle)
+            raw::TEE_AllocateTransientObject(object_type as u32, max_object_size as u32, raw_handle)
         } {
             raw::TEE_SUCCESS => {
                 let handle = ObjectHandle::from_raw(raw_handle);
@@ -424,7 +428,7 @@ impl Handle for TransientObject {
 impl Drop for TransientObject {
     fn drop(&mut self) {
         unsafe {
-            if self.0.raw != Box::into_raw(Box::new(ptr::null_mut())) {
+            if self.0.raw != ptr::null_mut() {
                 raw::TEE_FreeTransientObject(self.0.handle());
             }
             Box::from_raw(self.0.raw);

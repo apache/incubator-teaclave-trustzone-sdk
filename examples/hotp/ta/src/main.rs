@@ -3,9 +3,9 @@
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
+use optee_utee::{AlgorithmId, Operation, OperationMode};
 use optee_utee::{Attribute, AttributeId, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
-use optee_utee::{Operation, OperationMode, AlgorithmId, MAC};
 
 pub const SHA1_HASH_SIZE: usize = 20;
 pub const MAX_KEY_SIZE: usize = 64;
@@ -94,30 +94,23 @@ pub fn hmac_sha1(hotp: &mut HmacOtp, out: &mut [u8]) -> Result<usize> {
         return Err(Error::new(ErrorKind::BadParameters));
     }
 
-    match Operation::allocate(
-        AlgorithmId::HmacSha1,
-        OperationMode::Mac,
-        hotp.key_len * 8,
-    ) {
+    match Operation::allocate(AlgorithmId::HmacSha1, OperationMode::Mac, hotp.key_len * 8) {
         Err(e) => return Err(e),
         Ok(operation) => {
-            match TransientObject::allocate(TransientObjectType::HmacSha1, hotp.key_len as u32 * 8)
-            {
+            match TransientObject::allocate(TransientObjectType::HmacSha1, hotp.key_len * 8) {
                 Err(e) => return Err(e),
                 Ok(mut key_object) => {
                     //KEY size can be larger than hotp.key_len
                     let mut tmp_key = hotp.key.to_vec();
                     tmp_key.truncate(hotp.key_len);
                     let attr = Attribute::from_ref(AttributeId::SecretValue, &mut tmp_key);
-
-                    let mut tmp_attrs: [Attribute; 1] = [attr];
-                    key_object.populate(&mut tmp_attrs)?;
+                    key_object.populate(&mut [attr])?;
                     operation.set_key(&key_object)?;
                 }
             }
-            let mac = MAC::init(operation, &[0u8; 0]);
-            mac.update(&hotp.counter);
-            let out_len = mac.compute_final(&[0u8; 0], out).unwrap();
+            operation.mac_init(&[0u8; 0]);
+            operation.mac_update(&hotp.counter);
+            let out_len = operation.mac_compute_final(&[0u8; 0], out).unwrap();
             Ok(out_len)
         }
     }
