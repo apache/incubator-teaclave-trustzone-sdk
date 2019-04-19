@@ -1,6 +1,5 @@
 #![allow(unused)]
-use crate::{Error, ErrorKind, ObjHandle, Result};
-use bitflags::bitflags;
+use crate::{Attribute, Error, ErrorKind, ObjHandle, Result};
 use optee_utee_sys as raw;
 use std::mem;
 use std::ptr;
@@ -294,25 +293,25 @@ impl Cipher {
     }
 
     pub fn update(&self, src: &[u8], dest: &mut [u8]) -> Result<usize> {
-        let mut out_len: u32 = dest.len() as u32;
+        let mut dest_size = dest.len();
         match unsafe {
             raw::TEE_CipherUpdate(
                 self.handle(),
                 src.as_ptr() as _,
                 src.len() as u32,
                 dest.as_mut_ptr() as _,
-                &mut out_len,
+                &mut (dest_size as u32),
             )
         } {
             raw::TEE_SUCCESS => {
-                return Ok(out_len as usize);
+                return Ok(dest_size);
             }
             code => Err(Error::from_raw_error(code)),
         }
     }
 
     pub fn do_final(&self, src: &[u8], dest: &mut [u8]) -> Result<usize> {
-        let mut dest_size: usize = dest.len();
+        let mut dest_size = dest.len();
         match unsafe {
             raw::TEE_CipherDoFinal(
                 self.handle(),
@@ -364,6 +363,309 @@ impl Cipher {
 }
 
 impl OpHandle for Cipher {
+    fn handle(&self) -> raw::TEE_OperationHandle {
+        self.0.handle()
+    }
+}
+
+pub struct AE(OperationHandle);
+
+impl AE {
+    pub fn init(
+        &self,
+        nonce: &[u8],
+        tag_len: usize,
+        aad_len: usize,
+        pay_load_len: usize,
+    ) -> Result<()> {
+        match unsafe {
+            raw::TEE_AEInit(
+                self.handle(),
+                nonce.as_ptr() as _,
+                nonce.len() as u32,
+                tag_len as u32,
+                aad_len as u32,
+                pay_load_len as u32,
+            )
+        } {
+            raw::TEE_SUCCESS => return Ok(()),
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn update_add(&self, aad_data: &[u8]) {
+        unsafe {
+            raw::TEE_AEUpdateAAD(self.handle(), aad_data.as_ptr() as _, aad_data.len() as u32)
+        };
+    }
+
+    pub fn update(&self, src: &[u8], dest: &mut [u8]) -> Result<usize> {
+        let mut dest_size = dest.len();
+        match unsafe {
+            raw::TEE_AEUpdate(
+                self.handle(),
+                src.as_ptr() as _,
+                src.len() as u32,
+                dest.as_mut_ptr() as _,
+                &mut (dest_size as u32),
+            )
+        } {
+            raw::TEE_SUCCESS => {
+                return Ok(dest_size);
+            }
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    /// both dest and tag are updated with different size
+    pub fn encrypt_final(
+        &self,
+        src: &[u8],
+        dest: &mut [u8],
+        tag: &mut [u8],
+    ) -> Result<(usize, usize)> {
+        let mut dest_size = dest.len();
+        let mut tag_size = tag.len();
+        match unsafe {
+            raw::TEE_AEEncryptFinal(
+                self.handle(),
+                src.as_ptr() as _,
+                src.len() as u32,
+                dest.as_mut_ptr() as _,
+                &mut (dest_size as u32),
+                tag.as_mut_ptr() as _,
+                &mut (tag_size as u32),
+            )
+        } {
+            raw::TEE_SUCCESS => {
+                return Ok((dest_size, tag_size));
+            }
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn decrypt_final(&self, src: &[u8], dest: &mut [u8], tag: &[u8]) -> Result<usize> {
+        let mut dest_size = dest.len();
+        match unsafe {
+            raw::TEE_AEDecryptFinal(
+                self.handle(),
+                src.as_ptr() as _,
+                src.len() as u32,
+                dest.as_mut_ptr() as _,
+                &mut (dest_size as u32),
+                tag.as_ptr() as _,
+                tag.len() as u32,
+            )
+        } {
+            raw::TEE_SUCCESS => {
+                return Ok(dest_size);
+            }
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn null() -> Self {
+        Self(OperationHandle::null())
+    }
+
+    pub fn allocate(algo: AlgorithmId, mode: OperationMode, max_key_size: usize) -> Result<Self> {
+        match OperationHandle::allocate(algo, mode, max_key_size) {
+            Ok(handle) => Ok(Self(handle)),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn info(&self) -> OperationInfo {
+        self.0.info()
+    }
+
+    pub fn info_multiple(&self, info_buf: &mut [u8]) -> Result<OperationInfoMultiple> {
+        self.0.info_multiple(info_buf)
+    }
+
+    pub fn reset(&mut self) {
+        self.0.reset()
+    }
+
+    pub fn set_key<T: ObjHandle>(&self, object: &T) -> Result<()> {
+        self.0.set_key(object)
+    }
+
+    pub fn set_key_2<T: ObjHandle, D: ObjHandle>(&self, object1: &T, object2: &D) -> Result<()> {
+        self.0.set_key_2(object1, object2)
+    }
+
+    pub fn copy<T: OpHandle>(&mut self, src: &T) {
+        self.0.copy(src)
+    }
+}
+
+impl OpHandle for AE {
+    fn handle(&self) -> raw::TEE_OperationHandle {
+        self.0.handle()
+    }
+}
+
+pub struct Asymmetric(OperationHandle);
+
+impl Asymmetric {
+    pub fn encrypt(&self, params: &[Attribute], src: &[u8], dest: &mut [u8]) -> Result<usize> {
+        let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
+        let mut dest_size = dest.len();
+        match unsafe {
+            raw::TEE_AsymmetricEncrypt(
+                self.handle(),
+                p.as_ptr() as _,
+                params.len() as u32,
+                src.as_ptr() as _,
+                src.len() as u32,
+                dest.as_mut_ptr() as _,
+                &mut (dest_size as u32),
+            )
+        } {
+            raw::TEE_SUCCESS => {
+                return Ok(dest_size);
+            }
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn decrypt(&self, params: &[Attribute], src: &[u8], dest: &mut [u8]) -> Result<usize> {
+        let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
+        let mut dest_size = dest.len();
+        match unsafe {
+            raw::TEE_AsymmetricDecrypt(
+                self.handle(),
+                p.as_ptr() as _,
+                params.len() as u32,
+                src.as_ptr() as _,
+                src.len() as u32,
+                dest.as_mut_ptr() as _,
+                &mut (dest_size as u32),
+            )
+        } {
+            raw::TEE_SUCCESS => {
+                return Ok(dest_size);
+            }
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn sign_digest(
+        &self,
+        params: &[Attribute],
+        digest: &[u8],
+        signature: &mut [u8],
+    ) -> Result<usize> {
+        let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
+        let mut signature_size = signature.len();
+        match unsafe {
+            raw::TEE_AsymmetricSignDigest(
+                self.handle(),
+                p.as_ptr() as _,
+                params.len() as u32,
+                digest.as_ptr() as _,
+                digest.len() as u32,
+                signature.as_mut_ptr() as _,
+                &mut (signature_size as u32),
+            )
+        } {
+            raw::TEE_SUCCESS => {
+                return Ok(signature_size);
+            }
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn verify_digest(
+        &self,
+        params: &[Attribute],
+        digest: &[u8],
+        signature: &[u8],
+    ) -> Result<()> {
+        let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
+        match unsafe {
+            raw::TEE_AsymmetricVerifyDigest(
+                self.handle(),
+                p.as_ptr() as _,
+                params.len() as u32,
+                digest.as_ptr() as _,
+                digest.len() as u32,
+                signature.as_ptr() as _,
+                signature.len() as u32,
+            )
+        } {
+            raw::TEE_SUCCESS => Ok(()),
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    pub fn null() -> Self {
+        Self(OperationHandle::null())
+    }
+
+    pub fn allocate(algo: AlgorithmId, mode: OperationMode, max_key_size: usize) -> Result<Self> {
+        match OperationHandle::allocate(algo, mode, max_key_size) {
+            Ok(handle) => Ok(Self(handle)),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn info(&self) -> OperationInfo {
+        self.0.info()
+    }
+
+    pub fn info_multiple(&self, info_buf: &mut [u8]) -> Result<OperationInfoMultiple> {
+        self.0.info_multiple(info_buf)
+    }
+
+    pub fn reset(&mut self) {
+        self.0.reset()
+    }
+
+    pub fn set_key<T: ObjHandle>(&self, object: &T) -> Result<()> {
+        self.0.set_key(object)
+    }
+
+    pub fn set_key_2<T: ObjHandle, D: ObjHandle>(&self, object1: &T, object2: &D) -> Result<()> {
+        self.0.set_key_2(object1, object2)
+    }
+
+    pub fn copy<T: OpHandle>(&mut self, src: &T) {
+        self.0.copy(src)
+    }
+}
+
+impl OpHandle for Asymmetric {
+    fn handle(&self) -> raw::TEE_OperationHandle {
+        self.0.handle()
+    }
+}
+
+pub struct DeriveKey(OperationHandle);
+
+impl DeriveKey {
+    pub fn allocate(algo: AlgorithmId, max_key_size: usize) -> Result<Self> {
+        match OperationHandle::allocate(algo, OperationMode::Derive, max_key_size) {
+            Ok(handle) => Ok(Self(handle)),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub fn update<T: ObjHandle>(&self, params: &mut [Attribute], object: &mut T) {
+        let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
+        unsafe {
+            raw::TEE_DeriveKey(
+                self.handle(),
+                p.as_ptr() as _,
+                params.len() as u32,
+                object.handle(),
+            )
+        };
+    }
+}
+
+impl OpHandle for DeriveKey {
     fn handle(&self) -> raw::TEE_OperationHandle {
         self.0.handle()
     }
@@ -436,7 +738,6 @@ pub enum AlgorithmId {
     HmacSha512 = 0x30000006,
     IllegalValue = 0xefffffff,
 }
-/* OP-TEE does not implement function: TEE_IsAlgorithmSupported
 pub enum ElementId {
     EccCurveNistP192 = 0x00000001,
     EccCurveNistP224 = 0x00000002,
@@ -444,15 +745,4 @@ pub enum ElementId {
     EccCurveNistP384 = 0x00000004,
     EccCurveNistP521 = 0x00000005,
 }
-pub struct Verification ();
-
-impl Verification {
-    pub fn algorithm_support (algo: AlgorithmId, element: ElementId) {
-        match unsafe {raw::TEE_IsAlgorithmSupported (
-                algo as u32,
-                element as u32 ) } {
-            raw::TEE_SUCCESS => Ok(()),
-            code => Err(Error::from_raw_error(code)),
-        }
-    }
-}*/
+//OP-TEE does not implement function: TEE_IsAlgorithmSuppddorted
