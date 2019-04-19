@@ -9,6 +9,10 @@ pub struct Attribute {
 }
 
 impl Attribute {
+    pub fn raw(&self) -> raw::TEE_Attribute {
+        self.raw
+    }
+
     pub fn new_ref() -> Self {
         let raw = raw::TEE_Attribute {
             attributeID: 0,
@@ -154,7 +158,7 @@ impl ObjectHandle {
     }
 
     pub fn generate_key(&self, key_size: u32, params: &[Attribute]) -> Result<()> {
-        let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw).collect();
+        let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
         unsafe {
             match raw::TEE_GenerateKey(
                 self.handle(),
