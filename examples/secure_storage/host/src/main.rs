@@ -1,7 +1,7 @@
 use optee_teec::{Context, ErrorKind, Operation, ParamNone, ParamTmpRef, ParamType, Session, Uuid};
 use std::ffi::CString;
+use proto::{UUID, Command};
 
-include!(concat!(env!("OUT_DIR"), "/host_header.rs"));
 const TEST_OBJECT_SIZE: usize = 7000;
 
 fn read_secure_object(
@@ -47,8 +47,7 @@ fn delete_secure_object(session: &mut Session, obj_id: &mut [u8]) -> optee_teec:
 fn main() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
     let uuid =
-        Uuid::parse_str(&include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../uuid.txt")).trim())
-            .unwrap();
+        Uuid::parse_str(UUID).unwrap();
     let mut session = ctx.open_session(uuid)?;
 
     let mut obj1_id = CString::new("object#1").unwrap().into_bytes_with_nul();

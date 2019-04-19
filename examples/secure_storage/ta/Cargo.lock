@@ -66,6 +66,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "proto"
+version = "0.1.0"
+dependencies = [
+ "uuid 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
 name = "quote"
 version = "0.6.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -194,6 +201,7 @@ dependencies = [
  "libc 0.2.55",
  "optee-utee 0.1.0",
  "optee-utee-sys 0.1.0",
+ "proto 0.1.0",
  "uuid 0.7.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 

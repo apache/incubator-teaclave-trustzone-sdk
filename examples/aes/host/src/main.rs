@@ -1,7 +1,7 @@
 use optee_teec::{
     Context, Operation, ParamNone, ParamTmpRef, ParamType, ParamValue, Session, Uuid,
 };
-use proto::*;
+use proto::{Algo, Command, KeySize, Mode, UUID};
 
 const AES_TEST_BUFFER_SIZE: usize = 4096;
 const AES_TEST_KEY_SIZE: usize = 16;
@@ -17,7 +17,7 @@ fn prepare_aes(session: &mut Session, encode: i8) -> optee_teec::Result<()> {
         Mode::Decode as u32
     };
     let p0 = ParamValue::new(Algo::CTR as u32, 0, ParamType::ValueInput);
-    let p1 = ParamValue::new(TA_AES_SIZE_128BIT, 0, ParamType::ValueInput);
+    let p1 = ParamValue::new(KeySize::Bit128 as u32, 0, ParamType::ValueInput);
     let p2 = ParamValue::new(p2_value, 0, ParamType::ValueInput);
     let mut operation = Operation::new(0, p0, p1, p2, ParamNone);
 
@@ -59,9 +59,7 @@ fn cipher_buffer(
 
 fn main() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
-    let uuid =
-        Uuid::parse_str(&include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../uuid.txt")).trim())
-            .unwrap();
+    let uuid = Uuid::parse_str(UUID).unwrap();
     let mut session = ctx.open_session(uuid)?;
 
     let mut key = [0xa5u8; AES_TEST_KEY_SIZE];

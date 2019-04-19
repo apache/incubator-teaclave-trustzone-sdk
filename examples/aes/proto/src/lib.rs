@@ -54,6 +54,21 @@ impl From<u32> for Mode {
     }
 }
 
-pub const TA_AES_SIZE_128BIT: u32 = (128 / 8);
-pub const TA_AES_SIZE_256BIT: u32 = (256 / 8);
+pub enum KeySize {
+    Bit128 = 16,
+    Bit256 = 32,
+    Unknown = 0,
+}
+
+impl From<u32> for KeySize {
+    #[inline]
+    fn from(value: u32) -> KeySize {
+        match value {
+            16 => KeySize::Bit128,
+            32 => KeySize::Bit256,
+            _ => KeySize::Unknown,
+        }
+    }
+}
+
 pub const UUID: &str = &include_str!(concat!(env!("OUT_DIR"), "/uuid.txt"));

@@ -5,6 +5,7 @@ use optee_utee::{
 };
 use optee_utee::{DataFlag, ObjectStorageConstants, PersistentObject};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
+use proto::{Command};
 
 #[ta_create]
 fn create() -> Result<()> {

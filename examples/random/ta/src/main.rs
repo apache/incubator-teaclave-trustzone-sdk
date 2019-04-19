@@ -5,6 +5,7 @@ use optee_utee::{
 };
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use optee_utee::{Random};
+use proto::Command;
 
 #[ta_create]
 fn create() -> Result<()> {
