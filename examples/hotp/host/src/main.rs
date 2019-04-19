@@ -2,8 +2,7 @@ use optee_teec::{
     Context, Error, ErrorKind, Operation, ParamNone, ParamTmpRef, ParamType, ParamValue, Session,
     Uuid,
 };
-
-include!(concat!(env!("OUT_DIR"), "/host_header.rs"));
+use proto::{UUID, Command};
 
 const TEST_SIZE: usize = 10;
 const SIZE_K: usize = 20;
@@ -49,8 +48,7 @@ fn get_hotp(session: &mut Session) -> optee_teec::Result<()> {
 fn main() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
     let uuid =
-        Uuid::parse_str(&include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/../uuid.txt")).trim())
-            .unwrap();
+        Uuid::parse_str(UUID).unwrap();
     let mut session = ctx.open_session(uuid)?;
 
     register_shared_key(&mut session)?;

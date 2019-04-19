@@ -6,6 +6,7 @@ use optee_utee::{
 use optee_utee::{AlgorithmId, Mac};
 use optee_utee::{Attribute, AttributeId, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
+use proto::{Command};
 
 pub const SHA1_HASH_SIZE: usize = 20;
 pub const MAX_KEY_SIZE: usize = 64;

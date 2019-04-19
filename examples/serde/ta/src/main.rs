@@ -6,6 +6,7 @@ use optee_utee::{
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use serde::{Deserialize, Serialize};
 use std::io::Write;
+use proto::Command;
 
 #[ta_create]
 fn create() -> Result<()> {

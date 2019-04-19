@@ -14,3 +14,5 @@ impl From<u32> for Command {
         }
     }
 }
+
+pub const UUID: &str = &include_str!(concat!(env!("OUT_DIR"), "/uuid.txt"));

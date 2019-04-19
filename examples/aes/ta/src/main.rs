@@ -6,13 +6,8 @@ use optee_utee::{
 use optee_utee::{AlgorithmId, Cipher, OperationMode};
 use optee_utee::{Attribute, AttributeId, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
-use proto::*;
+use proto::{Algo, Command, KeySize, Mode};
 use std::boxed::Box;
-
-pub const AES128_KEY_BIT_SIZE: u32 = 128;
-pub const AES128_KEY_BYTE_SIZE: u32 = AES128_KEY_BIT_SIZE / 8;
-pub const AES256_KEY_BIT_SIZE: u32 = 256;
-pub const AES256_KEY_BYTE_SIZE: u32 = AES256_KEY_BIT_SIZE / 8;
 
 pub struct AesCipher {
     pub key_size: usize,
@@ -82,8 +77,8 @@ pub fn ta2tee_algo_id(algo_id: u32) -> Result<AlgorithmId> {
 }
 
 pub fn ta2tee_key_size(key_sz: u32) -> Result<usize> {
-    match key_sz {
-        AES128_KEY_BYTE_SIZE | AES256_KEY_BYTE_SIZE => Ok(key_sz as usize),
+    match KeySize::from(key_sz) {
+        KeySize::Bit128 | KeySize::Bit256 => Ok(key_sz as usize),
         _ => Err(Error::new(ErrorKind::BadParameters)),
     }
 }

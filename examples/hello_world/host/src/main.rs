@@ -1,6 +1,6 @@
 use optee_teec::{Context, Operation, ParamType, Session, Uuid};
 use optee_teec::{ParamNone, ParamValue};
-use proto::{self, Command};
+use proto::{UUID, Command};
 
 fn hello_world(session: &mut Session) -> optee_teec::Result<()> {
     let p0 = ParamValue::new(29, 0, ParamType::ValueInout);
@@ -18,7 +18,7 @@ fn hello_world(session: &mut Session) -> optee_teec::Result<()> {
 
 fn main() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
-    let uuid = Uuid::parse_str(proto::UUID).unwrap();
+    let uuid = Uuid::parse_str(UUID).unwrap();
     let mut session = ctx.open_session(uuid)?;
 
     hello_world(&mut session)?;
