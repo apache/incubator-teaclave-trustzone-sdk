@@ -72,17 +72,13 @@ impl OperationHandle {
     /// Here the multiple info total size is not sure
     /// Passed in array is supposed to provide enough size for this struct
     pub fn info_multiple(&self, info_buf: &mut [u8]) -> Result<OperationInfoMultiple> {
-        let mut tmp_size: usize = 0;
+        let mut tmp_size: u32 = 0;
         match unsafe {
-            raw::TEE_GetOperationInfoMultiple(
-                self.handle(),
-                info_buf.as_ptr() as _,
-                &mut (tmp_size as u32),
-            )
+            raw::TEE_GetOperationInfoMultiple(self.handle(), info_buf.as_ptr() as _, &mut tmp_size)
         } {
             raw::TEE_SUCCESS => Ok(OperationInfoMultiple {
                 raw: info_buf.as_ptr() as _,
-                size: tmp_size,
+                size: tmp_size as usize,
             }),
             code => Err(Error::from_raw_error(code)),
         }
@@ -144,17 +140,17 @@ impl Digest {
 
     //hash size is dynamic changed so we returned it's updated size
     pub fn digest_do_final(&self, chunk: &[u8], hash: &mut [u8]) -> Result<usize> {
-        let mut hash_size: usize = hash.len();
+        let mut hash_size: u32 = hash.len() as u32;
         match unsafe {
             raw::TEE_DigestDoFinal(
                 self.handle(),
                 chunk.as_ptr() as _,
                 chunk.len() as u32,
                 hash.as_mut_ptr() as _,
-                &mut (hash_size as u32),
+                &mut hash_size,
             )
         } {
-            raw::TEE_SUCCESS => return Ok(hash_size),
+            raw::TEE_SUCCESS => return Ok(hash_size as usize),
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -213,17 +209,17 @@ impl Mac {
     }
 
     pub fn compute_final(&self, message: &[u8], mac: &mut [u8]) -> Result<usize> {
-        let mut mac_size: usize = mac.len();
+        let mut mac_size: u32 = mac.len() as u32;
         match unsafe {
             raw::TEE_MACComputeFinal(
                 self.handle(),
                 message.as_ptr() as _,
                 message.len() as u32,
                 mac.as_mut_ptr() as _,
-                &mut (mac_size as u32),
+                &mut mac_size,
             )
         } {
-            raw::TEE_SUCCESS => Ok(mac_size),
+            raw::TEE_SUCCESS => Ok(mac_size as usize),
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -293,35 +289,35 @@ impl Cipher {
     }
 
     pub fn update(&self, src: &[u8], dest: &mut [u8]) -> Result<usize> {
-        let mut dest_size = dest.len();
+        let mut dest_size: u32 = dest.len() as u32;
         match unsafe {
             raw::TEE_CipherUpdate(
                 self.handle(),
                 src.as_ptr() as _,
                 src.len() as u32,
                 dest.as_mut_ptr() as _,
-                &mut (dest_size as u32),
+                &mut dest_size,
             )
         } {
             raw::TEE_SUCCESS => {
-                return Ok(dest_size);
+                return Ok(dest_size as usize);
             }
             code => Err(Error::from_raw_error(code)),
         }
     }
 
     pub fn do_final(&self, src: &[u8], dest: &mut [u8]) -> Result<usize> {
-        let mut dest_size = dest.len();
+        let mut dest_size: u32 = dest.len() as u32;
         match unsafe {
             raw::TEE_CipherDoFinal(
                 self.handle(),
                 src.as_ptr() as _,
                 src.len() as u32,
                 dest.as_mut_ptr() as _,
-                &mut (dest_size as u32),
+                &mut dest_size,
             )
         } {
-            raw::TEE_SUCCESS => return Ok(dest_size),
+            raw::TEE_SUCCESS => return Ok(dest_size as usize),
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -400,18 +396,18 @@ impl AE {
     }
 
     pub fn update(&self, src: &[u8], dest: &mut [u8]) -> Result<usize> {
-        let mut dest_size = dest.len();
+        let mut dest_size: u32 = dest.len() as u32;
         match unsafe {
             raw::TEE_AEUpdate(
                 self.handle(),
                 src.as_ptr() as _,
                 src.len() as u32,
                 dest.as_mut_ptr() as _,
-                &mut (dest_size as u32),
+                &mut dest_size,
             )
         } {
             raw::TEE_SUCCESS => {
-                return Ok(dest_size);
+                return Ok(dest_size as usize);
             }
             code => Err(Error::from_raw_error(code)),
         }
@@ -424,41 +420,41 @@ impl AE {
         dest: &mut [u8],
         tag: &mut [u8],
     ) -> Result<(usize, usize)> {
-        let mut dest_size = dest.len();
-        let mut tag_size = tag.len();
+        let mut dest_size: u32 = dest.len() as u32;
+        let mut tag_size: u32 = tag.len() as u32;
         match unsafe {
             raw::TEE_AEEncryptFinal(
                 self.handle(),
                 src.as_ptr() as _,
                 src.len() as u32,
                 dest.as_mut_ptr() as _,
-                &mut (dest_size as u32),
+                &mut dest_size,
                 tag.as_mut_ptr() as _,
-                &mut (tag_size as u32),
+                &mut tag_size,
             )
         } {
             raw::TEE_SUCCESS => {
-                return Ok((dest_size, tag_size));
+                return Ok((dest_size as usize, tag_size as usize));
             }
             code => Err(Error::from_raw_error(code)),
         }
     }
 
     pub fn decrypt_final(&self, src: &[u8], dest: &mut [u8], tag: &[u8]) -> Result<usize> {
-        let mut dest_size = dest.len();
+        let mut dest_size: u32 = dest.len() as u32;
         match unsafe {
             raw::TEE_AEDecryptFinal(
                 self.handle(),
                 src.as_ptr() as _,
                 src.len() as u32,
                 dest.as_mut_ptr() as _,
-                &mut (dest_size as u32),
+                &mut dest_size,
                 tag.as_ptr() as _,
                 tag.len() as u32,
             )
         } {
             raw::TEE_SUCCESS => {
-                return Ok(dest_size);
+                return Ok(dest_size as usize);
             }
             code => Err(Error::from_raw_error(code)),
         }
@@ -509,9 +505,17 @@ impl OpHandle for AE {
 pub struct Asymmetric(OperationHandle);
 
 impl Asymmetric {
-    pub fn encrypt(&self, params: &[Attribute], src: &[u8], dest: &mut [u8]) -> Result<usize> {
+    /// This function can update output size with short buffer error when buffer is too
+    /// short, and example acipher utilizes this feature!
+    /// Define this function as unsafe because we need to return Ok for short buffer error.
+    pub unsafe fn encrypt(
+        &self,
+        params: &[Attribute],
+        src: &[u8],
+        dest: &mut [u8],
+    ) -> Result<usize> {
         let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
-        let mut dest_size = dest.len();
+        let mut dest_size: u32 = dest.len() as u32;
         match unsafe {
             raw::TEE_AsymmetricEncrypt(
                 self.handle(),
@@ -520,19 +524,22 @@ impl Asymmetric {
                 src.as_ptr() as _,
                 src.len() as u32,
                 dest.as_mut_ptr() as _,
-                &mut (dest_size as u32),
+                &mut dest_size,
             )
         } {
             raw::TEE_SUCCESS => {
-                return Ok(dest_size);
+                return Ok(dest_size as usize);
             }
-            code => Err(Error::from_raw_error(code)),
+            code => match code {
+                raw::TEE_ERROR_SHORT_BUFFER => Ok(dest_size as usize),
+                _ => Err(Error::from_raw_error(code)),
+            },
         }
     }
 
     pub fn decrypt(&self, params: &[Attribute], src: &[u8], dest: &mut [u8]) -> Result<usize> {
         let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
-        let mut dest_size = dest.len();
+        let mut dest_size: u32 = dest.len() as u32;
         match unsafe {
             raw::TEE_AsymmetricDecrypt(
                 self.handle(),
@@ -541,11 +548,11 @@ impl Asymmetric {
                 src.as_ptr() as _,
                 src.len() as u32,
                 dest.as_mut_ptr() as _,
-                &mut (dest_size as u32),
+                &mut dest_size,
             )
         } {
             raw::TEE_SUCCESS => {
-                return Ok(dest_size);
+                return Ok(dest_size as usize);
             }
             code => Err(Error::from_raw_error(code)),
         }
@@ -558,7 +565,7 @@ impl Asymmetric {
         signature: &mut [u8],
     ) -> Result<usize> {
         let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
-        let mut signature_size = signature.len();
+        let mut signature_size: u32 = signature.len() as u32;
         match unsafe {
             raw::TEE_AsymmetricSignDigest(
                 self.handle(),
@@ -567,11 +574,11 @@ impl Asymmetric {
                 digest.as_ptr() as _,
                 digest.len() as u32,
                 signature.as_mut_ptr() as _,
-                &mut (signature_size as u32),
+                &mut signature_size,
             )
         } {
             raw::TEE_SUCCESS => {
-                return Ok(signature_size);
+                return Ok(signature_size as usize);
             }
             code => Err(Error::from_raw_error(code)),
         }
@@ -712,7 +719,7 @@ pub enum AlgorithmId {
     RsassaPkcs1PssMgf1Sha256 = 0x70414930,
     RsassaPkcs1PssMgf1Sha384 = 0x70515930,
     RsassaPkcs1PssMgf1Sha512 = 0x70616930,
-    RsaesPkcs1V1_5 = 0x60000130,
+    RsaesPkcs1V15 = 0x60000130,
     RsaesPkcs1OAepMgf1Sha1 = 0x60210230,
     RsaesPkcs1OAepMgf1Sha224 = 0x60310230,
     RsaesPkcs1OAepMgf1Sha256 = 0x60410230,

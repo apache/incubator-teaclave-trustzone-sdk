@@ -69,6 +69,10 @@ impl ObjectInfo {
         self.raw.dataSize as usize
     }
 
+    pub fn object_size(&self) -> usize {
+        self.raw.objectSize as usize
+    }
+
     pub fn from_raw(raw: raw::TEE_ObjectInfo) -> Self {
         Self { raw }
     }
@@ -157,12 +161,12 @@ impl ObjectHandle {
         }
     }
 
-    pub fn generate_key(&self, key_size: u32, params: &[Attribute]) -> Result<()> {
+    pub fn generate_key(&self, key_size: usize, params: &[Attribute]) -> Result<()> {
         let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
         unsafe {
             match raw::TEE_GenerateKey(
                 self.handle(),
-                key_size,
+                key_size as u32,
                 p.as_slice().as_ptr() as _,
                 params.len() as u32,
             ) {
@@ -424,6 +428,14 @@ impl TransientObject {
 
     pub fn seek(&self, offset: i32, whence: Whence) -> Result<()> {
         self.0.seek(offset, whence)
+    }
+
+    pub fn object_info(&self) -> Result<ObjectInfo> {
+        self.0.info()
+    }
+
+    pub fn generate_key(&self, key_size: usize, params: &[Attribute]) -> Result<()> {
+        self.0.generate_key(key_size, params)
     }
 }
 

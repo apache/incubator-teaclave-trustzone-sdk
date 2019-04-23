@@ -10,5 +10,6 @@ pushd ../tests
 ./test_aes.sh
 ./test_serde.sh
 ./test_hotp.sh
+./test_acipher.sh
 
 popd
