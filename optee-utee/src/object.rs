@@ -1,8 +1,7 @@
 use crate::{Error, Result};
 use bitflags::bitflags;
 use optee_utee_sys as raw;
-use std::mem;
-use std::ptr;
+use std::{mem, ptr};
 
 /// An attribute can be either a buffer attribute or a value attribute.
 /// When an array of attributes is passed to a function, either to populate an object or to specify operation parameters,

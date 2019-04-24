@@ -1,8 +1,7 @@
 #![allow(unused)]
-use crate::{Attribute, Error, ErrorKind, ObjHandle, Result};
+use crate::{Attribute, Error, ObjHandle, Result};
 use optee_utee_sys as raw;
-use std::mem;
-use std::ptr;
+use std::{mem, ptr};
 
 pub enum OperationMode {
     Encrypt = 0,
