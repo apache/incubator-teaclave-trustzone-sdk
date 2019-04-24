@@ -1,3 +1,4 @@
+pub use self::arithmetical::*;
 pub use self::crypto_op::*;
 pub use self::error::{Error, ErrorKind, Result};
 pub use self::object::*;
@@ -13,3 +14,4 @@ pub mod crypto_op;
 mod error;
 pub mod object;
 mod parameter;
+pub mod arithmetical;
