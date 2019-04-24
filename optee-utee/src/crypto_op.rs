@@ -1,4 +1,3 @@
-#![allow(unused)]
 use crate::{Attribute, Error, ObjHandle, Result};
 use optee_utee_sys as raw;
 use std::{mem, ptr};
@@ -22,11 +21,26 @@ impl OperationInfo {
     pub fn from_raw(raw: raw::TEE_OperationInfo) -> Self {
         Self { raw }
     }
+    pub fn max_key_size(&self) -> u32 {
+        self.raw.maxKeySize
+    }
 }
 
 pub struct OperationInfoMultiple {
     raw: *mut raw::TEE_OperationInfoMultiple,
     size: usize,
+}
+
+impl OperationInfoMultiple {
+    pub fn from_raw(raw: *mut raw::TEE_OperationInfoMultiple, size: usize) -> Self {
+        Self { raw, size }
+    }
+    pub fn raw(&self) -> *mut raw::TEE_OperationInfoMultiple {
+        self.raw
+    }
+    pub fn size(&self) -> usize {
+        self.size
+    }
 }
 
 pub struct OperationHandle {
@@ -47,8 +61,7 @@ impl OperationHandle {
     }
 
     pub fn allocate(algo: AlgorithmId, mode: OperationMode, max_key_size: usize) -> Result<Self> {
-        let mut raw_handle: *mut raw::TEE_OperationHandle =
-            Box::into_raw(Box::new(ptr::null_mut()));
+        let raw_handle: *mut raw::TEE_OperationHandle = Box::into_raw(Box::new(ptr::null_mut()));
         match unsafe {
             raw::TEE_AllocateOperation(
                 raw_handle as *mut _,
@@ -75,10 +88,10 @@ impl OperationHandle {
         match unsafe {
             raw::TEE_GetOperationInfoMultiple(self.handle(), info_buf.as_ptr() as _, &mut tmp_size)
         } {
-            raw::TEE_SUCCESS => Ok(OperationInfoMultiple {
-                raw: info_buf.as_ptr() as _,
-                size: tmp_size as usize,
-            }),
+            raw::TEE_SUCCESS => Ok(OperationInfoMultiple::from_raw(
+                info_buf.as_ptr() as _,
+                tmp_size as usize,
+            )),
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -128,7 +141,7 @@ pub trait OpHandle {
     fn handle(&self) -> raw::TEE_OperationHandle;
 }
 
-struct Digest(OperationHandle);
+pub struct Digest(OperationHandle);
 
 impl Digest {
     pub fn digest_update(&self, chunk: &[u8]) {
@@ -515,7 +528,7 @@ impl Asymmetric {
     ) -> Result<usize> {
         let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
         let mut dest_size: u32 = dest.len() as u32;
-        match unsafe {
+        match {
             raw::TEE_AsymmetricEncrypt(
                 self.handle(),
                 p.as_ptr() as _,
