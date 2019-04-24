@@ -12,7 +12,6 @@ fn gen_key(session: &mut Session, key_size: u32) -> optee_teec::Result<()> {
     Ok(())
 }
 
-//TmpRef mutability may need to update
 fn encrypt(session: &mut Session, plain_text: &mut [u8]) -> optee_teec::Result<()> {
     let p0 = ParamTmpRef::new(plain_text, ParamType::MemrefTempInput);
     let p1 = ParamValue::new(0, 0, ParamType::ValueOutput);

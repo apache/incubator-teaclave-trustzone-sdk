@@ -4,6 +4,9 @@ use optee_utee_sys as raw;
 use std::mem;
 use std::ptr;
 
+/// An attribute can be either a buffer attribute or a value attribute.
+/// When an array of attributes is passed to a function, either to populate an object or to specify operation parameters,
+/// and if an attribute identifier is present twice in the array, then only the first occurrence is used.
 pub struct Attribute {
     raw: raw::TEE_Attribute,
 }
@@ -36,6 +39,7 @@ impl Attribute {
         Self { raw }
     }
 
+    /// from_ref and from_value are helper functions can be used to populate a single attribute either with a reference to a buffer or with integer values.
     pub fn from_ref(id: AttributeId, buffer: &mut [u8]) -> Self {
         let mut res = Attribute::new_ref();
         unsafe {
@@ -63,8 +67,22 @@ pub struct ObjectInfo {
 }
 
 impl ObjectInfo {
-    /// Raw struct is not implemented Copy attribute yet.
-    /// Every item in raw struct needs a function to extract.
+    /// an object info has following attributes:
+    /// objectType: The parameter objectType passed when the object was created
+    /// objectSize: The current size in bits of the object as determined by its attributes. This will always be less than or equal to maxObjectSize. Set to 0 for uninitialized and data only objects.
+    /// maxObjectSize: The maximum objectSize which this object can represent.
+    /// 1) For a persistent object, set to objectSize
+    /// 2) For a transient object, set to the parameter maxObjectSize passed to TEE_AllocateTransientObject
+    /// objectUsage: A bit vector of UsageFlag.
+    /// dataSize:
+    /// 1) For a persistent object, set to the current size of the data associated with the object
+    /// 2) For a transient object, always set to 0
+    /// dataPosition:
+    /// 1) For a persistent object, set to the current position in the data for this handle. Data positions for different handles on the same object may differ.
+    /// 2) For a transient object, set to 0.
+    /// handleFlags: A bit vector containing one or more HandleFlag or DataFlag.
+    ///
+    /// Since raw struct is not implemented Copy attribute yet, every item in raw struct needs a function to extract.
     pub fn data_size(&self) -> usize {
         self.raw.dataSize as usize
     }
@@ -78,6 +96,10 @@ impl ObjectInfo {
     }
 }
 
+/// This structure indicates the possible start offset when moving a data position in the data stream associated with a persistent object.
+/// DataSeekSet: the data position is set to offset bytes from the beginning of the data stream.
+/// DataSeekCur: the data position is set to its current position plus offset.
+/// DataSeekEnd: the data position is set to the size of the object data plus offset.
 pub enum Whence {
     DataSeekSet,
     DataSeekCur,
@@ -94,6 +116,14 @@ impl Into<raw::TEE_Whence> for Whence {
     }
 }
 
+/// ObjectHandle is an opaque handle on an object.
+/// These handles are returned by:
+/// 1) TransientObject::allocate
+/// 2) PersistentObject::{open, create}
+///
+/// Object handle is closed by:
+/// 1) TransientObject::drop
+/// 2) PersisdentObject::{close_and_delete, drop}
 pub struct ObjectHandle {
     raw: *mut raw::TEE_ObjectHandle,
 }
@@ -111,6 +141,8 @@ impl ObjectHandle {
         self.raw
     }
 
+    /// Returns the characteristics of an object.
+    /// It fills in the fields in the structure raw::TEE_ObjectInfo
     pub fn info(&self) -> Result<ObjectInfo> {
         let mut raw_info: raw::TEE_ObjectInfo = unsafe { mem::zeroed() };
         match unsafe { raw::TEE_GetObjectInfo1(self.handle(), &mut raw_info) } {
@@ -119,13 +151,15 @@ impl ObjectHandle {
         }
     }
 
-    pub fn restrict_usage(&mut self, obj_usage: u32) -> Result<()> {
-        match unsafe { raw::TEE_RestrictObjectUsage1(self.handle(), obj_usage) } {
+    /// Restricts the object usage flags of an object handle to contain at most the flags passed in the obj_usage parameter.
+    pub fn restrict_usage(&mut self, obj_usage: UsageFlag) -> Result<()> {
+        match unsafe { raw::TEE_RestrictObjectUsage1(self.handle(), obj_usage.bits()) } {
             raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
         }
     }
 
+    /// Extracts one buffer attribute from an object. The attribute is identified by the argument id.
     pub fn ref_attribute(&self, id: u32, ref_attr: &mut Attribute) -> Result<()> {
         match unsafe {
             raw::TEE_GetObjectBufferAttribute(
@@ -140,6 +174,7 @@ impl ObjectHandle {
         }
     }
 
+    /// Extracts one value attribute from an object. The attribute is identified by the argument id.
     pub fn value_attribute(&self, id: u32, value_attr: &mut Attribute) -> Result<()> {
         match unsafe {
             raw::TEE_GetObjectValueAttribute(
@@ -154,6 +189,11 @@ impl ObjectHandle {
         }
     }
 
+    /// Populates an uninitialized object handle with the attributes of another object handle;
+    /// that is, it populates the attributes of this handle with the attributes of src_handle.
+    /// It is most useful in the following situations:
+    /// 1) To extract the public key attributes from a key-pair object
+    /// 2) To copy the attributes from a persistent object into a transient object
     pub fn copy_attribute_from(&mut self, src_handle: &ObjectHandle) -> Result<()> {
         match unsafe { raw::TEE_CopyObjectAttributes1(self.handle(), src_handle.handle()) } {
             raw::TEE_SUCCESS => Ok(()),
@@ -161,6 +201,9 @@ impl ObjectHandle {
         }
     }
 
+    /// Generates a random key or a key-pair and populates a transient key object with the generated key material.
+    /// The size of the desired key is passed in the keySize parameter and SHALL be less than or equal to
+    /// the maximum key size specified when the transient object was created. The valid values for key size are pre-defined.
     pub fn generate_key(&self, key_size: usize, params: &[Attribute]) -> Result<()> {
         let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
         unsafe {
@@ -176,6 +219,19 @@ impl ObjectHandle {
         }
     }
 
+    /// Attempts to read size bytes from the data stream associated with the object object into the buffer pointed to by buffer.
+    /// The object handle SHALL have been opened with the read access right.
+    /// The bytes are read starting at the position in the data stream currently stored in the object handle.
+    /// The handle’s position is incremented by the number of bytes actually read.
+    /// On completion the function sets the number of bytes actually read in the u32 pointed to by count.
+    /// The value written to counter may be less than size if the number of bytes until the end-ofstream is less than size.
+    /// It is set to 0 if the position at the start of the read operation is at or beyond the end-of-stream.
+    /// These are the only cases where count may be less than size.
+    /// No data transfer can occur past the current end of stream. If an attempt is made to read past the end-of-stream,
+    /// the function stops reading data at the end-of-stream and returns the data read up to that point.
+    /// This is still a success.
+    /// The position indicator is then set at the end-of-stream.
+    /// If the position is at, or past, the end of the data when this function is called, then no bytes are copied to buf and count is set to 0.
     pub fn read(&self, buf: &mut [u8]) -> Result<u32> {
         let mut count: u32 = 0;
         match unsafe {
@@ -191,6 +247,16 @@ impl ObjectHandle {
         }
     }
 
+    /// Writes size bytes from the buffer pointed to by buffer to the data stream associated with the open object handle object.
+    /// The object handle SHALL have been opened with the write access permission.
+    /// If the current data position points before the end-of-stream, then size bytes are written to the data stream,
+    /// overwriting bytes starting at the current data position. If the current data position points beyond the stream’s end,
+    /// then the data stream is first extended with zero bytes until the length indicated by the data position indicator is reached,
+    /// and then size bytes are written to the stream.
+    /// Thus, the size of the data stream can be increased as a result of this operation.
+    /// If the operation would move the data position indicator to beyond its maximum possible value, then ERROR Overflow is returned and the operation fails.
+    /// The data position indicator is advanced by size. The data position indicators of other object handles opened on the same object are not changed.
+    /// Writing in a data stream is atomic; either the entire operation completes successfully or no write is done.
     pub fn write(&mut self, buf: &[u8]) -> Result<()> {
         match unsafe {
             raw::TEE_WriteObjectData(self.handle(), buf.as_ptr() as _, buf.len() as u32)
@@ -200,6 +266,13 @@ impl ObjectHandle {
         }
     }
 
+    /// Changes the size of a data stream.
+    /// If size is less than the current size of the data stream then all bytes beyond size are removed.
+    /// If size is greater than the current size of the data stream then the data stream is extended by adding zero bytes at the end of the stream.
+    /// The object handle SHALL have been opened with the write access permission.
+    /// This operation does not change the data position of any handle opened on the object.
+    /// Note that if the current data position of such a handle is beyond size, the data position will point beyond the object data’s end after truncation.
+    /// Truncating a data stream is atomic; either the data stream is successfully truncated or nothing happens
     pub fn truncate(&self, size: u32) -> Result<()> {
         match unsafe { raw::TEE_TruncateObjectData(self.handle(), size) } {
             raw::TEE_SUCCESS => Ok(()),
@@ -207,6 +280,13 @@ impl ObjectHandle {
         }
     }
 
+    /// ets the data position indicator associated with the object handle. The parameter whence controls the meaning of offset Whence.
+    /// The function may be used to set the data position beyond the end of stream; this does not constitute an error.
+    /// However, the data position indicator does have a maximum value which is MiscellaneousConstants::TeeDataMaxPosition.
+    /// If the value of the data position indicator resulting from this operation would be greater than above value,
+    /// the error Overflow is returned.
+    /// If an attempt is made to move the data position before the beginning of the data stream,
+    /// the data position is set at the beginning of the stream. This does not constitute an error.
     pub fn seek(&self, offset: i32, whence: Whence) -> Result<()> {
         match unsafe { raw::TEE_SeekObjectData(self.handle(), offset, whence.into()) } {
             raw::TEE_SUCCESS => Ok(()),
@@ -271,9 +351,14 @@ pub enum MiscellaneousConstants {
 bitflags! {
     /// A set of flags that defines Handle features.
     pub struct HandleFlag: u32{
+        ///  Set for a persistent object
         const PERSISTENT = 0x00010000;
+        /// For a persistent object, always set  For a transient object, initially cleared, then set when the object becomes initialized
         const INITIALIZED = 0x00020000;
+        ///Following two flags are for crypto operation handles:
+        /// Set if the required operation key has been set. Always set for digest operations
         const KEY_SET = 0x00040000;
+        /// Set if the algorithm expects two keys to be set, using TEE_SetOperationKey2. This happens only if algorithm is set to TEE_ALG_AES_XTS or TEE_ALG_SM2_KEP.
         const EXPECT_TWO_KEYS = 0x00080000;
     }
 }
@@ -381,6 +466,13 @@ impl TransientObject {
         Self(ObjectHandle::from_raw(ptr::null_mut()))
     }
 
+    /// Allocates an uninitialized transient object, i.e. a container for attributes.
+    /// Transient objects are used to hold a cryptographic object (key or key-pair).
+    /// The object type is defined in TransientObjectType with a predefined maximum size.
+    /// As allocated, the container is uninitialized. It can be initialized by subsequently importing the object material, generating an object, deriving an object, or loading an object from the Trusted Storage. The initial value of the key usage contains all usage flags.
+    /// You can use the function restrict_usage to restrict the usage of the container.
+    /// The returned handle is used to refer to the newly-created container in all subsequent functions that require an object container: key management and operation functions.
+    /// It is not necessary to provide the size of the object to allocate. In particular, for key objects.
     pub fn allocate(object_type: TransientObjectType, max_object_size: usize) -> Result<Self> {
         let raw_handle: *mut raw::TEE_ObjectHandle = Box::into_raw(Box::new(ptr::null_mut()));
         match unsafe {
@@ -394,12 +486,17 @@ impl TransientObject {
         }
     }
 
+    ///Resets a transient object to its initial state after allocation.
+    ///If the object is currently initialized, the function clears the object of all its material. The object is then uninitialized again.
     pub fn reset(&mut self) {
         unsafe {
             raw::TEE_ResetTransientObject(self.handle());
         }
     }
 
+    /// Populates an uninitialized object container with object attributes passed by the TA in the attrs parameter.
+    /// When this function is called, the object SHALL be uninitialized. If the object is initialized, the caller SHALL first clear it using the function reset.
+    /// Note that if the object type is a key-pair, then this function sets both the private and public attributes of the keypair.
     pub fn populate(&mut self, attrs: &mut [Attribute]) -> Result<()> {
         let p: Vec<raw::TEE_Attribute> = attrs.iter().map(|p| p.raw).collect();
         match unsafe {
@@ -410,6 +507,7 @@ impl TransientObject {
         }
     }
 
+    /// Wrap the functions of ObjectHandle so we do not expose the handle itself to TA.
     pub fn info(&self) -> Result<ObjectInfo> {
         self.0.info()
     }
@@ -446,6 +544,8 @@ impl ObjHandle for TransientObject {
 }
 
 impl Drop for TransientObject {
+    ///Deallocates a transient object previously allocated.
+    ///After this function has been called, the object handle is no longer valid and all resources associated with the transient object SHALL have been reclaimed.
     fn drop(&mut self) {
         unsafe {
             if self.0.raw != ptr::null_mut() {
@@ -459,6 +559,7 @@ impl Drop for TransientObject {
 pub struct PersistentObject(ObjectHandle);
 
 impl PersistentObject {
+    /// opens a handle on an existing persistent object. It returns a handle that can be used to access the object’s attributes and data stream
     pub fn open(
         storage_id: ObjectStorageConstants,
         object_id: &[u8],
@@ -487,6 +588,8 @@ impl PersistentObject {
         }
     }
 
+    /// Creates a persistent object with initial attributes and an initial data stream content,
+    /// and optionally returns either a handle on the created object, or NULL handle upon failure.
     pub fn create(
         storage_id: ObjectStorageConstants,
         object_id: &[u8],
@@ -524,6 +627,29 @@ impl PersistentObject {
         }
     }
 
+    /// Marks an object for deletion and closes the object handle.
+    /// The object handle SHALL have been opened with the write-meta access right, which means access to the object is exclusive.
+    /// Deleting an object is atomic; once this function returns, the object is definitely deleted and no more open
+    /// handles for the object exist. This SHALL be the case even if the object or the storage containing it have become corrupted.
+    /// The only reason this routine can fail is if the storage area containing the object becomes inaccessible (e.g. the
+    /// user removes the media holding the object). In this case TEE_ERROR_STORAGE_NOT_AVAILABLE SHALL be returned.
+    ///
+    /// this function is conflicted with Drop implementation, when use this one to avoid panic:
+    /// 1) call mem::forget for this structure to avoid double drop the object
+    pub fn close_and_delete(&mut self) -> Result<()> {
+        match unsafe { raw::TEE_CloseAndDeletePersistentObject1(self.0.handle()) } {
+            raw::TEE_SUCCESS => {
+                unsafe {
+                    Box::from_raw(self.0.raw);
+                }
+                return Ok(());
+            }
+            code => Err(Error::from_raw_error(code)),
+        }
+    }
+
+    /// Changes the identifier of an object.
+    /// The object handle SHALL have been opened with the write-meta access right, which means access to the object is exclusive.
     pub fn rename(&mut self, new_object_id: &[u8]) -> Result<()> {
         match unsafe {
             raw::TEE_RenamePersistentObject(
@@ -537,20 +663,7 @@ impl PersistentObject {
         }
     }
 
-    // this function is conflicted with Drop implementation, when use this one to avoid panic:
-    // 1) call mem::forget for this structure to avoid double drop the object
-    pub fn close_and_delete(&mut self) -> Result<()> {
-        match unsafe { raw::TEE_CloseAndDeletePersistentObject1(self.0.handle()) } {
-            raw::TEE_SUCCESS => {
-                unsafe {
-                    Box::from_raw(self.0.raw);
-                }
-                return Ok(());
-            }
-            code => Err(Error::from_raw_error(code)),
-        }
-    }
-
+    /// Wrap the functions of ObjectHandle so we do not expose the handle itself to TA.
     pub fn info(&self) -> Result<ObjectInfo> {
         self.0.info()
     }
@@ -579,6 +692,7 @@ impl ObjHandle for PersistentObject {
 }
 
 impl Drop for PersistentObject {
+    /// Closes an opened persistent object.
     fn drop(&mut self) {
         unsafe {
             if self.0.raw != Box::into_raw(Box::new(ptr::null_mut())) {
@@ -593,6 +707,7 @@ pub struct ObjectEnumHandle {
     raw: *mut raw::TEE_ObjectEnumHandle,
 }
 impl ObjectEnumHandle {
+    /// Allocates a handle on an object enumerator. Once an object enumerator handle has been allocated, it can be reused for multiple enumerations.
     pub fn allocate() -> Result<Self> {
         let raw_handle: *mut raw::TEE_ObjectEnumHandle = Box::into_raw(Box::new(ptr::null_mut()));
         match unsafe { raw::TEE_AllocatePersistentObjectEnumerator(raw_handle) } {
@@ -606,12 +721,22 @@ impl ObjectEnumHandle {
         }
     }
 
+    /// Resets an object enumerator handle to its initial state after allocation. If an enumeration has been started, it is stopped.
     pub fn reset(&mut self) {
         unsafe {
             raw::TEE_ResetPersistentObjectEnumerator(*self.raw);
         }
     }
 
+    /// Starts the enumeration of all the persistent objects in a given Trusted Storage.
+    /// The object information can be retrieved by calling the function get_next repeatedly.
+    /// The enumeration does not necessarily reflect a given consistent state of the storage:
+    /// During the enumeration, other TAs or other instances of the TA may create, delete, or rename objects.
+    /// It is not guaranteed that all objects will be returned if objects are created or destroyed while the enumeration is in progress.
+    /// To stop an enumeration, the TA can call the function TEE_ResetPersistentObjectEnumerator,
+    /// which detaches the enumerator from the Trusted Storage.
+    /// The TA can call the function drop to completely deallocate the object enumerator.
+    /// If this function is called on an enumerator that has already been started, the enumeration is first reset then started.
     pub fn start(&mut self, storage_id: u32) -> Result<()> {
         match unsafe { raw::TEE_StartPersistentObjectEnumerator(*self.raw, storage_id) } {
             raw::TEE_SUCCESS => Ok(()),
@@ -619,6 +744,10 @@ impl ObjectEnumHandle {
         }
     }
 
+    /// Gets the next object in an enumeration and returns information about the object: type, size, identifier, etc.
+    /// If there are no more objects in the enumeration or if there is no enumeration started, then the function returns ERROR ItemNotFound.
+    /// If while enumerating objects a corrupt object is detected, then its object ID SHALL be returned in
+    /// objectID, objectInfo SHALL be zeroed, and the function SHALL return ERROR CorruptObject.
     pub fn get_next<T>(
         &mut self,
         object_info: &mut ObjectInfo,
@@ -640,6 +769,7 @@ impl ObjectEnumHandle {
 }
 
 impl Drop for ObjectEnumHandle {
+    /// Deallocates all resources associated with an object enumerator handle. After this function is called, the handle is no longer valid.
     fn drop(&mut self) {
         unsafe {
             raw::TEE_FreePersistentObjectEnumerator(*self.raw);
