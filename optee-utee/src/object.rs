@@ -113,31 +113,28 @@ pub struct ObjectInfo {
 }
 
 // Since raw struct is not implemented Copy attribute yet, every item in raw struct needs a function to extract.
+/// # Fields
+///
+/// 1) `objectType`: The parameter objectType passed when the object was created.
+/// 2) `objectSize`: The current size in bits of the object as determined by its attributes. This will always be less than or equal to maxObjectSize. Set to 0 for uninitialized and data only objects.
+/// 3) `maxObjectSize`: The maximum objectSize which this object can represent.
+/// 3.1) For a persistent object, set to objectSize.
+/// 3.2) For a transient object, set to the parameter maxObjectSize passed to TEE_AllocateTransientObject.
+/// 4) `objectUsage`: A bit vector of UsageFlag.
+/// 5) `dataSize`:
+/// 5.1) For a persistent object, set to the current size of the data associated with the object.
+/// 5.2) For a transient object, always set to 0.
+/// 6) `dataPosition`:
+/// 6.1) For a persistent object, set to the current position in the data for this handle. Data positions for different handles on the same object may differ.
+/// 6.2) For a transient object, set to 0.
+/// 7) `handleFlags`: A bit vector containing one or more HandleFlag or DataFlag.
 impl ObjectInfo {
-    /// Returns an ObjectInfo struct based on the raw structrure TEE_ObjectInfo.
-    ///
-    /// # Fields
-    ///
-    /// The raw structure contains following fields:
-    ///
-    /// 1) objectType: The parameter objectType passed when the object was created.
-    /// 2) objectSize: The current size in bits of the object as determined by its attributes. This will always be less than or equal to maxObjectSize. Set to 0 for uninitialized and data only objects.
-    /// 3) maxObjectSize: The maximum objectSize which this object can represent.
-    /// 3.1) For a persistent object, set to objectSize.
-    /// 3.2) For a transient object, set to the parameter maxObjectSize passed to TEE_AllocateTransientObject.
-    /// 4) objectUsage: A bit vector of UsageFlag.
-    /// 5) dataSize:
-    /// 5.1) For a persistent object, set to the current size of the data associated with the object.
-    /// 5.2) For a transient object, always set to 0.
-    /// 6) dataPosition:
-    /// 6.1) For a persistent object, set to the current position in the data for this handle. Data positions for different handles on the same object may differ.
-    /// 6.2) For a transient object, set to 0.
-    /// 7) handleFlags: A bit vector containing one or more HandleFlag or DataFlag.
+    /// Return an ObjectInfo struct based on the raw structrure TEE_ObjectInfo.
     pub fn from_raw(raw: raw::TEE_ObjectInfo) -> Self {
         Self { raw }
     }
 
-    /// Returns the dataSize field of the ObjectInfo.
+    /// Return the dataSize field of the ObjectInfo.
     pub fn data_size(&self) -> usize {
         self.raw.dataSize as usize
     }
@@ -884,7 +881,7 @@ impl PersistentObject {
     /// ```no_run
     /// let obj_id = [1u8;1];
     /// let mut init_data: [u8; 0] = [0; 0];
-    /// match PersistentObject::open (
+    /// match PersistentObject::create (
     ///         ObjectStorageConstants::Private,
     ///         &obj_id,
     ///         DataFlag::ACCESS_READ | DataFlag::ACCESS_WRITE
