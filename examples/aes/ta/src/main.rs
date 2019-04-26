@@ -107,7 +107,7 @@ pub fn alloc_resources(aes: &mut AesCipher, params: &mut Parameters) -> Result<(
     aes.key_object = TransientObject::allocate(TransientObjectType::Aes, aes.key_size * 8).unwrap();
     let mut key = vec![0u8; aes.key_size as usize];
     let attr = Attribute::from_ref(AttributeId::SecretValue, &mut key);
-    aes.key_object.populate(&mut [attr])?;
+    aes.key_object.populate(&[attr])?;
     aes.cipher.set_key(&mut aes.key_object)?;
     Ok(())
 }
@@ -124,7 +124,7 @@ pub fn set_aes_key(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
     let attr = Attribute::from_ref(AttributeId::SecretValue, &mut key);
 
     aes.key_object.reset();
-    aes.key_object.populate(&mut [attr])?;
+    aes.key_object.populate(&[attr])?;
 
     aes.cipher.set_key(&mut aes.key_object)?;
     Ok(())

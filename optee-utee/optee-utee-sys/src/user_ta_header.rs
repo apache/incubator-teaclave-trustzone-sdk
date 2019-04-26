@@ -21,16 +21,16 @@ pub struct ta_head {
 
 unsafe impl Sync for ta_head {}
 
-pub const TA_PROP_STR_SINGLE_INSTANCE: *const c_char = "gpd.ta.singleInstance\0".as_ptr();
-pub const TA_PROP_STR_MULTI_SESSION: *const c_char = "gpd.ta.multiSession\0".as_ptr();
-pub const TA_PROP_STR_KEEP_ALIVE: *const c_char = "gpd.ta.instanceKeepAlive\0".as_ptr();
-pub const TA_PROP_STR_DATA_SIZE: *const c_char = "gpd.ta.dataSize\0".as_ptr();
-pub const TA_PROP_STR_STACK_SIZE: *const c_char = "gpd.ta.stackSize\0".as_ptr();
-pub const TA_PROP_STR_VERSION: *const c_char = "gpd.ta.version\0".as_ptr();
-pub const TA_PROP_STR_DESCRIPTION: *const c_char = "gpd.ta.description\0".as_ptr();
-pub const TA_PROP_STR_UNSAFE_PARAM: *const c_char = "op-tee.unsafe_param\0".as_ptr();
-pub const TA_PROP_STR_REMAP: *const c_char = "op-tee.remap\0".as_ptr();
-pub const TA_PROP_STR_CACHE_SYNC: *const c_char = "op-tee.cache_sync\0".as_ptr();
+pub const TA_PROP_STR_SINGLE_INSTANCE: *const c_char = "gpd.ta.singleInstance\0".as_ptr() as _;
+pub const TA_PROP_STR_MULTI_SESSION: *const c_char = "gpd.ta.multiSession\0".as_ptr() as _;
+pub const TA_PROP_STR_KEEP_ALIVE: *const c_char = "gpd.ta.instanceKeepAlive\0".as_ptr() as _;
+pub const TA_PROP_STR_DATA_SIZE: *const c_char = "gpd.ta.dataSize\0".as_ptr() as _;
+pub const TA_PROP_STR_STACK_SIZE: *const c_char = "gpd.ta.stackSize\0".as_ptr() as _;
+pub const TA_PROP_STR_VERSION: *const c_char = "gpd.ta.version\0".as_ptr() as _;
+pub const TA_PROP_STR_DESCRIPTION: *const c_char = "gpd.ta.description\0".as_ptr() as _;
+pub const TA_PROP_STR_UNSAFE_PARAM: *const c_char = "op-tee.unsafe_param\0".as_ptr() as _;
+pub const TA_PROP_STR_REMAP: *const c_char = "op-tee.remap\0".as_ptr() as _;
+pub const TA_PROP_STR_CACHE_SYNC: *const c_char = "op-tee.cache_sync\0".as_ptr() as _;
 
 #[repr(C)]
 pub enum user_ta_prop_type {

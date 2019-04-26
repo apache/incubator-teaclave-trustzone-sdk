@@ -105,7 +105,7 @@ pub fn hmac_sha1(hotp: &mut HmacOtp, out: &mut [u8]) -> Result<usize> {
                     let mut tmp_key = hotp.key.to_vec();
                     tmp_key.truncate(hotp.key_len);
                     let attr = Attribute::from_ref(AttributeId::SecretValue, &mut tmp_key);
-                    key_object.populate(&mut [attr])?;
+                    key_object.populate(&[attr])?;
                     mac.set_key(&key_object)?;
                 }
             }
