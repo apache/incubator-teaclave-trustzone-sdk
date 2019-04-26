@@ -49,7 +49,7 @@ fn gen_key(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
 }
 
 fn get_size(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
-    let key_info = rsa.key.object_info().unwrap();
+    let key_info = rsa.key.info().unwrap();
     let mut p0 = unsafe { params.0.as_memref().unwrap() };
     let mut plain_text = p0.buffer();
     let mut cipher_text = [0u8; 0];
@@ -74,7 +74,7 @@ fn get_size(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
 }
 
 fn encrypt(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
-    let key_info = rsa.key.object_info().unwrap();
+    let key_info = rsa.key.info().unwrap();
     let mut p0 = unsafe { params.0.as_memref().unwrap() };
     let mut plain_text = p0.buffer();
     let mut p1 = unsafe { params.1.as_memref().unwrap() };
