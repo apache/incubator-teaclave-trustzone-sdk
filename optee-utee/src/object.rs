@@ -113,28 +113,31 @@ pub struct ObjectInfo {
 }
 
 // Since raw struct is not implemented Copy attribute yet, every item in raw struct needs a function to extract.
-/// # Fields
-///
-/// 1) `objectType`: The parameter objectType passed when the object was created.
-/// 2) `objectSize`: The current size in bits of the object as determined by its attributes. This will always be less than or equal to maxObjectSize. Set to 0 for uninitialized and data only objects.
-/// 3) `maxObjectSize`: The maximum objectSize which this object can represent.
-/// 3.1) For a persistent object, set to objectSize.
-/// 3.2) For a transient object, set to the parameter maxObjectSize passed to TEE_AllocateTransientObject.
-/// 4) `objectUsage`: A bit vector of UsageFlag.
-/// 5) `dataSize`:
-/// 5.1) For a persistent object, set to the current size of the data associated with the object.
-/// 5.2) For a transient object, always set to 0.
-/// 6) `dataPosition`:
-/// 6.1) For a persistent object, set to the current position in the data for this handle. Data positions for different handles on the same object may differ.
-/// 6.2) For a transient object, set to 0.
-/// 7) `handleFlags`: A bit vector containing one or more HandleFlag or DataFlag.
 impl ObjectInfo {
-    /// Return an ObjectInfo struct based on the raw structrure TEE_ObjectInfo.
+    /// Returns an ObjectInfo struct based on the raw structrure TEE_ObjectInfo.
+    ///
+    /// # Fields
+    ///
+    /// The raw structure contains following fields:
+    ///
+    /// 1) objectType: The parameter objectType passed when the object was created.
+    /// 2) objectSize: The current size in bits of the object as determined by its attributes. This will always be less than or equal to maxObjectSize. Set to 0 for uninitialized and data only objects.
+    /// 3) maxObjectSize: The maximum objectSize which this object can represent.
+    /// 3.1) For a persistent object, set to objectSize.
+    /// 3.2) For a transient object, set to the parameter maxObjectSize passed to TEE_AllocateTransientObject.
+    /// 4) objectUsage: A bit vector of UsageFlag.
+    /// 5) dataSize:
+    /// 5.1) For a persistent object, set to the current size of the data associated with the object.
+    /// 5.2) For a transient object, always set to 0.
+    /// 6) dataPosition:
+    /// 6.1) For a persistent object, set to the current position in the data for this handle. Data positions for different handles on the same object may differ.
+    /// 6.2) For a transient object, set to 0.
+    /// 7) handleFlags: A bit vector containing one or more HandleFlag or DataFlag.
     pub fn from_raw(raw: raw::TEE_ObjectInfo) -> Self {
         Self { raw }
     }
 
-    /// Return the dataSize field of the ObjectInfo.
+    /// Returns the dataSize field of the ObjectInfo.
     pub fn data_size(&self) -> usize {
         self.raw.dataSize as usize
     }
@@ -194,16 +197,17 @@ impl ObjectHandle {
         }
     }
 
-    fn ref_attribute(&self, id: u32, ref_attr: &mut Attribute) -> Result<()> {
+    fn ref_attribute(&self, id: AttributeId) -> Result<Attribute> {
+        let mut ref_attr = Attribute::new_ref();
         match unsafe {
             raw::TEE_GetObjectBufferAttribute(
                 self.handle(),
-                id,
+                id as u32,
                 ref_attr.raw.content.memref.buffer as _,
                 &mut ref_attr.raw.content.memref.size as _,
             )
         } {
-            raw::TEE_SUCCESS => Ok(()),
+            raw::TEE_SUCCESS => Ok(ref_attr),
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -293,21 +297,6 @@ bitflags! {
         /// or `TEE_ALG_SM2_KEP`(not supported now).
         const EXPECT_TWO_KEYS = 0x00080000;
     }
-}
-
-pub enum OperationStates {
-    Initial = 0x00000000,
-    Active = 0x00000001,
-}
-
-pub enum OperationConstant {
-    Cipher = 1,
-    Mac = 3,
-    Ae = 4,
-    Digest = 5,
-    AsymmetricCipher = 6,
-    AsymmetricSignature = 7,
-    KeyDerivation = 8,
 }
 
 pub enum AttributeId {
@@ -628,8 +617,8 @@ impl TransientObject {
     /// 1) If object is not a valid opened object.
     /// 2) If the object is not initialized.
     /// 3) If the Attribute is not a buffer attribute.
-    pub fn ref_attribute(&self, id: u32, ref_attr: &mut Attribute) -> Result<()> {
-        self.0.ref_attribute(id, ref_attr)
+    pub fn ref_attribute(&self, id: AttributeId) -> Result<Attribute> {
+        self.0.ref_attribute(id)
     }
 
     /// Extract one value attribute from an object. The attribute is identified by the argument id.
@@ -727,8 +716,8 @@ impl TransientObject {
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
     ///     Ok(object) =>
     ///     {
-    ///         let attrs = [Attribute::from_ref(AttributeId::SecretValue, [0u8;1])];
-    ///         object.generate_key(128, &attrs);
+    ///         let attrs = [Attribute::from_ref(AttributeId::SecretValue, & [0u8;1])];
+    ///         object.generate_key(128, &attrs)?;
     ///         Ok(())
     ///     }
     ///     Err(e) => Err(e),
@@ -881,7 +870,7 @@ impl PersistentObject {
     /// ```no_run
     /// let obj_id = [1u8;1];
     /// let mut init_data: [u8; 0] = [0; 0];
-    /// match PersistentObject::create (
+    /// match PersistentObject::open (
     ///         ObjectStorageConstants::Private,
     ///         &obj_id,
     ///         DataFlag::ACCESS_READ | DataFlag::ACCESS_WRITE
@@ -1076,8 +1065,8 @@ impl PersistentObject {
     /// 1) `CorruptObject`: If the persistent object is corrupt. The object handle is closed.
     /// 2) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
     ///    currently inaccessible.
-    pub fn ref_attribute(&self, id: u32, ref_attr: &mut Attribute) -> Result<()> {
-        self.0.ref_attribute(id, ref_attr)
+    pub fn ref_attribute(&self, id: AttributeId) -> Result<Attribute> {
+        self.0.ref_attribute(id)
     }
 
     /// Extract one value attribute from an object. The attribute is identified by the argument id.
@@ -1240,7 +1229,7 @@ impl PersistentObject {
     ///
     /// ```no_run
     /// let obj_id = [1u8;1];
-    /// match PersistentObject::open( 
+    /// match PersistentObject::open(
     ///         ObjectStorageConstants::Private,
     ///         &obj_id,
     ///         DataFlag::ACCESS_WRITE) {
