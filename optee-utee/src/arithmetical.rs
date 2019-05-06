@@ -1,21 +1,26 @@
 use crate::{Error, Result};
 use optee_utee_sys as raw;
-use std::cmp::max;
+use std::{cmp::max, fmt};
 
-/// Test BigInt case first. After reviewed, expand BigInt to other two types.
 pub type BigIntUnit = u32;
+pub type BigIntFMMUnit = u32;
+pub type BigIntFMMContextUnit = u32;
 
 pub struct BigInt(Vec<BigIntUnit>);
 
 impl BigInt {
-    /// size represents BigInt bits
+    pub fn data_ptr(&self) -> *const u32 {
+        self.0.as_ptr()
+    }
+
+    // size represents BigInt bits
     pub fn size_in_u32(size: u32) -> u32 {
         return ((size + 31) / 32) + 2;
     }
 
     pub fn init(bits: u32) -> Self {
         let size: usize = Self::size_in_u32(bits) as usize;
-        let mut tmp_vec: Vec<BigIntUnit> = Vec::with_capacity(size);
+        let mut tmp_vec: Vec<BigIntUnit> = vec![0; size];
         unsafe { raw::TEE_BigIntInit(tmp_vec.as_mut_ptr(), size as u32) };
         Self(tmp_vec)
     }
@@ -34,16 +39,20 @@ impl BigInt {
         }
     }
 
-    pub fn convert_to_octet_string(&self, buffer: &mut [u8]) -> Result<usize> {
-        let mut buffer_size: u32 = buffer.len() as u32;
+    pub fn convert_to_octet_string(&self) -> Result<Vec<u8>> {
+        let mut buffer_size: u32 = (self.0.len() as u32 - 2) * 4;
+        let mut tmp_vec = vec![0u8; buffer_size as usize];
         match unsafe {
             raw::TEE_BigIntConvertToOctetString(
-                buffer.as_mut_ptr(),
+                tmp_vec.as_mut_ptr(),
                 &mut buffer_size as _,
-                self.0.as_ptr(),
+                self.data_ptr(),
             )
         } {
-            raw::TEE_SUCCESS => Ok(buffer_size as usize),
+            raw::TEE_SUCCESS => {
+                tmp_vec.truncate(buffer_size as usize);
+                return Ok(tmp_vec);
+            }
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -52,70 +61,73 @@ impl BigInt {
         unsafe { raw::TEE_BigIntConvertFromS32(self.0.as_mut_ptr(), short_val) };
     }
 
-    pub fn convert_to_s32(&mut self, short_val: &mut i32) -> Result<()> {
-        match unsafe { raw::TEE_BigIntConvertToS32(short_val as _, self.0.as_mut_ptr()) } {
-            raw::TEE_SUCCESS => Ok(()),
+    pub fn convert_to_s32(&self) -> Result<i32> {
+        let mut short_val: i32 = 0;
+        match unsafe { raw::TEE_BigIntConvertToS32(&mut short_val as _, self.data_ptr()) } {
+            raw::TEE_SUCCESS => Ok(short_val),
             code => Err(Error::from_raw_error(code)),
         }
     }
 
-    /// return negative number if self < target,
-    /// 0 if self == target
-    /// positive number if self > target
+    /* return negative number if self < target,
+    0 if self == target
+    positive number if self > target*/
     pub fn compare_big_int(&self, target: &Self) -> i32 {
-        unsafe { raw::TEE_BigIntCmp(self.0.as_ptr(), target.0.as_ptr()) }
+        unsafe { raw::TEE_BigIntCmp(self.data_ptr(), target.data_ptr()) }
     }
 
     pub fn compare_s32(&self, target: i32) -> i32 {
-        unsafe { raw::TEE_BigIntCmpS32(self.0.as_ptr(), target) }
+        unsafe { raw::TEE_BigIntCmpS32(self.data_ptr(), target) }
     }
 
     pub fn shift_right(&mut self, op: &Self, bits: usize) {
-        unsafe { raw::TEE_BigIntShiftRight(self.0.as_mut_ptr(), op.0.as_ptr(), bits) };
+        // Should return a BigInt, while its size is based on the abs function which is missed
+        // right now
+        unsafe { raw::TEE_BigIntShiftRight(self.0.as_mut_ptr(), op.data_ptr(), bits) };
     }
 
     pub fn get_bit(&self, bit_index: u32) -> bool {
-        unsafe { raw::TEE_BigIntGetBit(self.0.as_ptr(), bit_index) }
+        unsafe { raw::TEE_BigIntGetBit(self.data_ptr(), bit_index) }
     }
 
     pub fn get_bit_count(&self) -> u32 {
-        unsafe { raw::TEE_BigIntGetBitCount(self.0.as_ptr()) }
+        unsafe { raw::TEE_BigIntGetBitCount(self.data_ptr()) }
     }
 
     pub fn add(op1: &Self, op2: &Self) -> Self {
         let bits = max(Self::get_bit_count(op1), Self::get_bit_count(op2)) + 1;
         let mut res = Self::init(bits);
-        unsafe { raw::TEE_BigIntAdd(res.0.as_mut_ptr(), op1.0.as_ptr(), op2.0.as_ptr()) };
+        unsafe { raw::TEE_BigIntAdd(res.0.as_mut_ptr(), op1.data_ptr(), op2.data_ptr()) };
         res
     }
 
     pub fn sub(op1: &Self, op2: &Self) -> Self {
         let bits = max(Self::get_bit_count(op1), Self::get_bit_count(op2)) + 1;
         let mut res = Self::init(bits);
-        unsafe { raw::TEE_BigIntSub(res.0.as_mut_ptr(), op1.0.as_ptr(), op2.0.as_ptr()) };
+        unsafe { raw::TEE_BigIntSub(res.0.as_mut_ptr(), op1.data_ptr(), op2.data_ptr()) };
         res
     }
 
     pub fn neg(op: &Self) -> Self {
         let mut res = Self::init(Self::get_bit_count(op));
-        unsafe { raw::TEE_BigIntNeg(res.0.as_mut_ptr(), op.0.as_ptr()) };
+        unsafe { raw::TEE_BigIntNeg(res.0.as_mut_ptr(), op.data_ptr()) };
         res
     }
 
     pub fn multiply(op1: &Self, op2: &Self) -> Self {
         let bits = Self::get_bit_count(op1) + Self::get_bit_count(op2);
         let mut res = Self::init(bits);
-        unsafe { raw::TEE_BigIntMul(res.0.as_mut_ptr(), op1.0.as_ptr(), op2.0.as_ptr()) };
+        unsafe { raw::TEE_BigIntMul(res.0.as_mut_ptr(), op1.data_ptr(), op2.data_ptr()) };
         res
     }
 
     pub fn square(op: &Self) -> Self {
         let mut res = Self::init(2 * Self::get_bit_count(op));
-        unsafe { raw::TEE_BigIntSquare(res.0.as_mut_ptr(), op.0.as_ptr()) };
+        unsafe { raw::TEE_BigIntSquare(res.0.as_mut_ptr(), op.data_ptr()) };
         res
     }
 
-    /// document defines wrong size for result quotient
+    // document defines wrong size for result quotient
     pub fn divide(op1: &Self, op2: &Self) -> (Self, Self) {
         let q_bits = match op1.compare_big_int(op2) {
             d if d >= 0 => max(1, Self::get_bit_count(op1) - Self::get_bit_count(op2)),
@@ -129,8 +141,8 @@ impl BigInt {
             raw::TEE_BigIntDiv(
                 quotient.0.as_mut_ptr(),
                 remainder.0.as_mut_ptr(),
-                op1.0.as_ptr(),
-                op2.0.as_ptr(),
+                op1.data_ptr(),
+                op2.data_ptr(),
             )
         };
         (quotient, remainder)
@@ -138,15 +150,169 @@ impl BigInt {
 
     pub fn module(op: &Self, n: &Self) -> Self {
         let mut res = Self::init(Self::get_bit_count(n));
-        unsafe { raw::TEE_BigIntMod(res.0.as_mut_ptr(), op.0.as_ptr(), n.0.as_ptr()) };
+        unsafe { raw::TEE_BigIntMod(res.0.as_mut_ptr(), op.data_ptr(), n.data_ptr()) };
         res
     }
-    // test after develop other big int functions after BigIntMod
+
+    pub fn add_mod(op1: &Self, op2: &Self, n: &Self) -> Self {
+        let mut res = Self::init(Self::get_bit_count(n));
+        unsafe {
+            raw::TEE_BigIntAddMod(
+                res.0.as_mut_ptr(),
+                op1.data_ptr(),
+                op2.data_ptr(),
+                n.data_ptr(),
+            )
+        };
+        res
+    }
+
+    pub fn sub_mod(op1: &Self, op2: &Self, n: &Self) -> Self {
+        let mut res = Self::init(Self::get_bit_count(n));
+        unsafe {
+            raw::TEE_BigIntSubMod(
+                res.0.as_mut_ptr(),
+                op1.data_ptr(),
+                op2.data_ptr(),
+                n.data_ptr(),
+            )
+        };
+        res
+    }
+
+    pub fn mul_mod(op1: &Self, op2: &Self, n: &Self) -> Self {
+        let mut res = Self::init(Self::get_bit_count(n));
+        unsafe {
+            raw::TEE_BigIntMulMod(
+                res.0.as_mut_ptr(),
+                op1.data_ptr(),
+                op2.data_ptr(),
+                n.data_ptr(),
+            )
+        };
+        res
+    }
+
+    pub fn square_mod(op: &Self, n: &Self) -> Self {
+        let mut res = Self::init(Self::get_bit_count(n));
+        unsafe { raw::TEE_BigIntSquareMod(res.0.as_mut_ptr(), op.data_ptr(), n.data_ptr()) };
+        res
+    }
+
+    pub fn inv_mod(op: &Self, n: &Self) -> Self {
+        let mut res = Self::init(Self::get_bit_count(n));
+        unsafe { raw::TEE_BigIntInvMod(res.0.as_mut_ptr(), op.data_ptr(), n.data_ptr()) };
+        res
+    }
+
+    pub fn relative_prime(op1: &Self, op2: &Self) -> bool {
+        unsafe { raw::TEE_BigIntRelativePrime(op1.data_ptr(), op2.data_ptr()) }
+    }
+
+    /* pub fn compute_extended_gcd(op1: &Self, op2: &Self) -> (Self, Self, Self)
+     * This function is implemented in OP-TEE, while the output size needs to be calculated based
+     * on the missing function TEE_BigIntAbs, so we do not port it yet.*/
+
+    pub fn is_probable_prime(&self, confidence_level: u32) -> i32 {
+        unsafe { raw::TEE_BigIntIsProbablePrime(self.data_ptr(), confidence_level) }
+    }
+
+    pub fn convert_from_big_int_fmm(
+        &mut self,
+        src: &BigIntFMM,
+        n: &BigInt,
+        context: BigIntFMMContext,
+    ) {
+        unsafe {
+            raw::TEE_BigIntConvertToFMM(
+                self.0.as_mut_ptr(),
+                src.data_ptr(),
+                n.data_ptr(),
+                context.data_ptr(),
+            )
+        };
+    }
 }
 
-//pub type BigIntFMM = u32;
-//pub type BigIntFMMContext = u32;
+impl fmt::Display for BigInt {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{:x?}", self.0)
+    }
+}
+
+pub struct BigIntFMMContext(Vec<BigIntFMMContextUnit>);
+
+impl BigIntFMMContext {
+    pub fn data_ptr(&self) -> *const u32 {
+        self.0.as_ptr()
+    }
+
+    pub fn size_in_u32(size: u32) -> u32 {
+        unsafe { raw::TEE_BigIntFMMContextSizeInU32(size) }
+    }
+
+    // Globalplatform define FMMContext1 here while OP-TEE does not update yet
+    pub fn init(bits: u32, modulus: BigInt) -> Result<Self> {
+        let size: usize = Self::size_in_u32(bits) as usize;
+        let mut tmp_vec: Vec<BigIntFMMContextUnit> = vec![0; size];
+        unsafe {
+            raw::TEE_BigIntInitFMMContext(tmp_vec.as_mut_ptr(), size as u32, modulus.data_ptr())
+        };
+        Ok(Self(tmp_vec))
+    }
+}
+
+pub struct BigIntFMM(Vec<BigIntFMMUnit>);
+
+impl BigIntFMM {
+    pub fn data_ptr(&self) -> *const u32 {
+        self.0.as_ptr()
+    }
+
+    pub fn size_in_u32(size: u32) -> u32 {
+        unsafe { raw::TEE_BigIntFMMSizeInU32(size) }
+    }
+
+    pub fn init(bits: u32) -> Self {
+        let size: usize = Self::size_in_u32(bits) as usize;
+        let mut tmp_vec: Vec<BigIntFMMUnit> = vec![0; size];
+        unsafe { raw::TEE_BigIntInitFMM(tmp_vec.as_mut_ptr(), size as u32) };
+        Self(tmp_vec)
+    }
+
+    //Has to be initialized first
+    pub fn convert_from_big_int(&mut self, src: &BigInt, n: &BigInt, context: BigIntFMMContext) {
+        unsafe {
+            raw::TEE_BigIntConvertToFMM(
+                self.0.as_mut_ptr(),
+                src.data_ptr(),
+                n.data_ptr(),
+                context.data_ptr(),
+            )
+        };
+    }
+
+    //Has to be initialized first
+    pub fn compute_fmm(
+        &mut self,
+        op1: &BigIntFMM,
+        op2: &BigIntFMM,
+        n: &BigInt,
+        context: BigIntFMMContext,
+    ) {
+        unsafe {
+            raw::TEE_BigIntComputeFMM(
+                self.0.as_mut_ptr(),
+                op1.data_ptr(),
+                op2.data_ptr(),
+                n.data_ptr(),
+                context.data_ptr(),
+            )
+        };
+    }
+}
 //OP-TEE does not implement function:
 //TEE_BigIntSetBit
 //TEE_BigIntAssign
 //TEE_BigIntAbs
+//TEE_BigIntExpMod
