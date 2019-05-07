@@ -18,7 +18,7 @@ impl BigInt {
         return ((size + 31) / 32) + 2;
     }
 
-    pub fn init(bits: u32) -> Self {
+    pub fn new(bits: u32) -> Self {
         let size: usize = Self::size_in_u32(bits) as usize;
         let mut tmp_vec: Vec<BigIntUnit> = vec![0; size];
         unsafe { raw::TEE_BigIntInit(tmp_vec.as_mut_ptr(), size as u32) };
@@ -96,33 +96,33 @@ impl BigInt {
 
     pub fn add(op1: &Self, op2: &Self) -> Self {
         let bits = max(Self::get_bit_count(op1), Self::get_bit_count(op2)) + 1;
-        let mut res = Self::init(bits);
+        let mut res = Self::new(bits);
         unsafe { raw::TEE_BigIntAdd(res.0.as_mut_ptr(), op1.data_ptr(), op2.data_ptr()) };
         res
     }
 
     pub fn sub(op1: &Self, op2: &Self) -> Self {
         let bits = max(Self::get_bit_count(op1), Self::get_bit_count(op2)) + 1;
-        let mut res = Self::init(bits);
+        let mut res = Self::new(bits);
         unsafe { raw::TEE_BigIntSub(res.0.as_mut_ptr(), op1.data_ptr(), op2.data_ptr()) };
         res
     }
 
     pub fn neg(op: &Self) -> Self {
-        let mut res = Self::init(Self::get_bit_count(op));
+        let mut res = Self::new(Self::get_bit_count(op));
         unsafe { raw::TEE_BigIntNeg(res.0.as_mut_ptr(), op.data_ptr()) };
         res
     }
 
     pub fn multiply(op1: &Self, op2: &Self) -> Self {
         let bits = Self::get_bit_count(op1) + Self::get_bit_count(op2);
-        let mut res = Self::init(bits);
+        let mut res = Self::new(bits);
         unsafe { raw::TEE_BigIntMul(res.0.as_mut_ptr(), op1.data_ptr(), op2.data_ptr()) };
         res
     }
 
     pub fn square(op: &Self) -> Self {
-        let mut res = Self::init(2 * Self::get_bit_count(op));
+        let mut res = Self::new(2 * Self::get_bit_count(op));
         unsafe { raw::TEE_BigIntSquare(res.0.as_mut_ptr(), op.data_ptr()) };
         res
     }
@@ -134,8 +134,8 @@ impl BigInt {
             _ => 0,
         };
         let r_bits = Self::get_bit_count(op2);
-        let mut quotient = Self::init(q_bits);
-        let mut remainder = Self::init(r_bits);
+        let mut quotient = Self::new(q_bits);
+        let mut remainder = Self::new(r_bits);
 
         unsafe {
             raw::TEE_BigIntDiv(
@@ -149,13 +149,13 @@ impl BigInt {
     }
 
     pub fn module(op: &Self, n: &Self) -> Self {
-        let mut res = Self::init(Self::get_bit_count(n));
+        let mut res = Self::new(Self::get_bit_count(n));
         unsafe { raw::TEE_BigIntMod(res.0.as_mut_ptr(), op.data_ptr(), n.data_ptr()) };
         res
     }
 
     pub fn add_mod(op1: &Self, op2: &Self, n: &Self) -> Self {
-        let mut res = Self::init(Self::get_bit_count(n));
+        let mut res = Self::new(Self::get_bit_count(n));
         unsafe {
             raw::TEE_BigIntAddMod(
                 res.0.as_mut_ptr(),
@@ -168,7 +168,7 @@ impl BigInt {
     }
 
     pub fn sub_mod(op1: &Self, op2: &Self, n: &Self) -> Self {
-        let mut res = Self::init(Self::get_bit_count(n));
+        let mut res = Self::new(Self::get_bit_count(n));
         unsafe {
             raw::TEE_BigIntSubMod(
                 res.0.as_mut_ptr(),
@@ -181,7 +181,7 @@ impl BigInt {
     }
 
     pub fn mul_mod(op1: &Self, op2: &Self, n: &Self) -> Self {
-        let mut res = Self::init(Self::get_bit_count(n));
+        let mut res = Self::new(Self::get_bit_count(n));
         unsafe {
             raw::TEE_BigIntMulMod(
                 res.0.as_mut_ptr(),
@@ -194,13 +194,13 @@ impl BigInt {
     }
 
     pub fn square_mod(op: &Self, n: &Self) -> Self {
-        let mut res = Self::init(Self::get_bit_count(n));
+        let mut res = Self::new(Self::get_bit_count(n));
         unsafe { raw::TEE_BigIntSquareMod(res.0.as_mut_ptr(), op.data_ptr(), n.data_ptr()) };
         res
     }
 
     pub fn inv_mod(op: &Self, n: &Self) -> Self {
-        let mut res = Self::init(Self::get_bit_count(n));
+        let mut res = Self::new(Self::get_bit_count(n));
         unsafe { raw::TEE_BigIntInvMod(res.0.as_mut_ptr(), op.data_ptr(), n.data_ptr()) };
         res
     }
@@ -247,12 +247,12 @@ impl BigIntFMMContext {
         self.0.as_ptr()
     }
 
-    pub fn size_in_u32(size: u32) -> u32 {
+    fn size_in_u32(size: u32) -> u32 {
         unsafe { raw::TEE_BigIntFMMContextSizeInU32(size) }
     }
 
     // Globalplatform define FMMContext1 here while OP-TEE does not update yet
-    pub fn init(bits: u32, modulus: BigInt) -> Result<Self> {
+    pub fn new(bits: u32, modulus: BigInt) -> Result<Self> {
         let size: usize = Self::size_in_u32(bits) as usize;
         let mut tmp_vec: Vec<BigIntFMMContextUnit> = vec![0; size];
         unsafe {
@@ -269,11 +269,11 @@ impl BigIntFMM {
         self.0.as_ptr()
     }
 
-    pub fn size_in_u32(size: u32) -> u32 {
+    fn size_in_u32(size: u32) -> u32 {
         unsafe { raw::TEE_BigIntFMMSizeInU32(size) }
     }
 
-    pub fn init(bits: u32) -> Self {
+    pub fn new(bits: u32) -> Self {
         let size: usize = Self::size_in_u32(bits) as usize;
         let mut tmp_vec: Vec<BigIntFMMUnit> = vec![0; size];
         unsafe { raw::TEE_BigIntInitFMM(tmp_vec.as_mut_ptr(), size as u32) };

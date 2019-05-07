@@ -84,8 +84,8 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
     let mut n0_buffer = unsafe { params.0.as_memref().unwrap() };
     let n1_value = unsafe { params.1.as_value().unwrap() };
 
-    let mut n0 = BigInt::init(64);
-    let mut n1 = BigInt::init(2);
+    let mut n0 = BigInt::new(64);
+    let mut n1 = BigInt::new(2);
 
     n0.convert_from_octet_string(n0_buffer.buffer(), 0)?;
     n1.convert_from_s32(n1_value.a() as i32);
