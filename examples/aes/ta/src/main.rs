@@ -36,7 +36,8 @@ fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut AesCipher) -> Resu
 }
 
 #[ta_close_session]
-fn close_session() {
+fn close_session(sess_ctx: &mut AesCipher) {
+    unsafe { Box::from_raw(sess_ctx) };
     trace_println!("[+] TA close session");
 }
 

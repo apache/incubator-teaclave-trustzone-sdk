@@ -6,7 +6,7 @@ use optee_utee::{
 use optee_utee::{AlgorithmId, Mac};
 use optee_utee::{Attribute, AttributeId, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
-use proto::{Command};
+use proto::Command;
 
 pub const SHA1_HASH_SIZE: usize = 20;
 pub const MAX_KEY_SIZE: usize = 64;
@@ -40,7 +40,8 @@ fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut HmacOtp) -> Result
 }
 
 #[ta_close_session]
-fn close_session() {
+fn close_session(sess_ctx: &mut HmacOtp) {
+    unsafe { Box::from_raw(sess_ctx) };
     trace_println!("[+] TA close session");
 }
 
