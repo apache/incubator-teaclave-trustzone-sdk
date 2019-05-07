@@ -31,7 +31,8 @@ fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut RsaCipher) -> Resu
 }
 
 #[ta_close_session]
-fn close_session() {
+fn close_session(sess_ctx: &mut RsaCipher) {
+    unsafe { Box::from_raw(sess_ctx) };
     trace_println!("[+] TA close session");
 }
 
@@ -100,15 +101,9 @@ fn encrypt(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
 fn invoke_command(sess_ctx: &mut RsaCipher, cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
     match Command::from(cmd_id) {
-        Command::GenKey => {
-            return gen_key(sess_ctx, params);
-        }
-        Command::GetSize => {
-            return get_size(sess_ctx, params);
-        }
-        Command::Encrypt => {
-            return encrypt(sess_ctx, params);
-        }
+        Command::GenKey => gen_key(sess_ctx, params),
+        Command::GetSize => get_size(sess_ctx, params),
+        Command::Encrypt => encrypt(sess_ctx, params),
         _ => Err(Error::new(ErrorKind::BadParameters)),
     }
 }
