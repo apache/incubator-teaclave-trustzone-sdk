@@ -50,6 +50,11 @@ impl OperationInfo {
         Self { raw }
     }
 
+    /// Return the `keySize` field of the `OperationInfo`.
+    pub fn key_size(&self) -> u32 {
+        self.raw.keySize
+    }
+
     /// Return the `maxDataSize` field of the `OperationInfo`.
     pub fn max_key_size(&self) -> u32 {
         self.raw.maxKeySize
@@ -680,8 +685,8 @@ impl OpHandle for Cipher {
     }
 }
 
-/// MAC operation. This operation is used to perform MAC (Message Authentication Code) operations, such as `HMAC` 
-/// or `AES-CMAC` operations. This operation is not used for Authenticated Encryption algorithms, 
+/// MAC operation. This operation is used to perform MAC (Message Authentication Code) operations, such as `HMAC`
+/// or `AES-CMAC` operations. This operation is not used for Authenticated Encryption algorithms,
 /// which SHALL use the functions defined in [AE](AE).
 pub struct Mac(OperationHandle);
 
@@ -1127,7 +1132,6 @@ impl Asymmetric {
     ///
     /// 1) `params`: Optional operation parameters.
     /// 2) `src`: Input plaintext buffer.
-    /// 3) `dest`: Output ciphertext buffer.
     ///
     /// # Errors
     ///
@@ -1145,32 +1149,26 @@ impl Asymmetric {
     // This function can update output size with short buffer error when buffer is too
     // short, and example acipher utilizes this feature!
     // Define this function as unsafe because we need to return Ok for short buffer error.
-    pub unsafe fn encrypt(
-        &self,
-        params: &[Attribute],
-        src: &[u8],
-        dest: &mut [u8],
-    ) -> Result<usize> {
+    pub fn encrypt(&self, params: &[Attribute], src: &[u8]) -> Result<Vec<u8>> {
         let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
-        let mut dest_size: u32 = dest.len() as u32;
-        match {
+        let mut res_size: u32 = self.info().key_size();
+        let mut res_vec: Vec<u8> = vec![0u8; res_size as usize];
+        match unsafe {
             raw::TEE_AsymmetricEncrypt(
                 self.handle(),
                 p.as_ptr() as _,
                 params.len() as u32,
                 src.as_ptr() as _,
                 src.len() as u32,
-                dest.as_mut_ptr() as _,
-                &mut dest_size,
+                res_vec.as_mut_ptr() as _,
+                &mut res_size,
             )
         } {
             raw::TEE_SUCCESS => {
-                return Ok(dest_size as usize);
+                res_vec.truncate(res_size as usize);
+                return Ok(res_vec);
             }
-            code => match code {
-                raw::TEE_ERROR_SHORT_BUFFER => Ok(dest_size as usize),
-                _ => Err(Error::from_raw_error(code)),
-            },
+            code => Err(Error::from_raw_error(code)),
         }
     }
 
@@ -1180,7 +1178,6 @@ impl Asymmetric {
     ///
     /// 1) `params`: Optional operation parameters.
     /// 2) `src`: Input ciphertext buffer.
-    /// 3) `dest`: Output plaintext buffer.
     ///
     /// # Errors
     ///
@@ -1195,9 +1192,10 @@ impl Asymmetric {
     /// 2) If no key is programmed in the operation.
     /// 3) Hardware or cryptographic algorithm failure.
     /// 4) If the Implementation detects any other error.
-    pub fn decrypt(&self, params: &[Attribute], src: &[u8], dest: &mut [u8]) -> Result<usize> {
+    pub fn decrypt(&self, params: &[Attribute], src: &[u8]) -> Result<Vec<u8>> {
         let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
-        let mut dest_size: u32 = dest.len() as u32;
+        let mut res_size: u32 = self.info().key_size();
+        let mut res_vec: Vec<u8> = vec![0u8; res_size as usize];
         match unsafe {
             raw::TEE_AsymmetricDecrypt(
                 self.handle(),
@@ -1205,12 +1203,13 @@ impl Asymmetric {
                 params.len() as u32,
                 src.as_ptr() as _,
                 src.len() as u32,
-                dest.as_mut_ptr() as _,
-                &mut dest_size,
+                res_vec.as_mut_ptr() as _,
+                &mut res_size,
             )
         } {
             raw::TEE_SUCCESS => {
-                return Ok(dest_size as usize);
+                res_vec.truncate(res_size as usize);
+                return Ok(res_vec);
             }
             code => Err(Error::from_raw_error(code)),
         }

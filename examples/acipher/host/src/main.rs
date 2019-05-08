@@ -12,14 +12,13 @@ fn gen_key(session: &mut Session, key_size: u32) -> optee_teec::Result<()> {
     Ok(())
 }
 
-fn encrypt(session: &mut Session, plain_text: &mut [u8]) -> optee_teec::Result<()> {
-    let p0 = ParamTmpRef::new(plain_text, ParamType::MemrefTempInput);
-    let p1 = ParamValue::new(0, 0, ParamType::ValueOutput);
-    let mut operation = Operation::new(0, p0, p1, ParamNone, ParamNone);
+fn enc_dec(session: &mut Session, plain_text: &mut [u8]) -> optee_teec::Result<()> {
+    let p0 = ParamValue::new(0, 0, ParamType::ValueOutput);
+    let mut operation = Operation::new(0, p0, ParamNone, ParamNone, ParamNone);
 
     session.invoke_command(Command::GetSize as u32, &mut operation)?;
 
-    let mut cipher_text = vec![0u8; operation.parameters().1.a() as usize];
+    let mut cipher_text = vec![0u8; operation.parameters().0.a() as usize];
     let p0 = ParamTmpRef::new(plain_text, ParamType::MemrefTempInput);
     let p1 = ParamTmpRef::new(&mut cipher_text, ParamType::MemrefTempOutput);
     let mut operation2 = Operation::new(0, p0, p1, ParamNone, ParamNone);
@@ -30,6 +29,18 @@ fn encrypt(session: &mut Session, plain_text: &mut [u8]) -> optee_teec::Result<(
         str::from_utf8(plain_text).unwrap(),
         cipher_text.len(),
         cipher_text
+    );
+
+    let p0 = ParamTmpRef::new(&mut cipher_text, ParamType::MemrefTempInput);
+    let mut dec_res: Vec<u8> = vec![0u8; plain_text.len()];
+    let p1 = ParamTmpRef::new(&mut dec_res, ParamType::MemrefTempOutput);
+    let mut operation2 = Operation::new(0, p0, p1, ParamNone, ParamNone);
+
+    session.invoke_command(Command::Decrypt as u32, &mut operation2)?;
+    println!(
+        "Success decrypt the above ciphertext as {} bytes plain text: {}",
+        dec_res.len(),
+        str::from_utf8(&dec_res).unwrap()
     );
     Ok(())
 }
@@ -59,7 +70,7 @@ fn main() -> optee_teec::Result<()> {
     let mut session = ctx.open_session(uuid)?;
 
     gen_key(&mut session, key_size)?;
-    encrypt(&mut session, unsafe { args[2].as_bytes_mut() })?;
+    enc_dec(&mut session, unsafe { args[2].as_bytes_mut() })?;
 
     Ok(())
 }

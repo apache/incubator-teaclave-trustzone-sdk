@@ -51,27 +51,14 @@ fn gen_key(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
 
 fn get_size(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
     let key_info = rsa.key.info().unwrap();
-    let mut p0 = unsafe { params.0.as_memref().unwrap() };
-    let mut plain_text = p0.buffer();
-    let mut cipher_text = [0u8; 0];
-    match Asymmetric::allocate(
-        AlgorithmId::RsaesPkcs1V15,
-        OperationMode::Encrypt,
-        key_info.object_size(),
-    ) {
-        Err(e) => Err(e),
-        Ok(cipher) => {
-            cipher.set_key(&mut rsa.key)?;
-            let mut attrs = [];
-            match unsafe { cipher.encrypt(&mut attrs, &mut plain_text, &mut cipher_text) } {
-                Err(e) => Err(e),
-                Ok(cipher_size) => {
-                    unsafe { params.1.as_value().unwrap().set_a(cipher_size as u32) };
-                    Ok(())
-                }
-            }
-        }
-    }
+    unsafe {
+        params
+            .0
+            .as_value()
+            .unwrap()
+            .set_a((key_info.object_size() / 8) as u32)
+    };
+    Ok(())
 }
 
 fn encrypt(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
@@ -79,7 +66,6 @@ fn encrypt(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
     let mut p0 = unsafe { params.0.as_memref().unwrap() };
     let mut plain_text = p0.buffer();
     let mut p1 = unsafe { params.1.as_memref().unwrap() };
-    let mut cipher_text = p1.buffer();
     match Asymmetric::allocate(
         AlgorithmId::RsaesPkcs1V15,
         OperationMode::Encrypt,
@@ -89,9 +75,31 @@ fn encrypt(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
         Ok(cipher) => {
             cipher.set_key(&mut rsa.key)?;
             let mut attrs = [];
-            match unsafe { cipher.encrypt(&mut attrs, &mut plain_text, &mut cipher_text) } {
+            match cipher.encrypt(&mut attrs, &mut plain_text) {
                 Err(e) => Err(e),
-                Ok(_sz) => Ok(()),
+                Ok(cipher_text) => Ok(p1.buffer().clone_from_slice(&cipher_text)),
+            }
+        }
+    }
+}
+
+fn decrypt(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
+    let key_info = rsa.key.info().unwrap();
+    let mut p0 = unsafe { params.0.as_memref().unwrap() };
+    let mut cipher_text = p0.buffer();
+    let mut p1 = unsafe { params.1.as_memref().unwrap() };
+    match Asymmetric::allocate(
+        AlgorithmId::RsaesPkcs1V15,
+        OperationMode::Decrypt,
+        key_info.object_size(),
+    ) {
+        Err(e) => Err(e),
+        Ok(cipher) => {
+            cipher.set_key(&mut rsa.key)?;
+            let mut attrs = [];
+            match cipher.decrypt(&mut attrs, &mut cipher_text) {
+                Err(e) => Err(e),
+                Ok(plain_text) => Ok(p1.buffer().clone_from_slice(&plain_text)),
             }
         }
     }
@@ -104,6 +112,7 @@ fn invoke_command(sess_ctx: &mut RsaCipher, cmd_id: u32, params: &mut Parameters
         Command::GenKey => gen_key(sess_ctx, params),
         Command::GetSize => get_size(sess_ctx, params),
         Command::Encrypt => encrypt(sess_ctx, params),
+        Command::Decrypt => decrypt(sess_ctx, params),
         _ => Err(Error::new(ErrorKind::BadParameters)),
     }
 }
