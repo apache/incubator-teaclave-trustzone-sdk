@@ -2,6 +2,7 @@ pub enum Command {
     GenKey,
     GetSize,
     Encrypt,
+    Decrypt,
     Unknown,
 }
 
@@ -12,6 +13,7 @@ impl From<u32> for Command {
             0 => Command::GenKey,
             1 => Command::GetSize,
             2 => Command::Encrypt, 
+            3 => Command::Decrypt,
             _ => Command::Unknown,
         }
     }
