@@ -4,7 +4,7 @@ use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{AlgorithmId, Cipher, OperationMode};
-use optee_utee::{Attribute, AttributeId, TransientObject, TransientObjectType};
+use optee_utee::{AttrCast, AttributeId, AttributeMemref, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::{Algo, Command, KeySize, Mode};
 use std::boxed::Box;
@@ -36,9 +36,9 @@ fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut AesCipher) -> Resu
 }
 
 #[ta_close_session]
-fn close_session(sess_ctx: &mut AesCipher) {
-    unsafe { Box::from_raw(sess_ctx) };
+fn close_session(sess_ctx: *mut AesCipher) {
     trace_println!("[+] TA close session");
+    unsafe { Box::from_raw(sess_ctx) };
 }
 
 #[ta_destroy]
@@ -107,8 +107,8 @@ pub fn alloc_resources(aes: &mut AesCipher, params: &mut Parameters) -> Result<(
     .unwrap();
     aes.key_object = TransientObject::allocate(TransientObjectType::Aes, aes.key_size * 8).unwrap();
     let mut key = vec![0u8; aes.key_size as usize];
-    let attr = Attribute::from_ref(AttributeId::SecretValue, &mut key);
-    aes.key_object.populate(&[attr])?;
+    let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &mut key);
+    aes.key_object.populate(&[attr.cast()])?;
     aes.cipher.set_key(&mut aes.key_object)?;
     Ok(())
 }
@@ -122,10 +122,10 @@ pub fn set_aes_key(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
         return Err(Error::new(ErrorKind::BadParameters));
     }
 
-    let attr = Attribute::from_ref(AttributeId::SecretValue, &mut key);
+    let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &mut key);
 
     aes.key_object.reset();
-    aes.key_object.populate(&[attr])?;
+    aes.key_object.populate(&[attr.cast()])?;
 
     aes.cipher.set_key(&mut aes.key_object)?;
     Ok(())

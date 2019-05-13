@@ -1,9 +1,13 @@
 use crate::{Error, Result};
 use bitflags::bitflags;
 use optee_utee_sys as raw;
-use std::{mem, ptr};
+use std::{marker, mem, ptr};
 
-/// An attribute can be either a buffer attribute or a value attribute.
+/// A trait for an attribute (buffer or value) to return its raw value `raw::TEE_Attribute`.
+pub trait AttrCast {
+    fn cast(&self) -> Attribute;
+}
+
 pub struct Attribute {
     raw: raw::TEE_Attribute,
 }
@@ -13,7 +17,16 @@ impl Attribute {
     pub fn raw(&self) -> raw::TEE_Attribute {
         self.raw
     }
+}
 
+/// A buffer attribute.
+#[derive(Clone, Copy)]
+pub struct AttributeMemref<'attrref> {
+    raw: raw::TEE_Attribute,
+    _marker: marker::PhantomData<&'attrref mut [u8]>,
+}
+
+impl<'attrref> AttributeMemref<'attrref> {
     /// Create an empty memory reference attribute, which can be filled by TransientObject function
     /// [ref_attribute](TransientObject::ref_attribute)
     /// or PersistentObject function
@@ -22,9 +35,9 @@ impl Attribute {
     /// # Example
     ///
     /// ```no_run
-    /// let mut attr = Attribute::new_value();
+    /// let mut attr = AttributeValue::new_value();
     /// ```
-    pub fn new_ref() -> Self {
+    fn new_ref() -> Self {
         let raw = raw::TEE_Attribute {
             attributeID: 0,
             content: raw::content {
@@ -34,27 +47,10 @@ impl Attribute {
                 },
             },
         };
-        Self { raw }
-    }
-
-    /// Create an empty value attribute, which can be filled by TransientObject function
-    /// [value_attribute](TransientObject::value_attribute)
-    /// or PersistentObject function
-    /// [value_attribute](PersistentObject::value_attribute).
-    ///
-    /// Example
-    ///
-    /// ```no_run
-    /// let mut attr = Attribute::new_value();
-    /// ```
-    pub fn new_value() -> Self {
-        let raw = raw::TEE_Attribute {
-            attributeID: 0,
-            content: raw::content {
-                value: raw::Value { a: 0, b: 0 },
-            },
-        };
-        Self { raw }
+        Self {
+            raw: raw,
+            _marker: marker::PhantomData,
+        }
     }
 
     /// Populate a single attribute with a reference to a buffer.
@@ -67,10 +63,10 @@ impl Attribute {
     /// # Example
     ///
     /// ```no_run
-    /// let mut attr = Attribute::from_ref(AttributeId::SecretValue, [0u8;1]);
+    /// let mut attr = AttributeMemref::from_ref(AttributeId::SecretValue, &mut [0u8;1]);
     /// ```
-    pub fn from_ref(id: AttributeId, buffer: &mut [u8]) -> Self {
-        let mut res = Attribute::new_ref();
+    pub fn from_ref(id: AttributeId, buffer: &'attrref mut [u8]) -> Self {
+        let mut res = AttributeMemref::new_ref();
         unsafe {
             raw::TEE_InitRefAttribute(
                 &mut res.raw,
@@ -80,6 +76,39 @@ impl Attribute {
             );
         }
         res
+    }
+}
+
+impl<'attrref> AttrCast for AttributeMemref<'attrref> {
+    fn cast(&self) -> Attribute {
+        Attribute { raw: self.raw }
+    }
+}
+
+/// A value attribute.
+pub struct AttributeValue {
+    raw: raw::TEE_Attribute,
+}
+
+impl AttributeValue {
+    /// Create an empty value attribute, which can be filled by TransientObject function
+    /// [value_attribute](TransientObject::value_attribute)
+    /// or PersistentObject function
+    /// [value_attribute](PersistentObject::value_attribute).
+    ///
+    /// Example
+    ///
+    /// ```no_run
+    /// let mut attr = AttributeValue::new_value();
+    /// ```
+    pub fn new_value() -> Self {
+        let raw = raw::TEE_Attribute {
+            attributeID: 0,
+            content: raw::content {
+                value: raw::Value { a: 0, b: 0 },
+            },
+        };
+        Self { raw }
     }
 
     /// Populate a single attribute with two u32 values.
@@ -92,14 +121,20 @@ impl Attribute {
     /// # Example
     ///
     /// ```no_run
-    /// let mut attr = Attribute::from_value(AttributeId::SecretValue, 0, 0);
+    /// let mut attr = AttributeValue::from_value(AttributeId::SecretValue, 0, 0);
     /// ```
     pub fn from_value(id: AttributeId, a: u32, b: u32) -> Self {
-        let mut res = Attribute::new_value();
+        let mut res = AttributeValue::new_value();
         unsafe {
             raw::TEE_InitValueAttribute(&mut res.raw, id as u32, a, b);
         }
         res
+    }
+}
+
+impl AttrCast for AttributeValue {
+    fn cast(&self) -> Attribute {
+        Attribute { raw: self.raw }
     }
 }
 
@@ -197,22 +232,22 @@ impl ObjectHandle {
         }
     }
 
-    fn ref_attribute(&self, id: AttributeId) -> Result<Attribute> {
-        let mut ref_attr = Attribute::new_ref();
+    fn ref_attribute(&self, id: AttributeId, buffer: &mut [u8]) -> Result<usize> {
+        let mut size = buffer.len() as u32;
         match unsafe {
             raw::TEE_GetObjectBufferAttribute(
                 self.handle(),
                 id as u32,
-                ref_attr.raw.content.memref.buffer as _,
-                &mut ref_attr.raw.content.memref.size as _,
+                buffer as *mut _ as _,
+                &mut size as _,
             )
         } {
-            raw::TEE_SUCCESS => Ok(ref_attr),
+            raw::TEE_SUCCESS => Ok(size as usize),
             code => Err(Error::from_raw_error(code)),
         }
     }
 
-    fn value_attribute(&self, id: u32, value_attr: &mut Attribute) -> Result<()> {
+    fn value_attribute(&self, id: u32, value_attr: &mut AttributeValue) -> Result<()> {
         match unsafe {
             raw::TEE_GetObjectValueAttribute(
                 self.handle(),
@@ -473,6 +508,7 @@ impl TransientObject {
         } {
             raw::TEE_SUCCESS => {
                 let handle = ObjectHandle::from_raw(raw_handle);
+                trace_println!("allocate object {}!", handle.raw as u32);
                 Ok(Self(handle))
             }
             code => Err(Error::from_raw_error(code)),
@@ -501,7 +537,7 @@ impl TransientObject {
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
     ///     Ok(object) =>
     ///     {
-    ///         let attrs = [Attribute::from_ref(AttributeId::SecretValue, [0u8;1])];
+    ///         let attrs = [AttributeMemref::from_ref(AttributeId::SecretValue, [0u8;1])];
     ///         object.populate(&attrs);
     ///         Ok(())
     ///     }
@@ -523,7 +559,7 @@ impl TransientObject {
     /// 5) If the Implementation detects any other error associated with this function which is not
     ///    explicitly associated with a defined return code for this function.
     pub fn populate(&mut self, attrs: &[Attribute]) -> Result<()> {
-        let p: Vec<raw::TEE_Attribute> = attrs.iter().map(|p| p.raw).collect();
+        let p: Vec<raw::TEE_Attribute> = attrs.iter().map(|p| p.raw()).collect();
         match unsafe {
             raw::TEE_PopulateTransientObject(self.0.handle(), p.as_ptr() as _, attrs.len() as u32)
         } {
@@ -599,7 +635,7 @@ impl TransientObject {
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
     ///     Ok(object) =>
     ///     {
-    ///         let mut attr = Attribute::new_ref();
+    ///         let mut attr = AttributeMemref::new_ref();
     ///         object.ref_attribute(id, &mut attr);
     ///         Ok(())
     ///     }
@@ -617,8 +653,8 @@ impl TransientObject {
     /// 1) If object is not a valid opened object.
     /// 2) If the object is not initialized.
     /// 3) If the Attribute is not a buffer attribute.
-    pub fn ref_attribute(&self, id: AttributeId) -> Result<Attribute> {
-        self.0.ref_attribute(id)
+    pub fn ref_attribute(&self, id: AttributeId, buffer: &mut [u8]) -> Result<usize> {
+        self.0.ref_attribute(id, buffer)
     }
 
     /// Extract one value attribute from an object. The attribute is identified by the argument id.
@@ -634,7 +670,7 @@ impl TransientObject {
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
     ///     Ok(object) =>
     ///     {
-    ///         let mut attr = Attribute::new_value();
+    ///         let mut attr = AttributeValue::new_value();
     ///         object.value_attribute(id, &mut attr);
     ///         Ok(())
     ///     }
@@ -651,7 +687,7 @@ impl TransientObject {
     /// 1) If object is not a valid opened object.
     /// 2) If the object is not initialized.
     /// 3) If the Attribute is not a value attribute.
-    pub fn value_attribute(&self, id: u32, value_attr: &mut Attribute) -> Result<()> {
+    pub fn value_attribute(&self, id: u32, value_attr: &mut AttributeValue) -> Result<()> {
         self.0.value_attribute(id, value_attr)
     }
 
@@ -716,7 +752,7 @@ impl TransientObject {
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
     ///     Ok(object) =>
     ///     {
-    ///         let attrs = [Attribute::from_ref(AttributeId::SecretValue, & [0u8;1])];
+    ///         let attrs = [AttributeMemref::from_ref(AttributeId::SecretValue, & [0u8;1])];
     ///         object.generate_key(128, &attrs)?;
     ///         Ok(())
     ///     }
@@ -745,7 +781,7 @@ impl TransientObject {
                 self.handle(),
                 key_size as u32,
                 p.as_slice().as_ptr() as _,
-                params.len() as u32,
+                p.len() as u32,
             ) {
                 raw::TEE_SUCCESS => Ok(()),
                 code => Err(Error::from_raw_error(code)),
@@ -770,6 +806,7 @@ impl Drop for TransientObject {
     /// 2) If the Implementation detects any other error associated with this function which is not
     ///    explicitly associated with a defined return code for this function.
     fn drop(&mut self) {
+        trace_println!("drop object {}!", self.0.raw as u32);
         unsafe {
             if self.0.raw != ptr::null_mut() {
                 raw::TEE_FreeTransientObject(self.0.handle());
@@ -778,6 +815,7 @@ impl Drop for TransientObject {
         }
     }
 }
+
 /// An object identified by an Object Identifier and including a Data Stream.
 /// Contrast Transient Object.
 pub struct PersistentObject(ObjectHandle);
@@ -1065,8 +1103,8 @@ impl PersistentObject {
     /// 1) `CorruptObject`: If the persistent object is corrupt. The object handle is closed.
     /// 2) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
     ///    currently inaccessible.
-    pub fn ref_attribute(&self, id: AttributeId) -> Result<Attribute> {
-        self.0.ref_attribute(id)
+    pub fn ref_attribute(&self, id: AttributeId, buffer: &mut [u8]) -> Result<usize> {
+        self.0.ref_attribute(id, buffer)
     }
 
     /// Extract one value attribute from an object. The attribute is identified by the argument id.
@@ -1077,7 +1115,7 @@ impl PersistentObject {
     /// 1) `CorruptObject`: If the persistent object is corrupt. The object handle is closed.
     /// 2) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
     ///    currently inaccessible.
-    pub fn value_attribute(&self, id: u32, value_attr: &mut Attribute) -> Result<()> {
+    pub fn value_attribute(&self, id: u32, value_attr: &mut AttributeValue) -> Result<()> {
         self.0.value_attribute(id, value_attr)
     }
 

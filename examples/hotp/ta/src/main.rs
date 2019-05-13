@@ -4,7 +4,7 @@ use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{AlgorithmId, Mac};
-use optee_utee::{Attribute, AttributeId, TransientObject, TransientObjectType};
+use optee_utee::{AttrCast, AttributeId, AttributeMemref, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::Command;
 
@@ -40,9 +40,9 @@ fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut HmacOtp) -> Result
 }
 
 #[ta_close_session]
-fn close_session(sess_ctx: &mut HmacOtp) {
-    unsafe { Box::from_raw(sess_ctx) };
+fn close_session(sess_ctx: *mut HmacOtp) {
     trace_println!("[+] TA close session");
+    unsafe { Box::from_raw(sess_ctx) };
 }
 
 #[ta_destroy]
@@ -105,8 +105,8 @@ pub fn hmac_sha1(hotp: &mut HmacOtp, out: &mut [u8]) -> Result<usize> {
                     //KEY size can be larger than hotp.key_len
                     let mut tmp_key = hotp.key.to_vec();
                     tmp_key.truncate(hotp.key_len);
-                    let attr = Attribute::from_ref(AttributeId::SecretValue, &mut tmp_key);
-                    key_object.populate(&[attr])?;
+                    let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &mut tmp_key);
+                    key_object.populate(&[attr.cast()])?;
                     mac.set_key(&key_object)?;
                 }
             }
