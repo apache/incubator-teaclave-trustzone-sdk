@@ -2,7 +2,7 @@ use optee_teec::{
     Context, Operation, ParamNone, ParamTmpRef, ParamType, ParamValue, Session, Uuid,
 };
 use optee_teec::{Error, ErrorKind};
-use proto::{Command, HASH_SIZE, UUID};
+use proto::{Command, UUID};
 use std::env;
 
 fn update(session: &mut Session, src: &[u8]) -> optee_teec::Result<()> {
@@ -36,7 +36,7 @@ fn main() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
     let uuid = Uuid::parse_str(UUID).unwrap();
 
-    let mut hash: [u8; HASH_SIZE] = [0u8; HASH_SIZE];
+    let mut hash: [u8; 32] = [0u8; 32];
     let mut session = ctx.open_session(uuid)?;
 
     for i in 1..args_len - 1 {
