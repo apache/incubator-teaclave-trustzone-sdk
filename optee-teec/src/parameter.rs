@@ -1,6 +1,6 @@
 use optee_teec_sys as raw;
-use std::mem;
 use std::marker;
+use std::mem;
 
 pub trait Param {
     fn into_raw(&mut self) -> raw::TEEC_Parameter;
@@ -38,13 +38,14 @@ impl ParamValue {
 
 impl Param for ParamValue {
     fn into_raw(&mut self) -> raw::TEEC_Parameter {
-        raw::TEEC_Parameter {
-            value: self.raw
-        }
+        raw::TEEC_Parameter { value: self.raw }
     }
 
     fn from_raw(raw: raw::TEEC_Parameter, param_type: ParamType) -> Self {
-        Self { raw: unsafe { raw.value }, param_type: param_type }
+        Self {
+            raw: unsafe { raw.value },
+            param_type: param_type,
+        }
     }
 
     fn param_type(&self) -> ParamType {
@@ -80,15 +81,34 @@ pub struct ParamTmpRef<'a> {
 }
 
 impl<'a> ParamTmpRef<'a> {
-    /// Creates a temporary memory reference. `buffer` is a region of memory
-    /// which needs to be temporarily registered for the duration of the
-    /// `Operation`.
-    pub fn new(buffer: &'a mut [u8], param_type: ParamType) -> Self {
+    /// Creates a temporary input only memory reference.
+    /// `buffer` is a region of memory which needs to be temporarily
+    /// registered for the duration of the `Operation`.
+    pub fn new_input(buffer: &'a [u8]) -> Self {
         let raw = raw::TEEC_TempMemoryReference {
             buffer: buffer.as_ptr() as _,
             size: buffer.len(),
         };
-        Self { raw, param_type, _marker: marker::PhantomData }
+        Self {
+            raw,
+            param_type: ParamType::MemrefTempInput,
+            _marker: marker::PhantomData,
+        }
+    }
+
+    /// Creates a temporary memory reference. `buffer` is a region of memory
+    /// which needs to be temporarily registered for the duration of the
+    /// `Operation`.
+    pub fn new_output(buffer: &'a mut [u8], param_type: ParamType) -> Self {
+        let raw = raw::TEEC_TempMemoryReference {
+            buffer: buffer.as_ptr() as _,
+            size: buffer.len(),
+        };
+        Self {
+            raw,
+            param_type,
+            _marker: marker::PhantomData,
+        }
     }
 
     pub fn updated_size(&self) -> usize {
@@ -98,9 +118,7 @@ impl<'a> ParamTmpRef<'a> {
 
 impl<'a> Param for ParamTmpRef<'a> {
     fn into_raw(&mut self) -> raw::TEEC_Parameter {
-        raw::TEEC_Parameter {
-            tmpref: self.raw
-        }
+        raw::TEEC_Parameter { tmpref: self.raw }
     }
 
     fn param_type(&self) -> ParamType {

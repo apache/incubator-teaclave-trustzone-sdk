@@ -2,7 +2,7 @@ use optee_teec::{
     Context, Error, ErrorKind, Operation, ParamNone, ParamTmpRef, ParamType, ParamValue, Session,
     Uuid,
 };
-use proto::{UUID, Command};
+use proto::{Command, UUID};
 
 const TEST_SIZE: usize = 10;
 const SIZE_K: usize = 20;
@@ -11,12 +11,12 @@ const RFC4226_TEST_VALUES: [u32; TEST_SIZE] = [
 ];
 
 fn register_shared_key(session: &mut Session) -> optee_teec::Result<()> {
-    let mut k: [u8; SIZE_K] = [
+    let k: [u8; SIZE_K] = [
         0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35,
         0x36, 0x37, 0x38, 0x39, 0x30,
     ];
 
-    let p0 = ParamTmpRef::new(&mut k, ParamType::MemrefTempInput);
+    let p0 = ParamTmpRef::new_input(&k);
     let mut operation = Operation::new(0, p0, ParamNone, ParamNone, ParamNone);
 
     session.invoke_command(Command::RegisterSharedKey as u32, &mut operation)?;
@@ -47,8 +47,7 @@ fn get_hotp(session: &mut Session) -> optee_teec::Result<()> {
 
 fn main() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
-    let uuid =
-        Uuid::parse_str(UUID).unwrap();
+    let uuid = Uuid::parse_str(UUID).unwrap();
     let mut session = ctx.open_session(uuid)?;
 
     register_shared_key(&mut session)?;

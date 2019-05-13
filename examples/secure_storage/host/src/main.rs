@@ -1,16 +1,16 @@
 use optee_teec::{Context, ErrorKind, Operation, ParamNone, ParamTmpRef, ParamType, Session, Uuid};
+use proto::{Command, UUID};
 use std::ffi::CString;
-use proto::{UUID, Command};
 
 const TEST_OBJECT_SIZE: usize = 7000;
 
 fn read_secure_object(
     session: &mut Session,
-    obj_id: &mut [u8],
+    obj_id: &[u8],
     obj_data: &mut [u8],
 ) -> optee_teec::Result<()> {
-    let p0 = ParamTmpRef::new(obj_id, ParamType::MemrefTempInput);
-    let p1 = ParamTmpRef::new(obj_data, ParamType::MemrefTempOutput);
+    let p0 = ParamTmpRef::new_input(obj_id);
+    let p1 = ParamTmpRef::new_output(obj_data, ParamType::MemrefTempOutput);
     let mut operation = Operation::new(0, p0, p1, ParamNone, ParamNone);
 
     session.invoke_command(Command::Read as u32, &mut operation)?;
@@ -21,11 +21,11 @@ fn read_secure_object(
 
 fn write_secure_object(
     session: &mut Session,
-    obj_id: &mut [u8],
-    obj_data: &mut [u8],
+    obj_id: &[u8],
+    obj_data: &[u8],
 ) -> optee_teec::Result<()> {
-    let p0 = ParamTmpRef::new(obj_id, ParamType::MemrefTempInput);
-    let p1 = ParamTmpRef::new(obj_data, ParamType::MemrefTempInput);
+    let p0 = ParamTmpRef::new_input(obj_id);
+    let p1 = ParamTmpRef::new_input(obj_data);
     let mut operation = Operation::new(0, p0, p1, ParamNone, ParamNone);
 
     session.invoke_command(Command::Write as u32, &mut operation)?;
@@ -34,8 +34,8 @@ fn write_secure_object(
     Ok(())
 }
 
-fn delete_secure_object(session: &mut Session, obj_id: &mut [u8]) -> optee_teec::Result<()> {
-    let p0 = ParamTmpRef::new(obj_id, ParamType::MemrefTempInput);
+fn delete_secure_object(session: &mut Session, obj_id: &[u8]) -> optee_teec::Result<()> {
+    let p0 = ParamTmpRef::new_input(obj_id);
     let mut operation = Operation::new(0, p0, ParamNone, ParamNone, ParamNone);
 
     session.invoke_command(Command::Delete as u32, &mut operation)?;
@@ -46,43 +46,42 @@ fn delete_secure_object(session: &mut Session, obj_id: &mut [u8]) -> optee_teec:
 
 fn main() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
-    let uuid =
-        Uuid::parse_str(UUID).unwrap();
+    let uuid = Uuid::parse_str(UUID).unwrap();
     let mut session = ctx.open_session(uuid)?;
 
-    let mut obj1_id = CString::new("object#1").unwrap().into_bytes_with_nul();
-    let mut obj1_data = [0xA1u8; TEST_OBJECT_SIZE];
+    let obj1_id = CString::new("object#1").unwrap().into_bytes_with_nul();
+    let obj1_data = [0xA1u8; TEST_OBJECT_SIZE];
     let mut read_data = [0x00u8; TEST_OBJECT_SIZE];
 
     println!("\nTest on object \"object#1\"");
-    write_secure_object(&mut session, obj1_id.as_mut_slice(), &mut obj1_data)?;
-    read_secure_object(&mut session, obj1_id.as_mut_slice(), &mut read_data)?;
+    write_secure_object(&mut session, obj1_id.as_slice(), &obj1_data)?;
+    read_secure_object(&mut session, obj1_id.as_slice(), &mut read_data)?;
 
     if obj1_data.iter().zip(read_data.iter()).all(|(a, b)| a == b) {
         println!("- Content read-out correctly");
     } else {
         println!("- Unexpected content found in secure storage");
     }
-    delete_secure_object(&mut session, &mut obj1_id)?;
+    delete_secure_object(&mut session, &obj1_id)?;
 
-    let mut obj2_id = CString::new("object#2").unwrap().into_bytes_with_nul();
+    let obj2_id = CString::new("object#2").unwrap().into_bytes_with_nul();
 
     println!("\nTest on object \"object#2\"");
-    match read_secure_object(&mut session, obj2_id.as_mut_slice(), &mut read_data) {
+    match read_secure_object(&mut session, obj2_id.as_slice(), &mut read_data) {
         Err(e) => {
             if e.kind() != ErrorKind::ItemNotFound {
                 println!("{}", e);
                 return Err(e);
             } else {
                 println!("- Object not found in TA secure storage, create it");
-                let mut obj2_data = [0xB1u8; TEST_OBJECT_SIZE];
-                write_secure_object(&mut session, &mut obj2_id, &mut obj2_data)?;
+                let obj2_data = [0xB1u8; TEST_OBJECT_SIZE];
+                write_secure_object(&mut session, &obj2_id, &obj2_data)?;
             }
         }
 
         Ok(()) => {
             println!("- Object found in TA secure storage, delete it");
-            delete_secure_object(&mut session, &mut obj2_id)?;
+            delete_secure_object(&mut session, &obj2_id)?;
         }
     }
 
