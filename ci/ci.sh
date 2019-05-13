@@ -12,5 +12,6 @@ pushd ../tests
 ./test_hotp.sh
 ./test_acipher.sh
 ./test_big_int.sh
+./test_diffie_hellman.sh
 
 popd
