@@ -1467,9 +1467,9 @@ pub enum AlgorithmId {
     AesCbcMacPkcs5 = 0x30000510,
     /// [Mac](Mac) supported algorithm.
     AesCmac = 0x30000610,
-    /// [Cipher](Cipher) supported algorithm.
+    /// [AE](AE) supported algorithm.
     AesCcm = 0x40000710,
-    /// [Cipher](Cipher) supported algorithm.
+    /// [AE](AE) supported algorithm.
     AesGcm = 0x40000810,
     /// [Cipher](Cipher) supported algorithm.
     DesEcbNopad = 0x10000011,
