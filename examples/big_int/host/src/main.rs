@@ -3,12 +3,12 @@ use optee_teec::{ParamNone, ParamTmpRef, ParamValue};
 use proto::{Command, UUID};
 
 fn big_int(session: &mut Session) -> optee_teec::Result<()> {
-    let mut number0 = [
+    let number0 = [
         0x01u8, 0x23u8, 0x45u8, 0x67u8, 0x89u8, 0xabu8, 0xcdu8, 0xefu8,
     ];
     let number1: u32 = 2;
 
-    let p0 = ParamTmpRef::new(&mut number0, ParamType::MemrefTempInput);
+    let p0 = ParamTmpRef::new_input(&number0);
     let p1 = ParamValue::new(number1, 0, ParamType::ValueInput);
     let mut operation = Operation::new(0, p0, p1, ParamNone, ParamNone);
 

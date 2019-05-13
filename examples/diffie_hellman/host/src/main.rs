@@ -10,8 +10,8 @@ fn generate_key(session: &mut Session) -> Result<(Vec<u8>, Vec<u8>)> {
     // Vector for generated keys
     let mut public_key = [0u8; KEY_SIZE];
     let mut private_key = [0u8; KEY_SIZE];
-    let p2 = ParamTmpRef::new(&mut public_key, ParamType::MemrefTempOutput);
-    let p3 = ParamTmpRef::new(&mut private_key, ParamType::MemrefTempOutput);
+    let p2 = ParamTmpRef::new_output(&mut public_key, ParamType::MemrefTempOutput);
+    let p3 = ParamTmpRef::new_output(&mut private_key, ParamType::MemrefTempOutput);
 
     let mut operation = Operation::new(0, p0, p1, p2, p3);
     session.invoke_command(Command::GenerateKey as u32, &mut operation)?;
@@ -26,10 +26,10 @@ fn generate_key(session: &mut Session) -> Result<(Vec<u8>, Vec<u8>)> {
     Ok((public_res, private_res))
 }
 
-fn derive_key(key0_pub: &mut Vec<u8>, session: &mut Session) -> Result<()> {
-    let p0 = ParamTmpRef::new(key0_pub.as_mut_slice(), ParamType::MemrefTempInput);
+fn derive_key(key0_pub: &Vec<u8>, session: &mut Session) -> Result<()> {
+    let p0 = ParamTmpRef::new_input(key0_pub.as_slice());
     let mut shared_key = [0u8; KEY_SIZE];
-    let p1 = ParamTmpRef::new(&mut shared_key, ParamType::MemrefTempOutput);
+    let p1 = ParamTmpRef::new_output(&mut shared_key, ParamType::MemrefTempOutput);
     let p2 = ParamValue::new(0, 0, ParamType::ValueOutput);
     let mut operation = Operation::new(0, p0, p1, p2, ParamNone);
 

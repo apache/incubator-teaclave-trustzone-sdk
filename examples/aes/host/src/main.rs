@@ -26,8 +26,8 @@ fn prepare_aes(session: &mut Session, encode: i8) -> optee_teec::Result<()> {
     Ok(())
 }
 
-fn set_key(session: &mut Session, key: &mut [u8]) -> optee_teec::Result<()> {
-    let p0 = ParamTmpRef::new(key, ParamType::MemrefTempInput);
+fn set_key(session: &mut Session, key: &[u8]) -> optee_teec::Result<()> {
+    let p0 = ParamTmpRef::new_input(key);
     let mut operation = Operation::new(0, p0, ParamNone, ParamNone, ParamNone);
 
     session.invoke_command(Command::SetKey as u32, &mut operation)?;
@@ -35,8 +35,8 @@ fn set_key(session: &mut Session, key: &mut [u8]) -> optee_teec::Result<()> {
     Ok(())
 }
 
-fn set_iv(session: &mut Session, iv: &mut [u8]) -> optee_teec::Result<()> {
-    let p0 = ParamTmpRef::new(iv, ParamType::MemrefTempInput);
+fn set_iv(session: &mut Session, iv: &[u8]) -> optee_teec::Result<()> {
+    let p0 = ParamTmpRef::new_input(iv);
     let mut operation = Operation::new(0, p0, ParamNone, ParamNone, ParamNone);
     session.invoke_command(Command::SetIV as u32, &mut operation)?;
 
@@ -45,11 +45,11 @@ fn set_iv(session: &mut Session, iv: &mut [u8]) -> optee_teec::Result<()> {
 
 fn cipher_buffer(
     session: &mut Session,
-    intext: &mut [u8],
+    intext: &[u8],
     outtext: &mut [u8],
 ) -> optee_teec::Result<()> {
-    let p0 = ParamTmpRef::new(intext, ParamType::MemrefTempInput);
-    let p1 = ParamTmpRef::new(outtext, ParamType::MemrefTempOutput);
+    let p0 = ParamTmpRef::new_input(intext);
+    let p1 = ParamTmpRef::new_output(outtext, ParamType::MemrefTempOutput);
     let mut operation = Operation::new(0, p0, p1, ParamNone, ParamNone);
 
     session.invoke_command(Command::Cipher as u32, &mut operation)?;

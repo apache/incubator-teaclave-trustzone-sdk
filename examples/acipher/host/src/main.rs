@@ -12,15 +12,15 @@ fn gen_key(session: &mut Session, key_size: u32) -> optee_teec::Result<()> {
     Ok(())
 }
 
-fn enc_dec(session: &mut Session, plain_text: &mut [u8]) -> optee_teec::Result<()> {
+fn enc_dec(session: &mut Session, plain_text: &[u8]) -> optee_teec::Result<()> {
     let p0 = ParamValue::new(0, 0, ParamType::ValueOutput);
     let mut operation = Operation::new(0, p0, ParamNone, ParamNone, ParamNone);
 
     session.invoke_command(Command::GetSize as u32, &mut operation)?;
 
     let mut cipher_text = vec![0u8; operation.parameters().0.a() as usize];
-    let p0 = ParamTmpRef::new(plain_text, ParamType::MemrefTempInput);
-    let p1 = ParamTmpRef::new(&mut cipher_text, ParamType::MemrefTempOutput);
+    let p0 = ParamTmpRef::new_input(plain_text);
+    let p1 = ParamTmpRef::new_output(&mut cipher_text, ParamType::MemrefTempOutput);
     let mut operation2 = Operation::new(0, p0, p1, ParamNone, ParamNone);
 
     session.invoke_command(Command::Encrypt as u32, &mut operation2)?;
@@ -31,9 +31,9 @@ fn enc_dec(session: &mut Session, plain_text: &mut [u8]) -> optee_teec::Result<(
         cipher_text
     );
 
-    let p0 = ParamTmpRef::new(&mut cipher_text, ParamType::MemrefTempInput);
+    let p0 = ParamTmpRef::new_input(&cipher_text);
     let mut dec_res: Vec<u8> = vec![0u8; plain_text.len()];
-    let p1 = ParamTmpRef::new(&mut dec_res, ParamType::MemrefTempOutput);
+    let p1 = ParamTmpRef::new_output(&mut dec_res, ParamType::MemrefTempOutput);
     let mut operation2 = Operation::new(0, p0, p1, ParamNone, ParamNone);
 
     session.invoke_command(Command::Decrypt as u32, &mut operation2)?;
@@ -46,7 +46,7 @@ fn enc_dec(session: &mut Session, plain_text: &mut [u8]) -> optee_teec::Result<(
 }
 
 fn main() -> optee_teec::Result<()> {
-    let mut args: Vec<String> = env::args().collect();
+    let args: Vec<String> = env::args().collect();
     if args.len() != 3 {
         println!(
             "Receive {} arguments while 2 arguments are expected!",
@@ -70,7 +70,7 @@ fn main() -> optee_teec::Result<()> {
     let mut session = ctx.open_session(uuid)?;
 
     gen_key(&mut session, key_size)?;
-    enc_dec(&mut session, unsafe { args[2].as_bytes_mut() })?;
+    enc_dec(&mut session, args[2].as_bytes())?;
 
     Ok(())
 }
