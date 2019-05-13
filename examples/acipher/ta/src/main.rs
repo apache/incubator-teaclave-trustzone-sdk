@@ -31,9 +31,9 @@ fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut RsaCipher) -> Resu
 }
 
 #[ta_close_session]
-fn close_session(sess_ctx: &mut RsaCipher) {
-    unsafe { Box::from_raw(sess_ctx) };
+fn close_session(sess_ctx: *mut RsaCipher) {
     trace_println!("[+] TA close session");
+    unsafe { Box::from_raw(sess_ctx) };
 }
 
 #[ta_destroy]
@@ -45,7 +45,7 @@ fn gen_key(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
     let key_size = unsafe { params.0.as_value().unwrap().a() };
     rsa.key =
         TransientObject::allocate(TransientObjectType::RsaKeypair, key_size as usize).unwrap();
-    rsa.key.generate_key(key_size as usize, &mut [])?;
+    rsa.key.generate_key(key_size as usize, &[])?;
     Ok(())
 }
 
@@ -74,8 +74,7 @@ fn encrypt(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
         Err(e) => Err(e),
         Ok(cipher) => {
             cipher.set_key(&mut rsa.key)?;
-            let mut attrs = [];
-            match cipher.encrypt(&mut attrs, &mut plain_text) {
+            match cipher.encrypt(&mut [], &mut plain_text) {
                 Err(e) => Err(e),
                 Ok(cipher_text) => Ok(p1.buffer().clone_from_slice(&cipher_text)),
             }
@@ -96,8 +95,7 @@ fn decrypt(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
         Err(e) => Err(e),
         Ok(cipher) => {
             cipher.set_key(&mut rsa.key)?;
-            let mut attrs = [];
-            match cipher.decrypt(&mut attrs, &mut cipher_text) {
+            match cipher.decrypt(&mut [], &mut cipher_text) {
                 Err(e) => Err(e),
                 Ok(plain_text) => Ok(p1.buffer().clone_from_slice(&plain_text)),
             }

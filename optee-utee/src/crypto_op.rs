@@ -1367,7 +1367,7 @@ impl DeriveKey {
     /// 3) If no key is programmed in the operation.
     /// 4) Hardware or cryptographic algorithm failure.
     /// 5) If the Implementation detects any other error.
-    pub fn derive(&self, params: &mut [Attribute], object: &mut TransientObject) {
+    pub fn derive(&self, params: &[Attribute], object: &mut TransientObject) {
         let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
         unsafe {
             raw::TEE_DeriveKey(

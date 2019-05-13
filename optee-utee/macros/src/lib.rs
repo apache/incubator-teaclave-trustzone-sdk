@@ -191,13 +191,13 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 /// Attribute to declare the entry point of closing a session. Session context
-/// reference (`&mut T`) can be defined as an optional parameter.
+/// raw pointer (`*mut T`) can be defined as an optional parameter.
 ///
 /// # Examples
 ///
 /// ``` no_run
 /// #[ta_close_session]
-/// fn close_session(sess_ctx: &mut T) { }
+/// fn close_session(sess_ctx: *mut T) { }
 ///
 /// #[ta_close_session]
 /// fn close_session() { }
@@ -251,10 +251,7 @@ pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
                     _ => unreachable!(),
                 })
                 .collect();
-            let t = match input_types.first().unwrap() {
-                &syn::Type::Reference(ref r) => &r.elem,
-                _ => unreachable!(),
-            };
+            let t = input_types.first().unwrap();
 
             quote!(
                 #[no_mangle]
@@ -262,9 +259,7 @@ pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
                     if sess_ctx.is_null() {
                         panic!("sess_ctx is null");
                     }
-                    let mut b = unsafe {Box::from_raw(sess_ctx as *mut #t)};
-                    #ident(&mut b);
-                    drop(b);
+                    #ident(sess_ctx as #t);//&mut b);
                 }
 
                 #f
