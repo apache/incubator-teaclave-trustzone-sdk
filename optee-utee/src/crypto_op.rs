@@ -244,7 +244,7 @@ impl Digest {
     /// 2) if input data exceeds maximum length for algorithm.
     /// 3) Hardware or cryptographic algorithm failure.
     /// 4) If the Implementation detects any other error.
-    pub fn digest_update(&self, chunk: &[u8]) {
+    pub fn update(&self, chunk: &[u8]) {
         unsafe {
             raw::TEE_DigestUpdate(self.handle(), chunk.as_ptr() as _, chunk.len() as u32);
         }
@@ -269,7 +269,7 @@ impl Digest {
     /// 3) Hardware or cryptographic algorithm failure.
     /// 4) If the Implementation detects any other error.
     //hash size is dynamic changed so we returned it's updated size
-    pub fn digest_do_final(&self, chunk: &[u8], hash: &mut [u8]) -> Result<usize> {
+    pub fn do_final(&self, chunk: &[u8], hash: &mut [u8]) -> Result<usize> {
         let mut hash_size: u32 = hash.len() as u32;
         match unsafe {
             raw::TEE_DigestDoFinal(
@@ -302,7 +302,7 @@ impl Digest {
     /// # Example
     ///
     /// ```no_run
-    /// match Digest::allocate(AlgorithmId::Md5, 128) {
+    /// match Digest::allocate(AlgorithmId::Md5) {
     ///     Ok(operation) =>
     ///     {
     ///         // ...
@@ -321,8 +321,8 @@ impl Digest {
     ///
     /// 1) If the Implementation detects any error associated with this function which is not
     /// explicitly associated with a defined return code for this function.
-    pub fn allocate(algo: AlgorithmId, max_key_size: usize) -> Result<Self> {
-        match OperationHandle::allocate(algo, OperationMode::Digest, max_key_size) {
+    pub fn allocate(algo: AlgorithmId) -> Result<Self> {
+        match OperationHandle::allocate(algo, OperationMode::Digest, 0) {
             Ok(handle) => Ok(Self(handle)),
             Err(e) => Err(e),
         }
