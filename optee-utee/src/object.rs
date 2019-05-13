@@ -508,7 +508,6 @@ impl TransientObject {
         } {
             raw::TEE_SUCCESS => {
                 let handle = ObjectHandle::from_raw(raw_handle);
-                trace_println!("allocate object {}!", handle.raw as u32);
                 Ok(Self(handle))
             }
             code => Err(Error::from_raw_error(code)),
@@ -806,7 +805,6 @@ impl Drop for TransientObject {
     /// 2) If the Implementation detects any other error associated with this function which is not
     ///    explicitly associated with a defined return code for this function.
     fn drop(&mut self) {
-        trace_println!("drop object {}!", self.0.raw as u32);
         unsafe {
             if self.0.raw != ptr::null_mut() {
                 raw::TEE_FreeTransientObject(self.0.handle());
