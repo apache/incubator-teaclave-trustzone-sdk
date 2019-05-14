@@ -62,9 +62,9 @@ fn main() -> optee_teec::Result<()> {
     let uuid = Uuid::parse_str(UUID).unwrap();
     let mut session = ctx.open_session(uuid)?;
 
-    let mut key = [0xa5u8; AES_TEST_KEY_SIZE];
-    let mut iv = [0x00u8; AES_BLOCK_SIZE];
-    let mut clear = [0x5au8; AES_TEST_BUFFER_SIZE];
+    let key = [0xa5u8; AES_TEST_KEY_SIZE];
+    let iv = [0x00u8; AES_BLOCK_SIZE];
+    let clear = [0x5au8; AES_TEST_BUFFER_SIZE];
     let mut ciph = [0x00u8; AES_TEST_BUFFER_SIZE];
     let mut tmp = [0x00u8; AES_TEST_BUFFER_SIZE];
 
@@ -72,27 +72,27 @@ fn main() -> optee_teec::Result<()> {
     prepare_aes(&mut session, ENCODE)?;
 
     println!("Load key in TA");
-    set_key(&mut session, &mut key)?;
+    set_key(&mut session, &key)?;
 
     println!("Reset ciphering operation in TA (provides the initial vector)");
-    set_iv(&mut session, &mut iv)?;
+    set_iv(&mut session, &iv)?;
 
     println!("Encode buffer from TA");
-    cipher_buffer(&mut session, &mut clear, &mut ciph)?;
+    cipher_buffer(&mut session, &clear, &mut ciph)?;
 
     println!("Prepare decode operation");
     prepare_aes(&mut session, DECODE)?;
 
-    let mut key = [0xa5u8; AES_TEST_KEY_SIZE];
+    let key = [0xa5u8; AES_TEST_KEY_SIZE];
     println!("Load key in TA");
-    set_key(&mut session, &mut key)?;
+    set_key(&mut session, &key)?;
 
-    let mut iv = [0x00u8; AES_BLOCK_SIZE];
+    let iv = [0x00u8; AES_BLOCK_SIZE];
     println!("Reset ciphering operation in TA (provides the initial vector)");
-    set_iv(&mut session, &mut iv)?;
+    set_iv(&mut session, &iv)?;
 
     println!("Decode buffer from TA");
-    cipher_buffer(&mut session, &mut ciph, &mut tmp)?;
+    cipher_buffer(&mut session, &ciph, &mut tmp)?;
 
     if clear.iter().zip(tmp.iter()).all(|(a, b)| a == b) {
         println!("Clear text and decoded text match");
