@@ -4,8 +4,8 @@ use optee_utee::BigInt;
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
-use optee_utee::{AlgorithmId, DeriveKey}; //, Digest, AE};
-use optee_utee::{AttrCast, AttributeId, AttributeMemref, TransientObject, TransientObjectType};
+use optee_utee::{AlgorithmId, DeriveKey};
+use optee_utee::{AttributeId, AttributeMemref, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::{Command, KEY_SIZE};
 
@@ -68,7 +68,7 @@ fn generate_key(dh: &mut DiffieHellman, params: &mut Parameters) -> Result<()> {
     let mut private_buffer = p3.buffer();
 
     dh.key
-        .generate_key(KEY_SIZE, &[attr_prime.cast(), attr_base.cast()])?;
+        .generate_key(KEY_SIZE, &[attr_prime.into(), attr_base.into()])?;
     let mut key_size = dh
         .key
         .ref_attribute(AttributeId::DhPublicValue, &mut public_buffer)
@@ -95,7 +95,7 @@ fn derive_key(dh: &mut DiffieHellman, params: &mut Parameters) -> Result<()> {
             operation.set_key(&dh.key)?;
             let mut derived_key =
                 TransientObject::allocate(TransientObjectType::GenericSecret, KEY_SIZE).unwrap();
-            operation.derive(&[received_public.cast()], &mut derived_key);
+            operation.derive(&[received_public.into()], &mut derived_key);
             let key_size = derived_key
                 .ref_attribute(AttributeId::SecretValue, p1.buffer())
                 .unwrap();

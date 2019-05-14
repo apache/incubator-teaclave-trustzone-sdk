@@ -4,10 +4,6 @@ use optee_utee_sys as raw;
 use std::{marker, mem, ptr};
 
 /// A trait for an attribute (buffer or value) to return its raw value `raw::TEE_Attribute`.
-pub trait AttrCast {
-    fn cast(&self) -> Attribute;
-}
-
 pub struct Attribute {
     raw: raw::TEE_Attribute,
 }
@@ -19,6 +15,18 @@ impl Attribute {
     }
 }
 
+impl<'attrref> From<AttributeMemref<'attrref>> for Attribute {
+    fn from(attr: AttributeMemref) -> Self {
+        Self { raw: attr.raw() }
+    }
+}
+
+impl From<AttributeValue> for Attribute {
+    fn from(attr: AttributeValue) -> Self {
+        Self { raw: attr.raw() }
+    }
+}
+
 /// A buffer attribute.
 #[derive(Clone, Copy)]
 pub struct AttributeMemref<'attrref> {
@@ -27,6 +35,11 @@ pub struct AttributeMemref<'attrref> {
 }
 
 impl<'attrref> AttributeMemref<'attrref> {
+    /// Return the raw struct TEE_Attribute.
+    pub fn raw(&self) -> raw::TEE_Attribute {
+        self.raw
+    }
+
     /// Create an empty memory reference attribute, which can be filled by TransientObject function
     /// [ref_attribute](TransientObject::ref_attribute)
     /// or PersistentObject function
@@ -79,18 +92,17 @@ impl<'attrref> AttributeMemref<'attrref> {
     }
 }
 
-impl<'attrref> AttrCast for AttributeMemref<'attrref> {
-    fn cast(&self) -> Attribute {
-        Attribute { raw: self.raw }
-    }
-}
-
 /// A value attribute.
 pub struct AttributeValue {
     raw: raw::TEE_Attribute,
 }
 
 impl AttributeValue {
+    /// Return the raw struct TEE_Attribute.
+    pub fn raw(&self) -> raw::TEE_Attribute {
+        self.raw
+    }
+
     /// Create an empty value attribute, which can be filled by TransientObject function
     /// [value_attribute](TransientObject::value_attribute)
     /// or PersistentObject function
@@ -129,12 +141,6 @@ impl AttributeValue {
             raw::TEE_InitValueAttribute(&mut res.raw, id as u32, a, b);
         }
         res
-    }
-}
-
-impl AttrCast for AttributeValue {
-    fn cast(&self) -> Attribute {
-        Attribute { raw: self.raw }
     }
 }
 

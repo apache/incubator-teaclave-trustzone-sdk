@@ -4,7 +4,7 @@ use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{AlgorithmId, Cipher, OperationMode};
-use optee_utee::{AttrCast, AttributeId, AttributeMemref, TransientObject, TransientObjectType};
+use optee_utee::{AttributeId, AttributeMemref, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::{Algo, Command, KeySize, Mode};
 use std::boxed::Box;
@@ -108,7 +108,7 @@ pub fn alloc_resources(aes: &mut AesCipher, params: &mut Parameters) -> Result<(
     aes.key_object = TransientObject::allocate(TransientObjectType::Aes, aes.key_size * 8).unwrap();
     let mut key = vec![0u8; aes.key_size as usize];
     let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &mut key);
-    aes.key_object.populate(&[attr.cast()])?;
+    aes.key_object.populate(&[attr.into()])?;
     aes.cipher.set_key(&mut aes.key_object)?;
     Ok(())
 }
@@ -125,7 +125,7 @@ pub fn set_aes_key(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
     let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &mut key);
 
     aes.key_object.reset();
-    aes.key_object.populate(&[attr.cast()])?;
+    aes.key_object.populate(&[attr.into()])?;
 
     aes.cipher.set_key(&mut aes.key_object)?;
     Ok(())
