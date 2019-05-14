@@ -37,6 +37,7 @@ impl From<u32> for Algo {
         }
     }
 }
+
 pub enum Mode {
     Decode,
     Encode,

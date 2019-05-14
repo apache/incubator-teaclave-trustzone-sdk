@@ -1,0 +1,13 @@
+[package]
+name = "proto"
+version = "0.1.0"
+authors = ["The Rust OP-TEE TrustZone SDK Project Developers"]
+license = "Apache-2.0"
+repository = "https://github.com/mesalock-linux/rust-optee-trustzone-sdk.git"
+description = "Data structures and functions shared by host and TA."
+edition = "2018"
+
+[dependencies]
+
+[build_dependencies]
+uuid = { version = "0.7", features = ["v4"] }
