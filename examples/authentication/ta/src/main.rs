@@ -4,7 +4,7 @@ use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{AlgorithmId, OperationMode, AE};
-use optee_utee::{AttrCast, AttributeId, AttributeMemref, TransientObject, TransientObjectType};
+use optee_utee::{AttributeId, AttributeMemref, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::{Command, Mode, AAD_LEN, BUFFER_SIZE, KEY_SIZE, TAG_LEN};
 
@@ -81,7 +81,7 @@ pub fn prepare(ae: &mut AEOp, params: &mut Parameters) -> Result<()> {
 
     let mut key_object = TransientObject::allocate(TransientObjectType::Aes, KEY_SIZE * 8).unwrap();
     let attr = AttributeMemref::from_ref(AttributeId::SecretValue, key);
-    key_object.populate(&[attr.cast()])?;
+    key_object.populate(&[attr.into()])?;
     ae.op.set_key(&mut key_object)?;
     ae.op
         .init(&nonce, TAG_LEN * 8, AAD_LEN, BUFFER_SIZE * PAYLOAD_NUMBER)?;
