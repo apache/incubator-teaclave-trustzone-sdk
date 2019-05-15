@@ -22,7 +22,7 @@ fn prepare(
 
 fn update(session: &mut Session, src: &[u8], res: &mut [u8]) -> optee_teec::Result<()> {
     let p0 = ParamTmpRef::new_input(src);
-    let p1 = ParamTmpRef::new_output(res, ParamType::MemrefTempOutput);
+    let p1 = ParamTmpRef::new_output(res);
     let mut operation = Operation::new(0, p0, p1, ParamNone, ParamNone);
 
     session.invoke_command(Command::Update as u32, &mut operation)?;
@@ -37,8 +37,8 @@ fn encrypt_final(
     tag: &mut [u8],
 ) -> optee_teec::Result<()> {
     let p0 = ParamTmpRef::new_input(src);
-    let p1 = ParamTmpRef::new_output(res, ParamType::MemrefTempOutput);
-    let p2 = ParamTmpRef::new_output(tag, ParamType::MemrefTempOutput);
+    let p1 = ParamTmpRef::new_output(res);
+    let p2 = ParamTmpRef::new_output(tag);
     let mut operation = Operation::new(0, p0, p1, p2, ParamNone);
 
     session.invoke_command(Command::EncFinal as u32, &mut operation)?;
@@ -52,7 +52,7 @@ fn decrypt_final(
     tag: &[u8],
 ) -> optee_teec::Result<()> {
     let p0 = ParamTmpRef::new_input(src);
-    let p1 = ParamTmpRef::new_output(res, ParamType::MemrefTempOutput);
+    let p1 = ParamTmpRef::new_output(res);
     let p2 = ParamTmpRef::new_input(tag);
     let mut operation = Operation::new(0, p0, p1, p2, ParamNone);
 

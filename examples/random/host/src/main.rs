@@ -4,7 +4,7 @@ use proto::{Command, UUID};
 fn random(session: &mut Session) -> optee_teec::Result<()> {
     let mut random_uuid = [0u8; 16];
 
-    let p0 = ParamTmpRef::new_output(&mut random_uuid, ParamType::MemrefTempOutput);
+    let p0 = ParamTmpRef::new_output(&mut random_uuid);
     let mut operation = Operation::new(0, p0, ParamNone, ParamNone, ParamNone);
 
     println!("Invoking TA to generate random UUID...");

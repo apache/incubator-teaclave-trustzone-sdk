@@ -10,7 +10,7 @@ fn read_secure_object(
     obj_data: &mut [u8],
 ) -> optee_teec::Result<()> {
     let p0 = ParamTmpRef::new_input(obj_id);
-    let p1 = ParamTmpRef::new_output(obj_data, ParamType::MemrefTempOutput);
+    let p1 = ParamTmpRef::new_output(obj_data);
     let mut operation = Operation::new(0, p0, p1, ParamNone, ParamNone);
 
     session.invoke_command(Command::Read as u32, &mut operation)?;

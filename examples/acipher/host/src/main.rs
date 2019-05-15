@@ -20,7 +20,7 @@ fn enc_dec(session: &mut Session, plain_text: &[u8]) -> optee_teec::Result<()> {
 
     let mut cipher_text = vec![0u8; operation.parameters().0.a() as usize];
     let p0 = ParamTmpRef::new_input(plain_text);
-    let p1 = ParamTmpRef::new_output(&mut cipher_text, ParamType::MemrefTempOutput);
+    let p1 = ParamTmpRef::new_output(&mut cipher_text);
     let mut operation2 = Operation::new(0, p0, p1, ParamNone, ParamNone);
 
     session.invoke_command(Command::Encrypt as u32, &mut operation2)?;
@@ -33,7 +33,7 @@ fn enc_dec(session: &mut Session, plain_text: &[u8]) -> optee_teec::Result<()> {
 
     let p0 = ParamTmpRef::new_input(&cipher_text);
     let mut dec_res: Vec<u8> = vec![0u8; plain_text.len()];
-    let p1 = ParamTmpRef::new_output(&mut dec_res, ParamType::MemrefTempOutput);
+    let p1 = ParamTmpRef::new_output(&mut dec_res);
     let mut operation2 = Operation::new(0, p0, p1, ParamNone, ParamNone);
 
     session.invoke_command(Command::Decrypt as u32, &mut operation2)?;
