@@ -1,6 +1,7 @@
 use libc;
 use optee_teec_sys as raw;
 use std::ptr;
+use std::marker;
 
 use crate::Param;
 use crate::{Context, Error, Operation, Result, Uuid};
@@ -23,14 +24,15 @@ pub enum ConnectionMethods {
 }
 
 /// Represents a connection between a client application and a trusted application.
-pub struct Session {
+pub struct Session<'ctx> {
     raw: raw::TEEC_Session,
+    _marker: marker::PhantomData<&'ctx mut Context>,
 }
 
-impl Session {
+impl<'ctx> Session<'ctx> {
     /// Initializes a TEE session object with specified context and uuid.
     pub fn new<A: Param, B: Param, C: Param, D: Param>(
-        context: &mut Context,
+        context: &'ctx mut Context,
         uuid: Uuid,
         operation: Option<&mut Operation<A, B, C, D>>,
     ) -> Result<Self> {
@@ -53,7 +55,7 @@ impl Session {
                 raw_operation,
                 &mut err_origin,
             ) {
-                raw::TEEC_SUCCESS => Ok(Self { raw: raw_session }),
+                raw::TEEC_SUCCESS => Ok(Self { raw: raw_session,  _marker: marker::PhantomData }),
                 code => Err(Error::from_raw_error(code)),
             }
         }
@@ -85,7 +87,7 @@ impl Session {
     }
 }
 
-impl Drop for Session {
+impl<'ctx> Drop for Session<'ctx> {
     fn drop(&mut self) {
         unsafe {
             raw::TEEC_CloseSession(&mut self.raw);

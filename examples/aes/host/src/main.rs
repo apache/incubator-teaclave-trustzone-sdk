@@ -49,7 +49,7 @@ fn cipher_buffer(
     outtext: &mut [u8],
 ) -> optee_teec::Result<()> {
     let p0 = ParamTmpRef::new_input(intext);
-    let p1 = ParamTmpRef::new_output(outtext, ParamType::MemrefTempOutput);
+    let p1 = ParamTmpRef::new_output(outtext);
     let mut operation = Operation::new(0, p0, p1, ParamNone, ParamNone);
 
     session.invoke_command(Command::Cipher as u32, &mut operation)?;

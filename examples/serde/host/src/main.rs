@@ -10,7 +10,7 @@ struct Point {
 
 fn serde(session: &mut Session) -> optee_teec::Result<()> {
     let mut buffer = [0u8; 128];
-    let p0 = ParamTmpRef::new_output(&mut buffer, ParamType::MemrefTempOutput);
+    let p0 = ParamTmpRef::new_output(&mut buffer);
     let mut operation = Operation::new(0, p0 , ParamNone, ParamNone, ParamNone);
 
     session.invoke_command(Command::DefaultOp as u32, &mut operation)?;

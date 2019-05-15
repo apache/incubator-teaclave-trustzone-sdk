@@ -15,7 +15,7 @@ fn update(session: &mut Session, src: &[u8]) -> optee_teec::Result<()> {
 
 fn do_final(session: &mut Session, src: &[u8], res: &mut [u8]) -> optee_teec::Result<usize> {
     let p0 = ParamTmpRef::new_input(src);
-    let p1 = ParamTmpRef::new_output(res, ParamType::MemrefTempOutput);
+    let p1 = ParamTmpRef::new_output(res);
     let p2 = ParamValue::new(0, 0, ParamType::ValueOutput);
     let mut operation = Operation::new(0, p0, p1, p2, ParamNone);
 
