@@ -3,24 +3,27 @@ use bitflags::bitflags;
 use optee_utee_sys as raw;
 use std::{marker, mem, ptr};
 
-/// A trait for an attribute (buffer or value) to return its raw value `raw::TEE_Attribute`.
+/// A general attribute (buffer or value) that can be used to populate an object or to specify
+/// opeation parameters.
 pub struct Attribute {
     raw: raw::TEE_Attribute,
 }
 
 impl Attribute {
-    /// Return the raw struct TEE_Attribute.
+    /// Return the raw struct `TEE_Attribute`.
     pub fn raw(&self) -> raw::TEE_Attribute {
         self.raw
     }
 }
 
+/// Convert the buffer attribute [AttributeMemref](AttributeMemref) to the general attribute.
 impl<'attrref> From<AttributeMemref<'attrref>> for Attribute {
     fn from(attr: AttributeMemref) -> Self {
         Self { raw: attr.raw() }
     }
 }
 
+/// Convert the value attribute [AttributeValue](AttributeValue) to the general attribute.
 impl From<AttributeValue> for Attribute {
     fn from(attr: AttributeValue) -> Self {
         Self { raw: attr.raw() }
@@ -40,16 +43,6 @@ impl<'attrref> AttributeMemref<'attrref> {
         self.raw
     }
 
-    /// Create an empty memory reference attribute, which can be filled by TransientObject function
-    /// [ref_attribute](TransientObject::ref_attribute)
-    /// or PersistentObject function
-    /// [ref_attribute](PersistentObject::ref_attribute).
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// let mut attr = AttributeValue::new_value();
-    /// ```
     fn new_ref() -> Self {
         let raw = raw::TEE_Attribute {
             attributeID: 0,
@@ -103,17 +96,7 @@ impl AttributeValue {
         self.raw
     }
 
-    /// Create an empty value attribute, which can be filled by TransientObject function
-    /// [value_attribute](TransientObject::value_attribute)
-    /// or PersistentObject function
-    /// [value_attribute](PersistentObject::value_attribute).
-    ///
-    /// Example
-    ///
-    /// ```no_run
-    /// let mut attr = AttributeValue::new_value();
-    /// ```
-    pub fn new_value() -> Self {
+    fn new_value() -> Self {
         let raw = raw::TEE_Attribute {
             attributeID: 0,
             content: raw::content {
@@ -145,51 +128,52 @@ impl AttributeValue {
 }
 
 /// Represent the characteristics of an object.
-/// This info can be returned by TransientObject function
+/// This info can be returned by [TransientObject](TransientObject) function
 /// [info](TransientObject::info)
-/// or PersistentObject function
+/// or [PersistentObject](PersistentObject) function
 /// [info](PersistentObject::info).
 pub struct ObjectInfo {
+    /// The raw structure contains following fields:
+    ///
+    /// 1) `objectType`: The parameter represents one of the
+    ///    [TransientObjectType](TransientObjectType).
+    /// 2) `objectSize`: The current size in bits of the object as determined by its attributes.
+    /// This will always be less than or equal to maxObjectSize. Set to 0 for uninitialized and data only objects.
+    /// 3) `maxObjectSize`: The maximum objectSize which this object can represent.
+    /// 3.1) For a [PersistentObject](PersistentObject), set to `objectSize`.
+    /// 3.2) For a [TransientObject](TransientObject), set to the parameter `maxObjectSize` passed to
+    /// [allocate](TransientObject::allocate).
+    /// 4) `objectUsage`: A bit vector of UsageFlag.
+    /// 5) `dataSize`:
+    /// 5.1) For a [PersistentObject](PersistentObject), set to the current size of the data associated with the object.
+    /// 5.2) For a [TransientObject](TransientObject), always set to 0.
+    /// 6) `dataPosition`:
+    /// 6.1) For a [PersistentObject](PersistentObject), set to the current position in the data for this handle.
+    /// Data positions for different handles on the same object may differ.
+    /// 6.2) For a [TransientObject](TransientObject), set to 0.
+    /// 7) `handleFlags`: A bit vector containing one or more [HandleFlag](HandleFlag) or [DataFlag](DataFlag).
     pub raw: raw::TEE_ObjectInfo,
 }
 
 // Since raw struct is not implemented Copy attribute yet, every item in raw struct needs a function to extract.
 impl ObjectInfo {
-    /// Returns an ObjectInfo struct based on the raw structrure TEE_ObjectInfo.
-    ///
-    /// # Fields
-    ///
-    /// The raw structure contains following fields:
-    ///
-    /// 1) objectType: The parameter objectType passed when the object was created.
-    /// 2) objectSize: The current size in bits of the object as determined by its attributes. This will always be less than or equal to maxObjectSize. Set to 0 for uninitialized and data only objects.
-    /// 3) maxObjectSize: The maximum objectSize which this object can represent.
-    /// 3.1) For a persistent object, set to objectSize.
-    /// 3.2) For a transient object, set to the parameter maxObjectSize passed to TEE_AllocateTransientObject.
-    /// 4) objectUsage: A bit vector of UsageFlag.
-    /// 5) dataSize:
-    /// 5.1) For a persistent object, set to the current size of the data associated with the object.
-    /// 5.2) For a transient object, always set to 0.
-    /// 6) dataPosition:
-    /// 6.1) For a persistent object, set to the current position in the data for this handle. Data positions for different handles on the same object may differ.
-    /// 6.2) For a transient object, set to 0.
-    /// 7) handleFlags: A bit vector containing one or more HandleFlag or DataFlag.
+    /// Return an [ObjectInfo](ObjectInfo) struct based on the raw structrure `TEE_ObjectInfo`.
     pub fn from_raw(raw: raw::TEE_ObjectInfo) -> Self {
         Self { raw }
     }
 
-    /// Returns the dataSize field of the ObjectInfo.
+    /// Return the `dataSize` field of the raw structrure `TEE_ObjectInfo`.
     pub fn data_size(&self) -> usize {
         self.raw.dataSize as usize
     }
 
-    /// Returns the objectSize field of the Object Info.
+    /// Return the `objectSize` field of the raw structrure `TEE_ObjectInfo`.
     pub fn object_size(&self) -> usize {
         self.raw.objectSize as usize
     }
 }
 
-/// Indicate the possible start offset when moving a data position in the data stream associated with a persistent object.
+/// Indicate the possible start offset when moving a data position in the data stream associated with a [PersistentObject](PersistentObject).
 pub enum Whence {
     /// The data position is set to offset bytes from the beginning of the data stream.
     DataSeekSet,
@@ -253,16 +237,18 @@ impl ObjectHandle {
         }
     }
 
-    fn value_attribute(&self, id: u32, value_attr: &mut AttributeValue) -> Result<()> {
+    fn value_attribute(&self, id: u32) -> Result<(u32, u32)> {
+        let mut value_a: u32 = 0;
+        let mut value_b: u32 = 0;
         match unsafe {
             raw::TEE_GetObjectValueAttribute(
                 self.handle(),
                 id,
-                &mut value_attr.raw.content.value.a as *mut _,
-                &mut value_attr.raw.content.value.b as *mut _,
+                &mut value_a as *mut _,
+                &mut value_b as *mut _,
             )
         } {
-            raw::TEE_SUCCESS => Ok(()),
+            raw::TEE_SUCCESS => Ok((value_a, value_b)),
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -306,28 +292,38 @@ bitflags! {
 bitflags! {
     /// A set of flags that defines usages of data in TEE secure storage.
     pub struct UsageFlag: u32 {
+        /// The object [Attribute](Attribute) can be extracted.
         const EXTRACTABLE = 0x00000001;
+        /// The object can be used for encrytpion.
         const ENCRYPT = 0x00000002;
+        /// The object can be used for decrption.
         const DECRYPT = 0x00000004;
+        /// The object can be used for mac operation.
         const MAC = 0x00000008;
+        /// The ojbect can be used for signature.
         const SIGN = 0x00000010;
+        /// The object can be used for verification of a signature.
         const VERIFY = 0x00000020;
+        /// The object can be used for deriving a key.
         const DERIVE = 0x00000040;
     }
 }
 
+/// Miscellaneous constants.
 pub enum MiscellaneousConstants {
+    /// Maximum offset of a data object.
     TeeDataMaxPosition = 0xFFFFFFFF,
+    /// Maximum length of an object id.
     TeeObjectIdMaxLen = 64,
 }
 
 bitflags! {
     /// A set of flags that defines Handle features.
     pub struct HandleFlag: u32{
-        /// Set for a persistent object.
+        /// Set for a [PersistentObject](PersistentObject).
         const PERSISTENT = 0x00010000;
-        /// 1) For a persistent object, always set.
-        /// 2) For a transient object, initially cleared, then set when the object becomes initialized.
+        /// 1) For a [PersistentObject](PersistentObject), always set.
+        /// 2) For a [TransientObject](TransientObject), initially cleared, then set when the object becomes initialized.
         const INITIALIZED = 0x00020000;
         /// Following two flags are for crypto operation handles:
         /// 1) Set if the required operation key has been set.
@@ -462,26 +458,27 @@ pub trait ObjHandle {
 
 /// An object containing attributes but no data stream, which is reclaimed
 /// when closed or when the TA instance is destroyed.
-///
 /// Transient objects are used to hold a cryptographic object (key or key-pair).
 ///
-/// Contrast Persistent Object.
+/// Contrast [PersistentObject](PersistentObject).
 pub struct TransientObject(ObjectHandle);
 
 impl TransientObject {
-    /// Create a transient object with a null handle which points to nothing.
+    /// Create a [TransientObject](TransientObject) with a null handle which points to nothing.
     pub fn null_object() -> Self {
         Self(ObjectHandle::from_raw(ptr::null_mut()))
     }
 
-    /// Allocate an uninitialized transient object, i.e. a container for attributes.
+    /// Allocate an uninitialized [TransientObject](TransientObject), i.e. a container for attributes.
     ///
-    /// As allocated, the container is uninitialized.
-    /// It can be initialized by subsequently importing the object material, generating an object, deriving an object, or loading an object from the Trusted Storage.
+    /// As allocated, the object is uninitialized.
+    /// It can be initialized by subsequently importing the object material, generating an object,
+    /// deriving an object, or loading an object from the Trusted Storage.
     ///
     /// # Parameters
     ///
-    /// 1) `object_type`: Type of uninitialized object container to be created as defined in [TransientObjectType](TransientObjectType).
+    /// 1) `object_type`: Type of uninitialized object container to be created as defined in
+    /// [TransientObjectType](TransientObjectType).
     /// 2) `max_object_size`: Key Size of the object. Valid values depend on the object type and are
     ///    defined in [TransientObjectType](TransientObjectType).
     ///
@@ -520,16 +517,18 @@ impl TransientObject {
         }
     }
 
-    ///Reset a transient object to its initial state after allocation.
-    ///If the object is currently initialized, the function clears the object of all its material. The object is then uninitialized again.
+    ///Reset a [TransientObject](TransientObject) to its initial state after allocation.
+    ///If the object is currently initialized, the function clears the object of all its material.
+    ///The object is then uninitialized again.
     pub fn reset(&mut self) {
         unsafe {
             raw::TEE_ResetTransientObject(self.handle());
         }
     }
 
-    /// Populate an uninitialized object container with object attributes passed by the TA in the attrs parameter.
-    /// When this function is called, the object SHALL be uninitialized. If the object is initialized, the caller SHALL first clear it using the function reset.
+    /// Populate an uninitialized object container with object attributes passed by the TA in the `attrs` parameter.
+    /// When this function is called, the object SHALL be uninitialized.
+    /// If the object is initialized, the caller SHALL first clear it using the function reset.
     /// Note that if the object type is a key-pair, then this function sets both the private and public attributes of the keypair.
     ///
     /// # Parameters
@@ -542,7 +541,7 @@ impl TransientObject {
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
     ///     Ok(object) =>
     ///     {
-    ///         let attrs = [AttributeMemref::from_ref(AttributeId::SecretValue, [0u8;1])];
+    ///         let attrs = [AttributeMemref::from_ref(AttributeId::SecretValue, &[0u8;1])];
     ///         object.populate(&attrs);
     ///         Ok(())
     ///     }
@@ -579,10 +578,13 @@ impl TransientObject {
     ///
     /// ```no_run
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
-    ///     Ok(object) =>
-    ///     {
-    ///         let info = object.info();
-    ///         Ok(())
+    ///     Ok(object) => {
+    ///         match object.info() {
+    ///             Ok(info) => {
+    ///                 // ...
+    ///                 Ok(())
+    ///             }
+    ///         Err(e) => Err(e),
     ///     }
     ///     Err(e) => Err(e),
     /// }
@@ -611,7 +613,7 @@ impl TransientObject {
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
     ///     Ok(object) =>
     ///     {
-    ///         object.restrict_usage(UsageFlag::ENCRYPT);
+    ///         object.restrict_usage(UsageFlag::ENCRYPT)?;
     ///         Ok(())
     ///     }
     ///     Err(e) => Err(e),
@@ -638,11 +640,15 @@ impl TransientObject {
     ///
     /// ```no_run
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
-    ///     Ok(object) =>
-    ///     {
-    ///         let mut attr = AttributeMemref::new_ref();
-    ///         object.ref_attribute(id, &mut attr);
-    ///         Ok(())
+    ///     Ok(object) => {
+    ///         let mut attr = [0u8; 16];
+    ///         match object.ref_attribute(id, &mut attr) {
+    ///             Ok(size) => {
+    ///                 // ...
+    ///                 Ok(())
+    ///             }
+    ///             Err(e) => Err(e),
+    ///         }
     ///     }
     ///     Err(e) => Err(e),
     /// }
@@ -673,11 +679,14 @@ impl TransientObject {
     ///
     /// ```no_run
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
-    ///     Ok(object) =>
-    ///     {
-    ///         let mut attr = AttributeValue::new_value();
-    ///         object.value_attribute(id, &mut attr);
-    ///         Ok(())
+    ///     Ok(object) => {
+    ///         match object.value_attribute(id) {
+    ///             Ok(a,b) => {
+    ///                 // ...
+    ///                 Ok(())
+    ///             }
+    ///             Err(e) => Err(e),
+    ///         }
     ///     }
     ///     Err(e) => Err(e),
     /// }
@@ -692,19 +701,19 @@ impl TransientObject {
     /// 1) If object is not a valid opened object.
     /// 2) If the object is not initialized.
     /// 3) If the Attribute is not a value attribute.
-    pub fn value_attribute(&self, id: u32, value_attr: &mut AttributeValue) -> Result<()> {
-        self.0.value_attribute(id, value_attr)
+    pub fn value_attribute(&self, id: u32) -> Result<(u32, u32)> {
+        self.0.value_attribute(id)
     }
 
     /// Populates an uninitialized object handle with the attributes of another object handle;
     /// that is, it populates the attributes of this handle with the attributes of src_handle.
     /// It is most useful in the following situations:
-    /// 1) To extract the public key attributes from a key-pair object
-    /// 2) To copy the attributes from a persistent object into a transient object
+    /// 1) To extract the public key attributes from a key-pair object.
+    /// 2) To copy the attributes from a [PersistentObject](PersistentObject) into a [TransientObject](TransientObject).
     ///
     /// # Parameters
     ///
-    /// 1) `src_object`: Can be either a transient object or persistent object.
+    /// 1) `src_object`: Can be either a [TransientObject](TransientObject) or [PersistentObject](PersistentObject).
     ///
     /// # Example
     ///
@@ -715,10 +724,10 @@ impl TransientObject {
     ///         match TransientObject::allocate(TransientObjectType::Aes, 256) {
     ///             Ok(object2) => {
     ///                 object1.copy_attribute_from(object2);
+    ///                 Ok(())
     ///             }
-    ///         Err(e) => Err(e),
+    ///             Err(e) => Err(e),
     ///         }
-    ///         Ok(())
     ///     }
     ///     Err(e) => Err(e),
     /// }
@@ -727,7 +736,7 @@ impl TransientObject {
     /// # Errors
     ///
     /// 1) `CorruptObject`: If the persistentd` object is corrupt. The object handle is closed.
-    /// 2) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
+    /// 2) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
     ///    currently inaccessible.
     ///
     /// # Panics
@@ -749,7 +758,7 @@ impl TransientObject {
     /// # Parameters
     ///
     /// 1) `key_size`: the size of the desired key. It SHALL be less than or equal to
-    /// the maximum key size specified when the transient object was created.
+    /// the maximum key size specified when the [TransientObject](TransientObject) was created.
     ///
     /// # Example
     ///
@@ -757,8 +766,7 @@ impl TransientObject {
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
     ///     Ok(object) =>
     ///     {
-    ///         let attrs = [AttributeMemref::from_ref(AttributeId::SecretValue, & [0u8;1])];
-    ///         object.generate_key(128, &attrs)?;
+    ///         object.generate_key(128, &[])?;
     ///         Ok(())
     ///     }
     ///     Err(e) => Err(e),
@@ -802,8 +810,9 @@ impl ObjHandle for TransientObject {
 }
 
 impl Drop for TransientObject {
-    /// Deallocates a transient object previously allocated.
-    /// After this function has been called, the object handle is no longer valid and all resources associated with the transient object SHALL have been reclaimed.
+    /// Deallocates a [TransientObject](TransientObject) previously allocated.
+    /// After this function has been called, the object handle is no longer valid and all resources
+    /// associated with the [TransientObject](TransientObject) SHALL have been reclaimed.
     ///
     /// # Panics
     ///
@@ -821,11 +830,12 @@ impl Drop for TransientObject {
 }
 
 /// An object identified by an Object Identifier and including a Data Stream.
-/// Contrast Transient Object.
+///
+/// Contrast [TransientObject](TransientObject).
 pub struct PersistentObject(ObjectHandle);
 
 impl PersistentObject {
-    /// Open an existing persistent object.
+    /// Open an existing [PersistentObject](PersistentObject).
     ///
     /// # Parameters
     ///
@@ -857,8 +867,8 @@ impl PersistentObject {
     ///    identifier cannot be found in the storage.
     /// 2) `Access_Conflict`: If an access right conflict was detected while opening the object.
     /// 3) `OutOfMemory`: If there is not enough memory to complete the operation.
-    /// 4) `CorruptObject`: If the persistent object is corrupt. The object handle is closed.
-    /// 5) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
+    /// 4) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
+    /// 5) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
     ///    currently inaccessible.
     ///
     /// # Panics
@@ -895,7 +905,7 @@ impl PersistentObject {
         }
     }
 
-    /// Create a persistent object with initial attributes and an initial data stream content.
+    /// Create a [PersistentObject](PersistentObject) with initial attributes and an initial data stream content.
     ///
     /// # Parameters
     ///
@@ -903,8 +913,9 @@ impl PersistentObject {
     ///    [ObjectStorageConstants](ObjectStorageConstants).
     /// 2) `object_id`: The object identifier. Note that this buffer cannot reside in shared memory.
     /// 3) `flags`: The [DataFlag](DataFlag) which determine the settings under which the object is opened.
-    /// 4) `attributes`: A handle on a persistent object or an initialized transient object from which to take the
-    /// persistent object attributes. Can be NONE if the persisten object contains no attribute.
+    /// 4) `attributes`: A handle on a [PersistentObject](PersistentObject) or an initialized [TransientObject](TransientObject)
+    /// from which to take the [PersistentObject](PersistentObject) attributes.
+    /// Can be NONE if the [PersistentObject](PersistentObject) contains no attribute.
     /// For example,if  it is a pure data object.
     ///
     /// # Example
@@ -933,8 +944,8 @@ impl PersistentObject {
     ///    identifier cannot be found in the storage.
     /// 2) `Access_Conflict`: If an access right conflict was detected while opening the object.
     /// 3) `OutOfMemory`: If there is not enough memory to complete the operation.
-    /// 4) `CorruptObject`: If the persistent object is corrupt. The object handle is closed.
-    /// 5) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
+    /// 4) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
+    /// 5) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
     ///    currently inaccessible.
     ///
     /// # Panics
@@ -942,7 +953,7 @@ impl PersistentObject {
     /// 1) If object_id.len() >
     ///    [MiscellaneousConstants::TeeObjectIdMaxLen](MiscellaneousConstants::TeeObjectIdMaxLen).
     /// 2) If attributes is not NONE and is not a valid handle on an initialized object containing
-    ///    the type and attributes of the persistent object to create.
+    ///    the type and attributes of the [PersistentObject](PersistentObject) to create.
     /// 3) If the Implementation detects any other error associated with this function which is not
     ///    explicitly associated with a defined return code for this function.
     pub fn create(
@@ -1004,7 +1015,7 @@ impl PersistentObject {
     ///
     /// # Errors
     ///
-    /// 1) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
+    /// 1) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
     ///    currently inaccessible.
     ///
     /// # Panics
@@ -1040,7 +1051,7 @@ impl PersistentObject {
     ///         DataFlag::ACCESS_WRITE_META) {
     ///     Ok(object) =>
     ///     {
-    ///         object.rename(&new_obj_id);
+    ///         object.rename(&new_obj_id)?;
     ///         Ok(())
     ///     }
     ///     Err(e) => Err(e),
@@ -1050,8 +1061,8 @@ impl PersistentObject {
     /// # Errors
     ///
     /// 1) `Access_Conflict`: If an access right conflict was detected while opening the object.
-    /// 2) `CorruptObject`: If the persistent object is corrupt. The object handle is closed.
-    /// 3) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
+    /// 2) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
+    /// 3) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
     ///    currently inaccessible.
     ///
     /// # Panics
@@ -1079,10 +1090,9 @@ impl PersistentObject {
     ///
     /// # Errors
     ///
-    /// 1) `CorruptObject`: If the persistent object is corrupt. The object handle is closed.
-    /// 2) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
+    /// 1) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
+    /// 2) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
     ///    currently inaccessible.
-    ///
     pub fn info(&self) -> Result<ObjectInfo> {
         self.0.info()
     }
@@ -1092,8 +1102,8 @@ impl PersistentObject {
     ///
     /// # Errors
     ///
-    /// 1) `CorruptObject`: If the persistent object is corrupt. The object handle is closed.
-    /// 2) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
+    /// 1) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
+    /// 2) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
     ///    currently inaccessible.
     pub fn restrict_usage(&mut self, obj_usage: UsageFlag) -> Result<()> {
         self.0.restrict_usage(obj_usage)
@@ -1104,8 +1114,8 @@ impl PersistentObject {
     ///
     /// # Errors
     ///
-    /// 1) `CorruptObject`: If the persistent object is corrupt. The object handle is closed.
-    /// 2) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
+    /// 1) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
+    /// 2) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
     ///    currently inaccessible.
     pub fn ref_attribute(&self, id: AttributeId, buffer: &mut [u8]) -> Result<usize> {
         self.0.ref_attribute(id, buffer)
@@ -1116,11 +1126,11 @@ impl PersistentObject {
     ///
     /// # Errors
     ///
-    /// 1) `CorruptObject`: If the persistent object is corrupt. The object handle is closed.
-    /// 2) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
+    /// 1) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
+    /// 2) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
     ///    currently inaccessible.
-    pub fn value_attribute(&self, id: u32, value_attr: &mut AttributeValue) -> Result<()> {
-        self.0.value_attribute(id, value_attr)
+    pub fn value_attribute(&self, id: u32) -> Result<(u32, u32)> {
+        self.0.value_attribute(id)
     }
 
     /// Read requested size from the data stream assoicate with the object into the buffer.
@@ -1149,8 +1159,8 @@ impl PersistentObject {
     ///
     /// # Errors
     ///
-    /// 1) `CorruptObject`: If the persistent object is corrupt. The object handle is closed.
-    /// 2) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
+    /// 1) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
+    /// 2) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
     ///    currently inaccessible.
     ///
     /// # Panics
@@ -1203,8 +1213,8 @@ impl PersistentObject {
     /// 2) `Overflow`: If the value of the data position indicator resulting from this operation
     ///    would be greater than
     ///    [MiscellaneousConstants::TeeDataMaxPosition](MiscellaneousConstants::TeeDataMaxPosition).
-    /// 3) `CorruptObject`: If the persistent object is corrupt. The object handle is closed.
-    /// 4) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
+    /// 3) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
+    /// 4) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
     ///    currently inaccessible.
     ///
     /// # Panics
@@ -1245,8 +1255,8 @@ impl PersistentObject {
     /// 1) `StorageNoSpace`: If insufficient storage space is available.
     ///    would be greater than
     ///    [MiscellaneousConstants::TeeDataMaxPosition](MiscellaneousConstants::TeeDataMaxPosition).
-    /// 2) `CorruptObject`: If the persistent object is corrupt. The object handle is closed.
-    /// 3) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
+    /// 2) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
+    /// 3) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
     ///    currently inaccessible.
     ///
     /// # Panics
@@ -1288,8 +1298,8 @@ impl PersistentObject {
     ///
     /// 1) `Overflow`: If data position indicator is greater than
     ///    [MiscellaneousConstants::TeeDataMaxPosition](MiscellaneousConstants::TeeDataMaxPosition).
-    /// 2) `CorruptObject`: If the persistent object is corrupt. The object handle is closed.
-    /// 3) `StorageNotAvailable`: If the persistent object is stored in a storage area which is
+    /// 2) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
+    /// 3) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
     ///    currently inaccessible.
     ///
     /// # Panics
@@ -1312,7 +1322,7 @@ impl ObjHandle for PersistentObject {
 }
 
 impl Drop for PersistentObject {
-    /// Close an opened persistent object.
+    /// Close an opened [PersistentObject](PersistentObject).
     ///
     /// # Panics
     ///
@@ -1331,7 +1341,7 @@ impl Drop for PersistentObject {
 
 // The examples and detailed function explanation will be added after we test this struct and its
 // functions.
-/// An enumerator for persistent objects.
+/// An enumerator for [PersistentObject](PersistentObject)s.
 pub struct ObjectEnumHandle {
     raw: *mut raw::TEE_ObjectEnumHandle,
 }
@@ -1360,7 +1370,7 @@ impl ObjectEnumHandle {
         }
     }
 
-    /// Start the enumeration of all the persistent objects in a given Trusted Storage.
+    /// Start the enumeration of all the [PersistentObject](PersistentObject)s in a given Trusted Storage.
     /// The object information can be retrieved by calling the function
     /// [ObjectEnumHandle::get_next](ObjectEnumHandle::get_next) repeatedly.
     pub fn start(&mut self, storage_id: u32) -> Result<()> {
