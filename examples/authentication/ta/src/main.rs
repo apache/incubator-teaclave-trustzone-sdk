@@ -82,7 +82,7 @@ pub fn prepare(ae: &mut AEOp, params: &mut Parameters) -> Result<()> {
     let mut key_object = TransientObject::allocate(TransientObjectType::Aes, KEY_SIZE * 8).unwrap();
     let attr = AttributeMemref::from_ref(AttributeId::SecretValue, key);
     key_object.populate(&[attr.into()])?;
-    ae.op.set_key(&mut key_object)?;
+    ae.op.set_key(&key_object)?;
     ae.op
         .init(&nonce, TAG_LEN * 8, AAD_LEN, BUFFER_SIZE * PAYLOAD_NUMBER)?;
     ae.op.update_aad(aad);

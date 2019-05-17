@@ -28,7 +28,6 @@ fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut DiffieHellman) -> 
     unsafe {
         *sess_ctx = ptr;
     }
-    //unsafe { trace_println!("{}", ptr as u32) };
     Ok(())
 }
 
@@ -57,10 +56,10 @@ fn generate_key(dh: &mut DiffieHellman, params: &mut Parameters) -> Result<()> {
     key_prime.convert_from_s32(prime_u32 as i32);
     key_base.convert_from_s32(base_u32 as i32);
 
-    let mut prime_vec = key_prime.convert_to_octet_string().unwrap();
-    let attr_prime = AttributeMemref::from_ref(AttributeId::DhPrime, prime_vec.as_mut_slice());
-    let mut base_slice = key_base.convert_to_octet_string().unwrap();
-    let attr_base = AttributeMemref::from_ref(AttributeId::DhBase, base_slice.as_mut_slice());
+    let prime_vec = key_prime.convert_to_octet_string().unwrap();
+    let attr_prime = AttributeMemref::from_ref(AttributeId::DhPrime, prime_vec.as_slice());
+    let base_slice = key_base.convert_to_octet_string().unwrap();
+    let attr_base = AttributeMemref::from_ref(AttributeId::DhBase, base_slice.as_slice());
 
     // Generate key pair
     dh.key = TransientObject::allocate(TransientObjectType::DhKeypair, KEY_SIZE).unwrap();

@@ -71,13 +71,13 @@ impl<'attrref> AttributeMemref<'attrref> {
     /// ```no_run
     /// let mut attr = AttributeMemref::from_ref(AttributeId::SecretValue, &mut [0u8;1]);
     /// ```
-    pub fn from_ref(id: AttributeId, buffer: &'attrref mut [u8]) -> Self {
+    pub fn from_ref(id: AttributeId, buffer: &'attrref [u8]) -> Self {
         let mut res = AttributeMemref::new_ref();
         unsafe {
             raw::TEE_InitRefAttribute(
                 &mut res.raw,
                 id as u32,
-                buffer as *mut [u8] as *mut _,
+                buffer.as_ptr() as *mut _,
                 buffer.len() as u32,
             );
         }
@@ -133,6 +133,12 @@ impl AttributeValue {
 /// or [PersistentObject](PersistentObject) function
 /// [info](PersistentObject::info).
 pub struct ObjectInfo {
+    raw: raw::TEE_ObjectInfo,
+}
+
+// Since raw struct is not implemented Copy attribute yet, every item in raw struct needs a function to extract.
+impl ObjectInfo {
+    /// Return an [ObjectInfo](ObjectInfo) struct based on the raw structrure `TEE_ObjectInfo`.
     /// The raw structure contains following fields:
     ///
     /// 1) `objectType`: The parameter represents one of the
@@ -152,12 +158,6 @@ pub struct ObjectInfo {
     /// Data positions for different handles on the same object may differ.
     /// 6.2) For a [TransientObject](TransientObject), set to 0.
     /// 7) `handleFlags`: A bit vector containing one or more [HandleFlag](HandleFlag) or [DataFlag](DataFlag).
-    pub raw: raw::TEE_ObjectInfo,
-}
-
-// Since raw struct is not implemented Copy attribute yet, every item in raw struct needs a function to extract.
-impl ObjectInfo {
-    /// Return an [ObjectInfo](ObjectInfo) struct based on the raw structrure `TEE_ObjectInfo`.
     pub fn from_raw(raw: raw::TEE_ObjectInfo) -> Self {
         Self { raw }
     }
