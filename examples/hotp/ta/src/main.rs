@@ -105,7 +105,7 @@ pub fn hmac_sha1(hotp: &mut HmacOtp, out: &mut [u8]) -> Result<usize> {
                     //KEY size can be larger than hotp.key_len
                     let mut tmp_key = hotp.key.to_vec();
                     tmp_key.truncate(hotp.key_len);
-                    let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &mut tmp_key);
+                    let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &tmp_key);
                     key_object.populate(&[attr.into()])?;
                     mac.set_key(&key_object)?;
                 }

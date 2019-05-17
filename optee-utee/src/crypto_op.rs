@@ -23,81 +23,77 @@ pub enum OperationMode {
 }
 
 /// Represent the information about a crypto information.
-///
-/// # Fields
-///
-/// 1) `algorithm`: parameters passed when the operation is created.
-/// 2) `mode`: parameters passed when the operation is created.
-/// 3) `maxKeySize`: parameters passed when the operation is created.
-/// 4) `operationClass`: One of the constants from [OperationConstant](OperationConstant).
-/// 5) `keySize`:
-/// 5.1) For an operation that makes no use of keys, 0.
-/// 5.2) For an operation that uses a single key, the actual size of this key.
-/// 5.3) For an operation that uses multiple keys, 0. (The actual value of keySize can be obtained from [OperationInfoMultiple](OperationInfoMultiple)).
-/// 6) `requiredKeyUsage`:
-/// 6.1) For an operation that makes no use of keys, 0.
-/// 6.2) For an operation that uses a single key, a bit vector that describes the necessary bits in the object usage for set_key functions to succeed without panicking.
-/// 6.3) For an operation that uses multiple keys, 0. (The actual value of keySize can be obtained from [OperationInfoMultiple](OperationInfoMultiple).
-/// 7) `digestLength`: For a [Mac](Mac), [AE](AE), or [Digest](Digest), describes the number of bytes in the digest or tag.
-/// 8) `handleState`: A bit vector describing the current state of the operation. Contains one or more of the [HandleFlag](../object/struct.HandleFlag.html).
 pub struct OperationInfo {
     raw: raw::TEE_OperationInfo,
 }
 
 impl OperationInfo {
     /// Return the `OperationInfo` struct based on the raw struct `TEE_OperationInfo`.
+    ///
+    /// The raw structure contains following fields:
+    ///
+    /// 1) `algorithm`: One of the algorithm of [AlgorithmId](AlgorithmId).
+    /// 2) `mode`: One of the mode of [OperationMode](OperationMode).
+    /// 3) `maxKeySize`: The maximum key sizes of different algorithms as defined in
+    /// [TransientObjectType](../object/enum.TransientObjectType.html).
+    /// 4) `operationClass`: One of the constants from [OperationConstant](OperationConstant).
+    /// 5) `keySize`:
+    /// 5.1) For an operation that makes no use of keys, 0.
+    /// 5.2) For an operation that uses a single key, the actual size of this key.
+    /// 5.3) For an operation that uses multiple keys, 0. (The actual value of `keySize` can be obtained from
+    /// [OperationInfoMultiple](OperationInfoMultiple)).
+    /// 6) `requiredKeyUsage`:
+    /// 6.1) For an operation that makes no use of keys, 0.
+    /// 6.2) For an operation that uses a single key, a bit vector that describes the necessary bits in the object
+    /// usage for `set_key` functions to succeed without panicking.
+    /// 6.3) For an operation that uses multiple keys, 0. (The actual value of `requiredKeyUsage` can be obtained from
+    /// [OperationInfoMultiple](OperationInfoMultiple).
+    /// 7) `digestLength`: For a [Mac](Mac), [AE](AE), or [Digest](Digest), describes the number of bytes in the digest or tag.
+    /// 8) `handleState`: A bit vector describing the current state of the operation. Contains one or more of the
+    /// [HandleFlag](../object/struct.HandleFlag.html).
     pub fn from_raw(raw: raw::TEE_OperationInfo) -> Self {
         Self { raw }
     }
 
-    /// Return the `keySize` field of the `OperationInfo`.
+    /// Return the `keySize` field of the raw structure `TEE_OperationInfo`.
     pub fn key_size(&self) -> u32 {
         self.raw.keySize
     }
 
-    /// Return the `maxDataSize` field of the `OperationInfo`.
+    /// Return the `maxDataSize` field of the raw structure `TEE_OperationInfo`.
     pub fn max_key_size(&self) -> u32 {
         self.raw.maxKeySize
     }
 }
 
-/// Every operation may be in two states
+/// Every operation of [AE](AE), [Asymmetric](Asymmetric), [Cipher](Cipher),
+/// [DeriveKey](DeriveKey), [Digest](Digest), [Mac](Mac) can be either one of the two states.
 pub enum OperationStates {
-    /// Nothing is going on
+    /// Nothing is going on.
     Initial = 0x00000000,
-    /// An operation is in progress
+    /// An operation is in progress.
     Active = 0x00000001,
 }
 
+/// Define the supported crypto operation.
 pub enum OperationConstant {
+    /// [Cipher](Cipher)
     Cipher = 1,
+    /// [Mac](Mac)
     Mac = 3,
+    /// [AE](AE)
     Ae = 4,
+    /// [Digest](Digest)
     Digest = 5,
+    /// [Asymmetric](Asymmetric)
     AsymmetricCipher = 6,
+    /// [Asymmetric](Asymmetric)
     AsymmetricSignature = 7,
+    /// [DeriveKey](DeriveKey)
     KeyDerivation = 8,
 }
 
 /// Represent the information about a crypto information which uses multiple keys.
-///
-/// # Fields
-///
-/// 1) `algorithm`: parameters passed when the operation is created.
-/// 2) `mode`: parameters passed when the operation is created.
-/// 3) `maxKeySize`: parameters passed when the operation is created.
-/// 4) `operationClass`: One of the constants from [OperationConstant](OperationConstant).
-/// 5) `digestLength`: For a [Mac](Mac), [AE](AE), or [Digest](Digest), describes the number of bytes in the digest or tag.
-/// 6) `handleState`: A bit vector describing the current state of the operation. Contains one or more of the [HandleFlag](../object/struct.HandleFlag.html).
-/// 7) `operationState`: Every operation has two states which are defined as
-///    [OperationStates](OperationStates).
-/// 8) `numberOfKeys`: This is set to the number of keys required by this operation. May be 0 for an operation which requires no keys.
-/// 9) `keyInformation`: This array contains numberOfKeys entries, each of which defines the details for one key used by the operation,
-/// in the order they are defined.
-/// If the buffer is larger than required to support `numberOfKeys` entries, the additional space is not initialized or modified.
-/// For each element:
-/// 9.1) `keySize`: If a key is programmed in the operation, the actual size of this key, otherwise 0.
-/// 9.2) `requiredKeyUsage`: A bit vector that describes the necessary bits in the object usage for `set_key` or `set_key_2` to succeed without panicking.
 pub struct OperationInfoMultiple {
     raw: *mut raw::TEE_OperationInfoMultiple,
     size: usize,
@@ -105,6 +101,25 @@ pub struct OperationInfoMultiple {
 
 impl OperationInfoMultiple {
     /// Return the `OperationInfoMultiple` struct based on the raw struct `TEE_OperationInfo`.
+    ///
+    /// The raw structure contains following fields:
+    ///
+    /// 1) `algorithm`: One of the algorithm of [AlgorithmId](AlgorithmId).
+    /// 2) `mode`: One of the mode of [OperationMode](OperationMode).
+    /// 3) `maxKeySize`: The maximum key sizes of different algorithms as defined in
+    /// [TransientObjectType](../object/enum.TransientObjectType.html).
+    /// 4) `operationClass`: One of the constants from [OperationConstant](OperationConstant).
+    /// 5) `digestLength`: For a [Mac](Mac), [AE](AE), or [Digest](Digest), describes the number of bytes in the digest or tag.
+    /// 6) `handleState`: A bit vector describing the current state of the operation. Contains one or more of the [HandleFlag](../object/struct.HandleFlag.html).
+    /// 7) `operationState`: Every operation has two states which are defined as
+    ///    [OperationStates](OperationStates).
+    /// 8) `numberOfKeys`: This is set to the number of keys required by this operation. May be 0 for an operation which requires no keys.
+    /// 9) `keyInformation`: This array contains numberOfKeys entries, each of which defines the details for one key used by the operation,
+    /// in the order they are defined.
+    /// If the buffer is larger than required to support `numberOfKeys` entries, the additional space is not initialized or modified.
+    /// For each element:
+    /// 9.1) `keySize`: If a key is programmed in the operation, the actual size of this key, otherwise 0.
+    /// 9.2) `requiredKeyUsage`: A bit vector that describes the necessary bits in the object usage for `set_key` or `set_key_2` to succeed without panicking.
     pub fn from_raw(raw: *mut raw::TEE_OperationInfoMultiple, size: usize) -> Self {
         Self { raw, size }
     }
@@ -114,7 +129,7 @@ impl OperationInfoMultiple {
         self.raw
     }
 
-    /// Return the `size` field of the `ObjectInfoMultiple`.
+    /// Return the `size` field of the raw structure `TEE_OperationInfoMultiple`.
     pub fn size(&self) -> usize {
         self.size
     }
@@ -193,7 +208,7 @@ impl OperationHandle {
 }
 
 // free before check it's not null
-/// Deallocate  all resources associated with an operation handle. After this function is called,
+/// Deallocate all resources associated with an operation handle. After this function is called,
 /// the operation handle is no longer valid. All cryptographic material in the operation is destroyed.
 impl Drop for OperationHandle {
     fn drop(&mut self) {
@@ -212,7 +227,7 @@ pub trait OpHandle {
     fn handle(&self) -> raw::TEE_OperationHandle;
 }
 
-/// Message digest operation.
+/// An operation for digest the message.
 pub struct Digest(OperationHandle);
 
 impl Digest {
@@ -223,20 +238,6 @@ impl Digest {
     /// # Parameters
     ///
     /// 1) `chunk`: Chunk of data to be hashed
-    ///
-    /// # Example
-    ///
-    /// ```no_run
-    /// let mut chunck = [0u8;8];
-    /// match Digest::allocate(AlgorithmId::Md5, 128) {
-    ///     Ok(operation) =>
-    ///     {
-    ///         operation(&mut chunk);
-    ///         Ok(())
-    ///     }
-    ///     Err(e) => Err(e),
-    /// }
-    /// ```
     ///
     /// # Panics
     ///
@@ -258,6 +259,28 @@ impl Digest {
     /// 1) `chunk`: Last chunk of data to be hashed.
     /// 2) `hash`: Output buffer filled with the message hash. This buffer should be large enough to
     ///    hold the hash message. The real used size is returned by this function.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// let chunk = [0u8;8];
+    /// let chunk = [1u8;8];
+    /// let hash = [0u8;32];
+    /// match Digest::allocate(AlgorithmId::Sha256) {
+    ///     Ok(operation) =>
+    ///     {
+    ///         operation.update(&chunk1);
+    ///         match operation.do_final(&chunk2, hash) {
+    ///             Ok(hash_len) => {
+    ///                 // ...
+    ///                 Ok(())
+    ///             }
+    ///             Err(e) => Err(e),
+    ///         }
+    ///     }
+    ///     Err(e) => Err(e),
+    /// }
+    /// ```
     ///
     /// # Errors
     ///
@@ -302,7 +325,7 @@ impl Digest {
     /// # Example
     ///
     /// ```no_run
-    /// match Digest::allocate(AlgorithmId::Md5) {
+    /// match Digest::allocate(AlgorithmId::Sha256) {
     ///     Ok(operation) =>
     ///     {
     ///         // ...
@@ -365,8 +388,13 @@ impl Digest {
     ///     Ok(operation) =>
     ///     {
     ///         let mut buffer = [0u32, 12];
-    ///         let info = operation.info_multiple(&mut buffer);
-    ///         Ok(())
+    ///         match operation.info_multiple(&mut buffer) {
+    ///             Ok(info_multiple) => {
+    ///                 // ...
+    ///                 Ok(())
+    ///             }
+    ///             Err(e) => Err(e),
+    ///         }
     ///     }
     ///     Err(e) => Err(e),
     /// }
@@ -414,10 +442,10 @@ impl Digest {
     /// # Example
     ///
     /// ```no_run
-    /// match Digest::allocate(AlgorithmId::Md5, 128) {
+    /// match Digest::allocate(AlgorithmId::Sha256) {
     ///     Ok(operation) =>
     ///     {
-    ///         match Digest::allocate(AlgorithmId::Md5, 128) {
+    ///         match Digest::allocate(AlgorithmId::Sha256) {
     ///             Ok(operation2) =>
     ///             {
     ///                 // ...
@@ -449,7 +477,8 @@ impl OpHandle for Digest {
     }
 }
 
-/// Symmetric cipher operation. This operation defines the way to perform symmetric cipher operations, such as AES.
+/// An operation for conducting symmetric cipher encryption / decryption.
+/// This operation defines the way to perform symmetric cipher operations, such as AES.
 /// They cover both block ciphers and stream ciphers.
 pub struct Cipher(OperationHandle);
 
@@ -506,9 +535,9 @@ impl Cipher {
     ///         match TransientObject::allocate(TransientObjectType::Aes, 128) {
     ///             Ok(object) =>
     ///             {
-    ///                 let attr = Attribute::from_ref(AttributeId::SecretValue, &key);
-    ///                 object.populate(&[attr])?;
-    ///                 operation.set_key(& object)?;
+    ///                 let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &key);
+    ///                 object.populate(&[attr.into()])?;
+    ///                 operation.set_key(&object)?;
     ///                 operation.init(&iv);
     ///                 operation.update(&src, &mut dest)?;
     ///                 Ok(())
@@ -685,7 +714,7 @@ impl OpHandle for Cipher {
     }
 }
 
-/// MAC operation. This operation is used to perform MAC (Message Authentication Code) operations, such as `HMAC`
+/// An operation for performing MAC (Message Authentication Code) operations, such as `HMAC`
 /// or `AES-CMAC` operations. This operation is not used for Authenticated Encryption algorithms,
 /// which SHALL use the functions defined in [AE](AE).
 pub struct Mac(OperationHandle);
@@ -746,20 +775,21 @@ impl Mac {
     /// let mut key: [u8; 20] = [
     /// 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35,
     /// 0x36, 0x37, 0x38, 0x39, 0x30,];
+    /// let mut out: [u8; 20] = [0u8; 20];
     /// match Mac::allocate(AlgorithmId::HmacSha1, key.len() * 8) {
     ///     Err(e) => return Err(e),
     ///     Ok(mac) => {
     ///         match TransientObject::allocate(TransientObjectType::HmacSha1, key.len() * 8) {
     ///         Err(e) => return Err(e),
     ///         Ok(mut key_object) => {
-    ///             let attr = Attribute::from_ref(AttributeId::SecretValue, &mut key);
-    ///             key_object.populate(&[attr])?;
+    ///             let attr = Attribute::from_ref(AttributeId::SecretValue, &key);
+    ///             key_object.populate(&[attr.into()])?;
     ///             mac.set_key(&key_object)?;
     ///         }
     ///     }
     ///     mac.init(&[0u8; 0]);
     ///     mac.update(&[0u8; 8]);
-    ///     mac.compute_final(&[0u8; 0], out)?;
+    ///     mac.compute_final(&[0u8; 0], &mut out)?;
     /// }
     /// ```
     ///
@@ -871,7 +901,7 @@ impl OpHandle for Mac {
     }
 }
 
-/// This operation is used for Authenticated Encryption operations.
+/// An operation for conducting authenticated encryption / decryption.
 pub struct AE(OperationHandle);
 
 impl AE {
@@ -993,6 +1023,40 @@ impl AE {
     /// 1) `src`: Reference to final chunk of input data to be encrypted.
     /// 2) `dest`: Output buffer. Can be omitted if the output is to be discarded, e.g. because it is known to be empty.
     /// 3) `tag`: Output buffer filled with the computed tag.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// let key = [0xa5u8; 16];
+    /// let nonce = [0x00u8; 16];
+    /// let aad = [0xffu8; 16];
+    /// let clear1 = [0x5au8; 19];
+    /// let clear2 = [0xa5u8; 13];
+    /// let mut ciph1 = [0x00u8; 16];
+    /// let mut ciph2 = [0x00u8; 16];
+    /// let mut tag = [0x00u8; 16];
+    /// match AE::allocate(AlgorithmId::AesCcm, OperationMode::Encrypt, 128) {
+    ///     Ok(operation) => {
+    ///         match TransientObject::allocate(TransientObjectType::Aes, 128) {
+    ///             Ok(key_object) => {
+    ///                 let attr = Attributememref::from_ref(Attributeid::SecretValue, &key);
+    ///                 key_object.populat(&[attr.into()])?;
+    ///                 operation.set_key(&key_object)?;
+    ///                 operation.init(&nonce, 128, 16, 32)?;
+    ///                 operation.update_aad(&aad);
+    ///                 operation.update(&clear1, &mut ciph1)?;
+    ///                 match operation.encrypt_final(&clear2, &mut ciph2) {
+    ///                     Ok((_ciph_len, _tag_len)) => {
+    ///                         // ...
+    ///                         Ok(()),
+    ///                     }
+    ///                     Err(e) => Err(e),
+    ///                 }
+    ///             Err(e) => Err(e),
+    ///         }
+    ///     Err(e) => Err(e),
+    /// }
+    /// ```
     ///
     /// # Errors
     ///
@@ -1120,8 +1184,8 @@ impl OpHandle for AE {
     }
 }
 
-/// This struct allows the encryption and decryption of data using asymmetric algorithms, signatures of digests,
-/// and verification of signatures. Note that asymmetric encryption is always “single-stage”,
+/// An operation for conducting asymmetric encryption /decryption or asymmetric sign / verify.
+/// Note that asymmetric encryption is always “single-stage”,
 /// which differs from [Cipher](Cipher) which are always “multi-stage”.
 pub struct Asymmetric(OperationHandle);
 
@@ -1132,6 +1196,34 @@ impl Asymmetric {
     ///
     /// 1) `params`: Optional operation parameters.
     /// 2) `src`: Input plaintext buffer.
+    ///
+    /// # Example
+    /// ```no_run
+    /// let clear = [1u8; 8];
+    /// match TransientObject::allocate(TransientObjectType::RsaKeypair, 256) {
+    ///     Ok(key) => {
+    ///         key.generate_key(256, &[])?;
+    ///         match Asymmetric::allocate(
+    ///             AlgorithmId::RsaesPkcs1V15,
+    ///             OperationMode::Encrypt,
+    ///             256) {
+    ///             Ok(operation) => {
+    ///                 operation.set_key(&key)?;
+    ///                 match operation.encrypt(&[], &clear) {
+    ///                     Ok(ciph_text) => {
+    ///                         // Get cipher text as a vector
+    ///                         // ...
+    ///                         Ok(())
+    ///                     }
+    ///                     Err(e) => Err(e),
+    ///                 }
+    ///             }
+    ///             Err(e) => Err(e),
+    ///         }
+    ///     }
+    ///     Err(e) => Err(e),
+    /// }
+    /// ```
     ///
     /// # Errors
     ///
@@ -1346,7 +1438,7 @@ impl OpHandle for Asymmetric {
     }
 }
 
-/// Derive a key object.
+/// An operation for derive a shared key object.
 pub struct DeriveKey(OperationHandle);
 
 impl DeriveKey {
@@ -1359,6 +1451,47 @@ impl DeriveKey {
     ///    [DhPublicValue](../object/enum.AttributeId.html#variant.DhPublicValue) is required as
     ///    the passed in attribute.
     /// 2) `object`: An uninitialized transient object to be filled with the derived key.
+    ///
+    /// # Example
+    ///
+    /// ```no_run
+    /// let attr_prime = AttributeMemref::from_ref(AttributeId::DhPrime, &[23u8]);
+    /// let attr_base = AttributeMemref::from_ref(AttributeId::DhBase, &[5u8]);
+    /// let mut public_1 = [0u8; 32];
+    /// match TransientObject::allocate(TransientObjectType::DhKeypair, 256) {
+    ///     Ok(key_pair_1) => {
+    ///         key_pair_1.generate_key(256, &[attr_prime.into(), attr_base.into()])?;
+    ///         key_pair_1.ref_attribute(aTTRIBUTEiD::DhPublicValue, &mut public_1)?;
+    ///     }
+    ///     Err(e) => Err(e),
+    /// }
+    ///
+    /// let attr_prime = AttributeMemref::from_ref(AttributeId::DhPrime, &[23u8]);
+    /// let attr_base = AttributeMemref::from_ref(AttributeId::DhBase, &[5u8]);
+    /// match TransientObject::allocate(TransientObjectType::DhKeypair, 256) {
+    ///     Ok(key_pair_2) => {
+    ///         key_pair_2.generate_key(256, &[attr_prime.into(), attr_base.into()])?;
+    ///         match DeriveKey::allocate(AlgorithmId::DhDeriveSharedSecret, 256) {
+    ///             Ok(operation) => {
+    ///                 operation.set_key(&key_pair_2)?;
+    ///                 match TransientObject::allocate(TransientObjectType::GenericSecret,
+    ///                 256) {
+    ///                     // Derived key is saved as an transient object
+    ///                     Ok(derived_key) => {
+    ///                         let attr_public = AttributeMemref::from_ref(AttributeId::DhPublicValue, &public_1);
+    ///                         operation.derive(&[attr_public.into()], &mut derived_key);
+    ///                         // ...
+    ///                         Ok(())
+    ///                     }
+    ///                     Err(e) => Err(e),
+    ///                 }
+    ///             }
+    ///             Err(e) => Err(e),
+    ///         }
+    ///     }
+    ///     Err(e) => Err(e),
+    /// }
+    /// ```
     ///
     /// # Panics
     ///
@@ -1421,7 +1554,7 @@ impl OpHandle for DeriveKey {
     }
 }
 
-/// Get random data.
+/// An operation for generating random data.
 pub struct Random();
 
 impl Random {

@@ -106,28 +106,28 @@ pub fn alloc_resources(aes: &mut AesCipher, params: &mut Parameters) -> Result<(
     )
     .unwrap();
     aes.key_object = TransientObject::allocate(TransientObjectType::Aes, aes.key_size * 8).unwrap();
-    let mut key = vec![0u8; aes.key_size as usize];
-    let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &mut key);
+    let key = vec![0u8; aes.key_size as usize];
+    let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &key);
     aes.key_object.populate(&[attr.into()])?;
-    aes.cipher.set_key(&mut aes.key_object)?;
+    aes.cipher.set_key(&aes.key_object)?;
     Ok(())
 }
 
 pub fn set_aes_key(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
     let mut param0 = unsafe { params.0.as_memref().unwrap() };
-    let mut key = param0.buffer();
+    let key = param0.buffer();
 
     if key.len() != aes.key_size {
         trace_println!("[+] Get wrong key size !\n");
         return Err(Error::new(ErrorKind::BadParameters));
     }
 
-    let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &mut key);
+    let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &key);
 
     aes.key_object.reset();
     aes.key_object.populate(&[attr.into()])?;
 
-    aes.cipher.set_key(&mut aes.key_object)?;
+    aes.cipher.set_key(&aes.key_object)?;
     Ok(())
 }
 
