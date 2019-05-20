@@ -15,5 +15,6 @@ pushd ../tests
 ./test_diffie_hellman.sh
 ./test_digest.sh
 ./test_authentication.sh
+./test_time.sh
 
 popd
