@@ -20,8 +20,8 @@ Alternatively, you can use a docker container built with our [Dockerfile](Docker
 $ git clone git@github.com:mesalock-linux/rust-optee-trustzone-sdk.git
 $ cd rust-optee-trustzone-sdk
 $ git submodule update --init
-$ (cd rust/compiler-builtins && git submodule update --init libm compiler-rt)
-$ (cd rust/rust && git submodule update --init src/stdsimd)
+$ (cd rust/compiler-builtins && git submodule update --init libm)
+$ (cd rust/rust && git submodule update --init src/stdsimd src/llvm-project)
 
 # install dependencies
 $ sudo apt-get install curl make gcc python python-crypto xz-utils

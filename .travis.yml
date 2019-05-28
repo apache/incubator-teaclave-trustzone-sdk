@@ -10,7 +10,7 @@ git:
 before_install:
   - travis_wait git submodule update --init
   - (cd rust/compiler-builtins && git submodule update --init libm)
-  - (cd rust/rust && git submodule update --init src/stdsimd)
+  - (cd rust/rust && git submodule update --init src/stdsimd src/llvm-project)
 
 install:
   - sudo apt-get install -y curl make gcc python python-crypto xz-utils

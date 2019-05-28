@@ -1,5 +1,6 @@
 export PATH=$PATH:$(pwd)/optee/toolchains/aarch64/bin
 export RUST_TARGET_PATH="$(pwd)"
+export RUST_COMPILER_RT_ROOT=$RUST_TARGET_PATH/rust/rust/src/llvm-project/compiler-rt
 export OPTEE_DIR="$(pwd)/optee"
 export OPTEE_OS_DIR="$OPTEE_DIR/optee_os"
 export OPTEE_OS_INCLUDE="$OPTEE_DIR/optee_os/out/arm/export-ta_arm64/include"
