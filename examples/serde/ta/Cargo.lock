@@ -35,14 +35,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "libc"
-version = "0.2.54"
+version = "0.2.55"
 
 [[package]]
 name = "optee-utee"
 version = "0.1.0"
 dependencies = [
  "bitflags 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
- "libc 0.2.54",
+ "libc 0.2.55",
  "optee-utee-macros 0.1.0",
  "optee-utee-sys 0.1.0",
 ]
@@ -59,7 +59,7 @@ dependencies = [
 name = "optee-utee-sys"
 version = "0.1.0"
 dependencies = [
- "libc 0.2.54",
+ "libc 0.2.55",
 ]
 
 [[package]]
@@ -229,7 +229,7 @@ dependencies = [
 name = "ta"
 version = "0.1.0"
 dependencies = [
- "libc 0.2.54",
+ "libc 0.2.55",
  "optee-utee 0.1.0",
  "optee-utee-sys 0.1.0",
  "serde 1.0.89 (registry+https://github.com/rust-lang/crates.io-index)",
