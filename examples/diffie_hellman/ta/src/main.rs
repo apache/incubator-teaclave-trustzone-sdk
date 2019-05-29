@@ -13,6 +13,14 @@ pub struct DiffieHellman {
     pub key: TransientObject,
 }
 
+impl Default for DiffieHellman {
+    fn default() -> Self {
+        Self {
+            key: TransientObject::null_object(),
+        }
+    }
+}
+
 #[ta_create]
 fn create() -> Result<()> {
     trace_println!("[+] TA create");
@@ -20,21 +28,14 @@ fn create() -> Result<()> {
 }
 
 #[ta_open_session]
-fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut DiffieHellman) -> Result<()> {
+fn open_session(_params: &mut Parameters, _sess_ctx: &mut DiffieHellman) -> Result<()> {
     trace_println!("[+] TA open session");
-    let ptr = Box::into_raw(Box::new(DiffieHellman {
-        key: TransientObject::null_object(),
-    }));
-    unsafe {
-        *sess_ctx = ptr;
-    }
     Ok(())
 }
 
 #[ta_close_session]
-fn close_session(sess_ctx: *mut DiffieHellman) {
+fn close_session(_sess_ctx: &mut DiffieHellman) {
     trace_println!("[+] TA close session");
-    unsafe { Box::from_raw(sess_ctx) };
 }
 
 #[ta_destroy]

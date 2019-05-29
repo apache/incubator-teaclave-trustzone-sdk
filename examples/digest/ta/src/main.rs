@@ -11,6 +11,14 @@ pub struct DigestOp {
     pub op: Digest,
 }
 
+impl Default for DigestOp {
+    fn default() -> Self {
+        Self {
+            op: Digest::allocate(AlgorithmId::Sha256).unwrap(),
+        }
+    }
+}
+
 #[ta_create]
 fn create() -> Result<()> {
     trace_println!("[+] TA create");
@@ -18,21 +26,14 @@ fn create() -> Result<()> {
 }
 
 #[ta_open_session]
-fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut DigestOp) -> Result<()> {
+fn open_session(_params: &mut Parameters, _sess_ctx: &mut DigestOp) -> Result<()> {
     trace_println!("[+] TA open session");
-    let ptr = Box::into_raw(Box::new(DigestOp {
-        op: Digest::allocate(AlgorithmId::Sha256).unwrap(),
-    }));
-    unsafe {
-        *sess_ctx = ptr;
-    }
     Ok(())
 }
 
 #[ta_close_session]
-fn close_session(sess_ctx: *mut DigestOp) {
+fn close_session(_sess_ctx: &mut DigestOp) {
     trace_println!("[+] TA close session");
-    unsafe { Box::from_raw(sess_ctx) };
 }
 
 #[ta_destroy]
