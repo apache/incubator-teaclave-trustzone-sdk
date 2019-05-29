@@ -19,6 +19,16 @@ pub struct HmacOtp {
     pub key_len: usize,
 }
 
+impl Default for HmacOtp {
+    fn default() -> Self {
+        Self {
+            counter: [0u8; 8],
+            key: [0u8; MAX_KEY_SIZE],
+            key_len: 0,
+        }
+    }
+}
+
 #[ta_create]
 fn create() -> Result<()> {
     trace_println!("[+] TA create");
@@ -26,23 +36,14 @@ fn create() -> Result<()> {
 }
 
 #[ta_open_session]
-fn open_session(_params: &mut Parameters, sess_ctx: *mut *mut HmacOtp) -> Result<()> {
+fn open_session(_params: &mut Parameters, _sess_ctx: &mut HmacOtp) -> Result<()> {
     trace_println!("[+] TA open session");
-    let ptr = Box::into_raw(Box::new(HmacOtp {
-        counter: [0u8; 8],
-        key: [0u8; MAX_KEY_SIZE],
-        key_len: 0,
-    }));
-    unsafe {
-        *sess_ctx = ptr;
-    }
     Ok(())
 }
 
 #[ta_close_session]
-fn close_session(sess_ctx: *mut HmacOtp) {
+fn close_session(_sess_ctx: &mut HmacOtp) {
     trace_println!("[+] TA close session");
-    unsafe { Box::from_raw(sess_ctx) };
 }
 
 #[ta_destroy]
