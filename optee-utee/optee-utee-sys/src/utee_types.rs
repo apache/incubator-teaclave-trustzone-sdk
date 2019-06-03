@@ -1,5 +1,4 @@
 use super::*;
-use libc::*;
 
 #[repr(C)]
 pub enum utee_time_category {
@@ -25,13 +24,13 @@ pub enum utee_cache_operation {
 
 #[repr(C)]
 pub struct utee_params {
-    types: uint64_t,
-    vals: [uint64_t; TEE_NUM_PARAMS as usize * 2],
+    types: u64,
+    vals: [u64; TEE_NUM_PARAMS as usize * 2],
 }
 
 #[repr(C)]
 pub struct utee_attribute {
-    a: uint64_t,
-    b: uint64_t,
-    attribute_id: uint32_t,
+    a: u64,
+    b: u64,
+    attribute_id: u32,
 }

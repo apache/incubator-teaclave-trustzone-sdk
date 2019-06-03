@@ -143,7 +143,7 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
         1 => quote!(
             #[no_mangle]
             pub extern "C" fn TA_OpenSessionEntryPoint(
-                param_types: libc::uint32_t,
+                param_types: u32,
                 params: &mut [optee_utee_sys::TEE_Param; 4],
                 sess_ctx: *mut *mut libc::c_void,
             ) -> optee_utee_sys::TEE_Result {
@@ -176,7 +176,7 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
             quote!(
                 #[no_mangle]
                 pub extern "C" fn TA_OpenSessionEntryPoint(
-                    param_types: libc::uint32_t,
+                    param_types: u32,
                     params: &mut [optee_utee_sys::TEE_Param; 4],
                     sess_ctx: *mut *mut libc::c_void,
                 ) -> optee_utee_sys::TEE_Result {
@@ -328,7 +328,7 @@ pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream 
             pub extern "C" fn TA_InvokeCommandEntryPoint(
                 sess_ctx: *mut libc::c_void,
                 cmd_id: u32,
-                param_types: libc::uint32_t,
+                param_types: u32,
                 params: &mut [optee_utee_sys::TEE_Param; 4],
             ) -> optee_utee_sys::TEE_Result {
                 let mut parameters = Parameters::from_raw(params, param_types);
@@ -363,7 +363,7 @@ pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream 
                 pub extern "C" fn TA_InvokeCommandEntryPoint(
                     sess_ctx: *mut libc::c_void,
                     cmd_id: u32,
-                    param_types: libc::uint32_t,
+                    param_types: u32,
                     params: &mut [optee_utee_sys::TEE_Param; 4],
                 ) -> optee_utee_sys::TEE_Result {
                     if sess_ctx.is_null() {
