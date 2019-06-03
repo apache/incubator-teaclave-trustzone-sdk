@@ -38,7 +38,7 @@ impl Session {
             ctx: context.as_mut_raw_ptr(),
             session_id: 0,
         };
-        let mut err_origin: libc::uint32_t = 0;
+        let mut err_origin: u32 = 0;
         let raw_operation = match operation {
             Some(o) => o.as_mut_raw_ptr(),
             None => ptr::null_mut() as *mut raw::TEEC_Operation,
@@ -70,7 +70,7 @@ impl Session {
         command_id: u32,
         operation: &mut Operation<A, B, C, D>,
     ) -> Result<()> {
-        let mut err_origin: libc::uint32_t = 0;
+        let mut err_origin: u32 = 0;
         unsafe {
             match raw::TEEC_InvokeCommand(
                 &mut self.raw,
