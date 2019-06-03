@@ -38,7 +38,7 @@ fn derive_key(key0_pub: &Vec<u8>, session: &mut Session) -> Result<()> {
     let key_size = operation.parameters().2.a() as usize;
     let mut derive_res = vec![0u8; key_size];
     derive_res.copy_from_slice(&shared_key[..key_size]);
-    println!("Dervied share key as {:?}", derive_res);
+    println!("Derived share key as {:?}", derive_res);
     Ok(())
 }
 

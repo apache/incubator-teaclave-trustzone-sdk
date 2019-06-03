@@ -45,8 +45,8 @@ fn time() -> Result<()> {
     let mut time = Time::new();
     time.ree_time();
     trace_println!("[+] Get REE time {}.", time);
-    trace_println!("[+] Now wait 5 seconds in TEE ...");
-    Time::wait(5000)?;
+    trace_println!("[+] Now wait 1 second in TEE ...");
+    Time::wait(1000)?;
     time.system_time();
     trace_println!("[+] Get system time {}.", time);
     time.seconds = time.seconds + 5;

@@ -24,11 +24,12 @@ screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
 
 {
-	grep -q "Success" screenlog.0 &&
-	grep -q "Get HOTP" screenlog.0
+	grep -q "Get HOTP" screenlog.0 &&
+	grep -q "Success" screenlog.0
 } || {
         cat -v screenlog.0
         cat -v /tmp/serial.log
+        false
 }
 
 rm -rf screenlog.0

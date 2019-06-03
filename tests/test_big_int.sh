@@ -24,18 +24,19 @@ screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
 
 {
-	grep -q "\[*\] >|<|== \[*\]" /tmp/serial.log &&
-	grep -q "\[*\] in u8 array is \[*\]" /tmp/serial.log &&
-	grep -q "\[*\] in i32 is [0-9]*" /tmp/serial.log &&
-	grep -q "\[*\] \+ \[*\] = \[*\]" /tmp/serial.log &&
-	grep -q "\[*\] - \[*\] = \[*\]" /tmp/serial.log &&
-	grep -q "\[*\] \* \[*\] = \[*\]" /tmp/serial.log &&
-	grep -q "\[*\] / \[*\] = \[*\]" /tmp/serial.log &&
-	grep -q "\[*\] % \[*\] = \[*\]" /tmp/serial.log &&
+	grep -q "\[.*] > \[.*]\|\[.*] < \[.*]\|\[.*] == \[.*]" /tmp/serial.log &&
+	grep -q "\[.*] in u8 array is \[.*]" /tmp/serial.log &&
+	grep -q "\[.*] in i32 is [0-9]*" /tmp/serial.log &&
+	grep -q "\[.*] + \[.*] = \[.*]" /tmp/serial.log &&
+	grep -q "\[.*] - \[.*] = \[.*]" /tmp/serial.log &&
+	grep -q "\[.*] \* \[.*] = \[.*]" /tmp/serial.log &&
+	grep -q "\[.*] / \[.*] = \[.*]" /tmp/serial.log &&
+	grep -q "\[.*] % \[.*] = \[.*]" /tmp/serial.log &&
 	grep -q "Success" screenlog.0
 } || {
 	cat -v screenlog.0
 	cat -v /tmp/serial.log
+        false
 }
 
 rm -rf screenlog.0
