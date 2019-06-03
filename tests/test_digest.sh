@@ -18,7 +18,7 @@ screen -S qemu_screen -p 0 -X stuff "mkdir shared && mount -t 9p -o trans=virtio
 sleep 5
 screen -S qemu_screen -p 0 -X stuff "cp *.ta /lib/optee_armtz/\n"
 sleep 5
-screen -S qemu_screen -p 0 -X stuff "./digest\n"
+screen -S qemu_screen -p 0 -X stuff "./digest message1 message2\n"
 sleep 5
 screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
@@ -29,6 +29,7 @@ sleep 5
 } || {
 	cat -v screenlog.0
 	cat -v /tmp/serial.log
+        false
 }
 
 rm -rf screenlog.0

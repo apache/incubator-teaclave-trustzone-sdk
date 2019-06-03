@@ -31,20 +31,20 @@ fn destroy() {
 
 fn compare(n0: &BigInt, n1: &BigInt) -> Result<()> {
     match n0.compare_big_int(n1) {
-        0 => trace_println!("{} == {}", n0, n1),
-        res if res > 0 => trace_println!("{} > {}", n0, n1),
-        _ => trace_println!("{} < {}", n0, n1),
+        0 => trace_println!("{} == {}.", n0, n1),
+        res if res > 0 => trace_println!("{} > {}.", n0, n1),
+        _ => trace_println!("{} < {}.", n0, n1),
     }
     Ok(())
 }
 
 fn convert(n0: &BigInt, n1: &BigInt) -> Result<()> {
     trace_println!(
-        "{} in u8 array is {:x?}",
+        "{} in u8 array is {:x?}.",
         n0,
         n0.convert_to_octet_string().unwrap()
     );
-    trace_println!("{} in i32 is {}", n1, n1.convert_to_s32().unwrap());
+    trace_println!("{} in i32 is {}.", n1, n1.convert_to_s32().unwrap());
     Ok(())
 }
 

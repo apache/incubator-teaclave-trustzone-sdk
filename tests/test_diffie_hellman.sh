@@ -24,12 +24,13 @@ screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
 
 {
-	grep -q "get key 0|1 pair as public: \[[0-9]*\], private: \[[0-9]*\]" screenlog.0 &&
+	grep -q "get key [0|1] pair as public: \[[0-9]*\], private: \[[0-9]*\]" screenlog.0 &&
 	grep -q "Derived share key as \[[0-9]*\]" screenlog.0 &&
 	grep -q "Success" screenlog.0
 } || {
 	cat -v screenlog.0
 	cat -v /tmp/serial.log
+        false
 }
 
 rm -rf screenlog.0

@@ -24,11 +24,12 @@ screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
 
 {
-	grep -q "Success encrypt input text \"*\" as [0-9]* bytes cipher text:" screenlog.0 &&
+	grep -q "Success encrypt input text \".*\" as [0-9]* bytes cipher text:" screenlog.0 &&
 	grep -q "Success decrypt the above ciphertext as [0-9]* bytes plain text:" screenlog.0	
 } || {
 	cat -v screenlog.0
 	cat -v /tmp/serial.log
+        false
 }
 
 rm -rf screenlog.0

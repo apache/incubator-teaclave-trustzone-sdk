@@ -33,6 +33,7 @@ sleep 5
 } || {
 	cat -v screenlog.0
 	cat -v /tmp/serial.log
+	false
 }
 
 rm -rf screenlog.0
