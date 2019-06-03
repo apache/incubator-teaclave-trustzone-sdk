@@ -61,12 +61,12 @@ pub static ta_props: [optee_utee_sys::user_ta_property; 9] = [
     optee_utee_sys::user_ta_property {
         name: optee_utee_sys::TA_PROP_STR_DATA_SIZE,
         prop_type: optee_utee_sys::user_ta_prop_type::USER_TA_PROP_TYPE_U32,
-        value: &TA_DATA_SIZE as *const libc::uint32_t as *mut _,
+        value: &TA_DATA_SIZE as *const u32 as *mut _,
     },
     optee_utee_sys::user_ta_property {
         name: optee_utee_sys::TA_PROP_STR_STACK_SIZE,
         prop_type: optee_utee_sys::user_ta_prop_type::USER_TA_PROP_TYPE_U32,
-        value: &TA_STACK_SIZE as *const libc::uint32_t as *mut _,
+        value: &TA_STACK_SIZE as *const u32 as *mut _,
     },
     optee_utee_sys::user_ta_property {
         name: optee_utee_sys::TA_PROP_STR_VERSION,
@@ -86,7 +86,7 @@ pub static ta_props: [optee_utee_sys::user_ta_property; 9] = [
     optee_utee_sys::user_ta_property {
         name: "gp.ta.version\0".as_ptr(),
         prop_type: optee_utee_sys::user_ta_prop_type::USER_TA_PROP_TYPE_U32,
-        value: &EXT_PROP_VALUE_2 as *const libc::uint32_t as *mut _,
+        value: &EXT_PROP_VALUE_2 as *const u32 as *mut _,
     },
 ];
 
