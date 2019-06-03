@@ -2,12 +2,12 @@ use libc::*;
 
 // Common Definitions
 
-pub type TEE_Result = uint32_t;
+pub type TEE_Result = u32;
 
 #[repr(C)]
 #[derive(Copy, Clone)]
 pub struct TEE_UUID {
-    pub timeLow: uint32_t,
+    pub timeLow: u32,
     pub timeMid: uint16_t,
     pub timeHiAndVersion: uint16_t,
     pub clockSeqAndNode: [uint8_t; 8],
@@ -15,7 +15,7 @@ pub struct TEE_UUID {
 
 #[repr(C)]
 pub struct TEE_Identity {
-    pub login: uint32_t,
+    pub login: u32,
     pub uuid: TEE_UUID,
 }
 
@@ -23,14 +23,14 @@ pub struct TEE_Identity {
 #[repr(C)]
 pub struct Memref {
     pub buffer: *mut c_void,
-    pub size: uint32_t,
+    pub size: u32,
 }
 
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Value {
-    pub a: uint32_t,
-    pub b: uint32_t,
+    pub a: u32,
+    pub b: u32,
 }
 
 #[derive(Copy, Clone)]
@@ -72,18 +72,18 @@ pub type TEE_OperationHandle = *mut __TEE_OperationHandle;
 
 // Storage Definitions
 
-pub type TEE_ObjectType = uint32_t;
+pub type TEE_ObjectType = u32;
 
 #[repr(C)]
 pub struct TEE_ObjectInfo {
-    pub objectType: uint32_t,
+    pub objectType: u32,
     // remove to 2 unions here, only keep 1.1.1 spec version
-    pub objectSize: uint32_t,
-    pub maxObjectSize: uint32_t,
-    pub objectUsage: uint32_t,
-    pub dataSize: uint32_t,
-    pub dataPosition: uint32_t,
-    pub handleFlags: uint32_t,
+    pub objectSize: u32,
+    pub maxObjectSize: u32,
+    pub objectUsage: u32,
+    pub dataSize: u32,
+    pub dataPosition: u32,
+    pub handleFlags: u32,
 }
 
 #[repr(C)]
@@ -103,7 +103,7 @@ pub union content {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct TEE_Attribute {
-    pub attributeID: uint32_t,
+    pub attributeID: u32,
     pub content: content,
 }
 
@@ -122,32 +122,32 @@ pub enum TEE_OperationMode {
 
 #[repr(C)]
 pub struct TEE_OperationInfo {
-    pub algorithm: uint32_t,
-    pub operationClass: uint32_t,
-    pub mode: uint32_t,
-    pub digestLength: uint32_t,
-    pub maxKeySize: uint32_t,
-    pub keySize: uint32_t,
-    pub requiredKeyUsage: uint32_t,
-    pub handleState: uint32_t,
+    pub algorithm: u32,
+    pub operationClass: u32,
+    pub mode: u32,
+    pub digestLength: u32,
+    pub maxKeySize: u32,
+    pub keySize: u32,
+    pub requiredKeyUsage: u32,
+    pub handleState: u32,
 }
 
 #[repr(C)]
 pub struct TEE_OperationInfoKey {
-    pub keySize: uint32_t,
-    pub requiredKeyUsage: uint32_t,
+    pub keySize: u32,
+    pub requiredKeyUsage: u32,
 }
 
 #[repr(C)]
 pub struct TEE_OperationInfoMultiple {
-    pub algorithm: uint32_t,
-    pub operationClass: uint32_t,
-    pub mode: uint32_t,
-    pub digestLength: uint32_t,
-    pub maxKeySize: uint32_t,
-    pub handleState: uint32_t,
-    pub operationState: uint32_t,
-    pub numberOfKeys: uint32_t,
+    pub algorithm: u32,
+    pub operationClass: u32,
+    pub mode: u32,
+    pub digestLength: u32,
+    pub maxKeySize: u32,
+    pub handleState: u32,
+    pub operationState: u32,
+    pub numberOfKeys: u32,
     pub keyInformation: *mut TEE_OperationInfoKey,
 }
 
@@ -155,15 +155,15 @@ pub struct TEE_OperationInfoMultiple {
 
 #[repr(C)]
 pub struct TEE_Time {
-    pub seconds: uint32_t,
-    pub millis: uint32_t,
+    pub seconds: u32,
+    pub millis: u32,
 }
 
 // TEE Arithmetical APIs
 
-pub type TEE_BigInt = uint32_t;
-pub type TEE_BigIntFMM = uint32_t;
-pub type TEE_BigIntFMMContext = uint32_t;
+pub type TEE_BigInt = u32;
+pub type TEE_BigIntFMM = u32;
+pub type TEE_BigIntFMMContext = u32;
 
 // Tee Secure Element APIs
 
@@ -202,13 +202,13 @@ pub struct TEE_SEAID {
 }
 
 // Other definitions
-pub type TEE_ErrorOrigin = uint32_t;
+pub type TEE_ErrorOrigin = u32;
 pub type TEE_Session = *mut c_void;
 
-pub const TEE_MEM_INPUT: uint32_t = 0x00000001;
-pub const TEE_MEM_OUTPUT: uint32_t = 0x00000002;
-pub const TEE_MEMREF_0_USED: uint32_t = 0x00000001;
-pub const TEE_MEMREF_1_USED: uint32_t = 0x00000002;
-pub const TEE_MEMREF_2_USED: uint32_t = 0x00000004;
-pub const TEE_MEMREF_3_USED: uint32_t = 0x00000008;
-pub const TEE_SE_READER_NAME_MAX: uint32_t = 20;
+pub const TEE_MEM_INPUT: u32 = 0x00000001;
+pub const TEE_MEM_OUTPUT: u32 = 0x00000002;
+pub const TEE_MEMREF_0_USED: u32 = 0x00000001;
+pub const TEE_MEMREF_1_USED: u32 = 0x00000002;
+pub const TEE_MEMREF_2_USED: u32 = 0x00000004;
+pub const TEE_MEMREF_3_USED: u32 = 0x00000008;
+pub const TEE_SE_READER_NAME_MAX: u32 = 20;
