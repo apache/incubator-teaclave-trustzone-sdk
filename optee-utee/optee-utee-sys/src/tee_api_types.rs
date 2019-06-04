@@ -8,9 +8,9 @@ pub type TEE_Result = u32;
 #[derive(Copy, Clone)]
 pub struct TEE_UUID {
     pub timeLow: u32,
-    pub timeMid: uint16_t,
-    pub timeHiAndVersion: uint16_t,
-    pub clockSeqAndNode: [uint8_t; 8],
+    pub timeMid: u16,
+    pub timeHiAndVersion: u16,
+    pub clockSeqAndNode: [u8; 8],
 }
 
 #[repr(C)]
@@ -197,7 +197,7 @@ pub struct TEE_SEReaderProperties {
 
 #[repr(C)]
 pub struct TEE_SEAID {
-    pub buffer: *mut uint8_t,
+    pub buffer: *mut u8,
     pub bufferLen: size_t,
 }
 

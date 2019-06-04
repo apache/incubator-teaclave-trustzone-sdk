@@ -68,9 +68,9 @@ pub struct TEEC_Context {
 #[repr(C)]
 pub struct TEEC_UUID {
     pub timeLow: u32,
-    pub timeMid: uint16_t,
-    pub timeHiAndVersion: uint16_t,
-    pub clockSeqAndNode: [uint8_t; 8],
+    pub timeMid: u16,
+    pub timeHiAndVersion: u16,
+    pub clockSeqAndNode: [u8; 8],
 }
 
 #[repr(C)]

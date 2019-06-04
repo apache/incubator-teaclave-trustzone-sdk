@@ -94,7 +94,7 @@ extern "C" {
         buffer1: *const c_void,
         buffer2: *const c_void,
         size: u32,
-    ) -> int32_t;
+    ) -> i32;
     pub fn TEE_MemFill(buff: *mut c_void, x: u32, size: u32) -> *mut c_void;
 
     // Data and Key Storage API  - Generic Object Functions
@@ -219,7 +219,7 @@ extern "C" {
     pub fn TEE_TruncateObjectData(object: TEE_ObjectHandle, size: u32) -> TEE_Result;
     pub fn TEE_SeekObjectData(
         object: TEE_ObjectHandle,
-        offset: int32_t,
+        offset: i32,
         whence: TEE_Whence,
     ) -> TEE_Result;
 
@@ -438,22 +438,22 @@ extern "C" {
 
     pub fn TEE_BigIntConvertFromOctetString(
         dest: *mut TEE_BigInt,
-        buffer: *const uint8_t,
+        buffer: *const u8,
         bufferLen: u32,
-        sign: int32_t,
+        sign: i32,
     ) -> TEE_Result;
     pub fn TEE_BigIntConvertToOctetString(
-        buffer: *mut uint8_t,
+        buffer: *mut u8,
         bufferLen: *mut u32,
         bigInt: *const TEE_BigInt,
     ) -> TEE_Result;
-    pub fn TEE_BigIntConvertFromS32(dest: *mut TEE_BigInt, shortVal: int32_t) -> c_void;
-    pub fn TEE_BigIntConvertToS32(dest: *mut int32_t, src: *const TEE_BigInt) -> TEE_Result;
+    pub fn TEE_BigIntConvertFromS32(dest: *mut TEE_BigInt, shortVal: i32) -> c_void;
+    pub fn TEE_BigIntConvertToS32(dest: *mut i32, src: *const TEE_BigInt) -> TEE_Result;
 
     // TEE Arithmetical API - Logical operations
 
-    pub fn TEE_BigIntCmp(op1: *const TEE_BigInt, op2: *const TEE_BigInt) -> int32_t;
-    pub fn TEE_BigIntCmpS32(op: *const TEE_BigInt, shortVal: int32_t) -> int32_t;
+    pub fn TEE_BigIntCmp(op1: *const TEE_BigInt, op2: *const TEE_BigInt) -> i32;
+    pub fn TEE_BigIntCmpS32(op: *const TEE_BigInt, shortVal: i32) -> i32;
     pub fn TEE_BigIntShiftRight(
         dest: *mut TEE_BigInt,
         op: *const TEE_BigInt,
@@ -531,7 +531,7 @@ extern "C" {
         op1: *const TEE_BigInt,
         op2: *const TEE_BigInt,
     ) -> c_void;
-    pub fn TEE_BigIntIsProbablePrime(op: *const TEE_BigInt, confidenceLevel: u32) -> int32_t;
+    pub fn TEE_BigIntIsProbablePrime(op: *const TEE_BigInt, confidenceLevel: u32) -> i32;
 
     // TEE Arithmetical API - Fast modular multiplication operations
 
