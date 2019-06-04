@@ -205,7 +205,7 @@ extern "C" {
     ) -> TEE_Result;
     pub fn utee_storage_obj_write(obj: c_ulong, data: *const c_void, len: size_t) -> TEE_Result;
     pub fn utee_storage_obj_trunc(obj: c_ulong, len: size_t) -> TEE_Result;
-    pub fn utee_storage_obj_seek(obj: c_ulong, offset: int32_t, whence: c_ulong) -> TEE_Result;
+    pub fn utee_storage_obj_seek(obj: c_ulong, offset: i32, whence: c_ulong) -> TEE_Result;
     pub fn utee_cache_operation(va: *mut c_void, l: size_t, op: c_ulong) -> TEE_Result;
 // unimplemented syscall
 // pub fn utee_gprof_send(buf: *mut c_void, size: size_t, id: *mut u32) -> TEE_Result;
