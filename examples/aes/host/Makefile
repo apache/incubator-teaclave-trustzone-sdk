@@ -1,4 +1,4 @@
-NAME := hello_world
+NAME := aes
 OPTEE_DIR ?= ../../../optee
 OUT_DIR := $(CURDIR)/target/aarch64-unknown-linux-gnu/release
 OPTEE_BIN := $(OPTEE_DIR)/toolchains/aarch64/bin

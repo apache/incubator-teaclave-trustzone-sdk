@@ -1,7 +1,7 @@
 all:
-	@cd host && cargo build --target aarch64-unknown-linux-gnu
+	@make -s -C host
 	@make -s -C ta
 
 clean:
-	@cd host && cargo clean
+	@make -s -C host clean
 	@make -s -C ta clean
