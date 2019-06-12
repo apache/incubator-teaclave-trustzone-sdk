@@ -7,7 +7,7 @@ rm -rf shared
 
 curl http://mesalock-linux.org/assets/optee-qemuv8-3.4.0.tar.gz | tar zxv
 mkdir shared
-cp ../examples/hello_world/ta/target/aarch64-unknown-optee-trustzone/debug/*.ta shared
+cp ../examples/hello_world/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
 cp ../examples/hello_world/host/target/aarch64-unknown-linux-gnu/debug/hello_world shared
 
 screen -L -d -m -S qemu_screen ./optee-qemuv8.sh
