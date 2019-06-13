@@ -16,3 +16,6 @@ optee-utee = { path = "../../../optee-utee" }
 [build_dependencies]
 uuid = "0.7"
 proto = { path = "../proto" }
+
+[profile.release]
+lto = true
