@@ -1,13 +1,25 @@
 NAME := hotp
+ARCH ?= aarch64
+
 OPTEE_DIR ?= ../../../optee
-OUT_DIR := $(CURDIR)/target/aarch64-unknown-linux-gnu/release
-OPTEE_BIN := $(OPTEE_DIR)/toolchains/aarch64/bin
-OBJCOPY := $(OPTEE_BIN)/aarch64-linux-gnu-objcopy
+
+ifeq ($(ARCH), arm)
+	OPTEE_BIN := $(OPTEE_DIR)/toolchains/aarch32/bin
+	OBJCOPY := $(OPTEE_BIN)/arm-linux-gnueabihf-objcopy
+	TARGET := arm-unknown-linux-gnueabihf
+else
+	OPTEE_BIN := $(OPTEE_DIR)/toolchains/$(ARCH)/bin
+	OBJCOPY := $(OPTEE_BIN)/aarch64-linux-gnu-objcopy
+	TARGET := aarch64-unknown-linux-gnu
+endif
+
+OUT_DIR := $(CURDIR)/target/$(TARGET)/release
+
 
 all: host strip
 
 host:
-	@cargo build --target aarch64-unknown-linux-gnu --release
+	@cargo build --target $(TARGET) --release
 
 strip:
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/$(NAME) $(OUT_DIR)/$(NAME)

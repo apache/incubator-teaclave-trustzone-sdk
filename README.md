@@ -27,7 +27,7 @@ $ (cd rust/rust && git submodule update --init src/stdsimd src/llvm-project)
 $ sudo apt-get install curl make gcc python python-crypto xz-utils
 
 # install Rust and select a proper version
-$ curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2019-02-27
+$ curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2019-07-08
 $ source $HOME/.cargo/env
 $ rustup component add rust-src && rustup target install aarch64-unknown-linux-gnu
 

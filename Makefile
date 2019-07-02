@@ -8,6 +8,14 @@ EXAMPLES = $(wildcard examples/*)
 EXAMPLES_INSTALL = $(EXAMPLES:%=%-install)
 EXAMPLES_CLEAN  = $(EXAMPLES:%=%-clean)
 
+ifneq ($(ARCH), arm)
+	HOST_TARGET := aarch64-unknown-linux-gnu
+	TA_TARGET := aarch64-unknown-optee-trustzone
+else
+	HOST_TARGET := arm-unknown-linux-gnueabihf
+	TA_TARGET := arm-unknown-optee-trustzone
+endif
+
 all: toolchains optee-os optee-client examples
 optee: toolchains optee-os optee-client
 
@@ -20,14 +28,14 @@ optee-os:
 optee-client:
 	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) optee-client-common
 
-examples: $(EXAMPLES)
+examples: $(EXAMPLES) toolchains optee-os optee-client
 $(EXAMPLES):
 	make -C $@
 
 examples-install: $(EXAMPLES_INSTALL)
 $(EXAMPLES_INSTALL):
-	install -D $(@:%-install=%)/host/target/aarch64-unknown-linux-gnu/debug/$(@:examples/%-install=%) -t out/host/
-	install -D $(@:%-install=%)/ta/target/aarch64-unknown-optee-trustzone/debug/*.ta -t out/ta/
+	install -D $(@:%-install=%)/host/target/$(HOST_TARGET)/release/$(@:examples/%-install=%) -t out/host/
+	install -D $(@:%-install=%)/ta/target/$(TA_TARGET)/release/*.ta -t out/ta/
 
 optee-os-clean:
 	make -C $(OPTEE_OS_PATH) O=out/arm clean

@@ -1,8 +1,20 @@
-export PATH=$PATH:$(pwd)/optee/toolchains/aarch64/bin
 export RUST_TARGET_PATH="$(pwd)"
 export RUST_COMPILER_RT_ROOT=$RUST_TARGET_PATH/rust/rust/src/llvm-project/compiler-rt
 export OPTEE_DIR="$(pwd)/optee"
 export OPTEE_OS_DIR="$OPTEE_DIR/optee_os"
-export OPTEE_OS_INCLUDE="$OPTEE_DIR/optee_os/out/arm/export-ta_arm64/include"
 export OPTEE_CLIENT_DIR="$OPTEE_DIR/optee_client"
 export OPTEE_CLIENT_INCLUDE="$OPTEE_DIR/optee_client/out/export/usr/include"
+if [ "$ARCH" = "arm" ]
+then
+  export ARCH="arm"
+  export PATH=$PATH:$(pwd)/optee/toolchains/aarch32/bin
+  export VENDOR="qemu.mk"
+  export OPTEE_OS_INCLUDE="$OPTEE_DIR/optee_os/out/arm/export-ta_arm32/include"
+  export CC=$OPTEE_DIR/toolchains/aarch32/bin/arm-linux-gnueabihf-gcc
+else
+  # export ARCH="aarch64" # comment this because currently optee_os cannot be compiled in the aarch64 target
+  export PATH=$PATH:$(pwd)/optee/toolchains/aarch64/bin
+  export VENDOR="qemu_v8.mk"
+  export OPTEE_OS_INCLUDE="$OPTEE_DIR/optee_os/out/arm/export-ta_arm64/include"
+  export CC=$OPTEE_DIR/toolchains/aarch64/bin/aarch64-linux-gnu-gcc
+fi

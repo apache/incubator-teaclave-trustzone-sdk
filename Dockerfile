@@ -13,7 +13,7 @@ RUN apt-get update && \
 
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
   . $HOME/.cargo/env && \
-  rustup default nightly-2019-02-27 && \
+  rustup default nightly-2019-07-08 && \
   rustup component add rust-src && \
   rustup target install aarch64-unknown-linux-gnu && \
   cargo install --git https://github.com/mssun/xargo.git --branch mssun/relative-patch-path --force
