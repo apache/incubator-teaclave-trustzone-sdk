@@ -21,6 +21,7 @@ pub struct Error {
 /// A list specifying general categories of TEE error and its corresponding code
 /// in OP-TEE OS.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[repr(u32)]
 pub enum ErrorKind {
     /// Object corruption.
     CorruptObject = 0xF0100001,

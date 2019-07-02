@@ -5,3 +5,4 @@ path = "../rust/rust/src/libstd"
 libc =  { path = "../rust/libc" }
 compiler_builtins =  { path = "../rust/compiler-builtins" }
 rustc-std-workspace-core = { path = "../rust/rust/src/tools/rustc-std-workspace-core" }
+rustc-std-workspace-alloc = { path = "../rust/rust/src/tools/rustc-std-workspace-alloc" }

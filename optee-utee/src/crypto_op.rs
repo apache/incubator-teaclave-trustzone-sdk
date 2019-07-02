@@ -3,6 +3,7 @@ use optee_utee_sys as raw;
 use std::{mem, ptr};
 
 /// Specify one of the available cryptographic operations.
+#[repr(u32)]
 pub enum OperationMode {
     /// Encryption mode
     Encrypt = 0,
@@ -68,6 +69,7 @@ impl OperationInfo {
 
 /// Every operation of [AE](AE), [Asymmetric](Asymmetric), [Cipher](Cipher),
 /// [DeriveKey](DeriveKey), [Digest](Digest), [Mac](Mac) can be either one of the two states.
+#[repr(u32)]
 pub enum OperationStates {
     /// Nothing is going on.
     Initial = 0x00000000,
@@ -1583,6 +1585,7 @@ impl Random {
 }
 
 /// Algorithms that can be allocated as an crypto operation.
+#[repr(u32)]
 pub enum AlgorithmId {
     /// [Cipher](Cipher) supported algorithm.
     AesEcbNopad = 0x10000010,
@@ -1719,6 +1722,7 @@ pub enum AlgorithmId {
 }
 
 /// This specification defines support for optional cryptographic elements.
+#[repr(u32)]
 pub enum ElementId {
     /// Source: `NIST`, Generic: `Y`, Size: 192 bits
     EccCurveNistP192 = 0x00000001,

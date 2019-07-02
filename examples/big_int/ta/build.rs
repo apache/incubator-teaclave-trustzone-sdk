@@ -25,13 +25,20 @@ fn main() -> std::io::Result<()> {
 }};",
         time_low, time_mid, time_hi_and_version, clock_seq_and_node
     )?;
-
-    File::create(out.join("ta.lds"))?.write_all(include_bytes!("ta.lds"))?;
+    let optee_os_dir = env::var("OPTEE_OS_DIR").unwrap_or("../../../optee/optee_os".to_string());
+    let search_path = match env::var("ARCH") {
+        Ok(ref v) if v == "arm" => {
+            File::create(out.join("ta.lds"))?.write_all(include_bytes!("ta_arm.lds"))?;
+            Path::new(&optee_os_dir).join("out/arm/export-ta_arm32/lib")
+        },
+        _ => {
+            File::create(out.join("ta.lds"))?.write_all(include_bytes!("ta_aarch64.lds"))?;
+            Path::new(&optee_os_dir).join("out/arm/export-ta_arm64/lib")
+        }
+    };
     println!("cargo:rustc-link-search={}", out.display());
     println!("cargo:rerun-if-changed=ta.lds");
 
-    let optee_os_dir = env::var("OPTEE_OS_DIR").unwrap_or("../../../optee/optee_os".to_string());
-    let search_path = Path::new(&optee_os_dir).join("out/arm/export-ta_arm64/lib");
     println!("cargo:rustc-link-search={}", search_path.display());
     println!("cargo:rustc-link-lib=static=utee");
     Ok(())

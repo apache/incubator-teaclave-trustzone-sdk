@@ -12,3 +12,18 @@ rustflags = [
 [target.aarch64-unknown-linux-gnu]
 linker = "optee/toolchains/aarch64/bin/aarch64-linux-gnu-gcc"
 ar = "optee/toolchains/aarch64/bin/aarch64-linux-gnu-gcc-ar"
+
+[target.arm-unknown-optee-trustzone]
+linker = "optee/toolchains/aarch32/bin/arm-linux-gnueabihf-ld.bfd"
+ar = "optee/toolchains/aarch32/bin/arm-linux-gnueabihf-ar"
+rustflags = [
+    "-C", "link-arg=-nostdlib",
+    "-C", "link-arg=-Tta.lds",
+    "-C", "link-arg=--sort-section=alignment",
+    "-C", "link-arg=-pie",
+    "-C", "link-dead-code",
+]
+
+[target.arm-unknown-linux-gnueabihf]
+linker = "optee/toolchains/aarch32/bin/arm-linux-gnueabihf-gcc"
+ar = "optee/toolchains/aarch32/bin/arm-linux-gnueabihf-gcc-ar"

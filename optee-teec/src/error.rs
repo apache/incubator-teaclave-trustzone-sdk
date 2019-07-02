@@ -24,6 +24,7 @@ pub struct Error {
 /// A list specifying general categories of TEE client error and its
 /// corresponding code in OP-TEE client library.
 #[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[repr(u32)]
 pub enum ErrorKind {
     /// Non-specific cause.
     Generic = 0xFFFF0000,

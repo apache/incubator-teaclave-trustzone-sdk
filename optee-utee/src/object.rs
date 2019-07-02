@@ -254,6 +254,7 @@ impl ObjectHandle {
     }
 }
 
+#[repr(u32)]
 pub enum ObjectStorageConstants {
     Private = 0x00000001,
     IllegalValue = 0x7FFFFFFF,
@@ -310,6 +311,7 @@ bitflags! {
 }
 
 /// Miscellaneous constants.
+#[repr(u32)]
 pub enum MiscellaneousConstants {
     /// Maximum offset of a data object.
     TeeDataMaxPosition = 0xFFFFFFFF,
@@ -336,6 +338,7 @@ bitflags! {
     }
 }
 
+#[repr(u32)]
 pub enum AttributeId {
     /// Used for all secret keys for symmetric ciphers, MACs, and HMACs
     SecretValue = 0xC0000000,
@@ -390,6 +393,7 @@ pub enum AttributeId {
 }
 
 /// Define types of [TransientObject](TransientObject) with predefined maximum sizes.
+#[repr(u32)]
 pub enum TransientObjectType {
     /// 128, 192, or 256 bits
     Aes = 0xA0000010,
