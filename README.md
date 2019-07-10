@@ -29,7 +29,7 @@ $ sudo apt-get install curl make gcc python python-crypto xz-utils
 # install Rust and select a proper version
 $ curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2019-07-08
 $ source $HOME/.cargo/env
-$ rustup component add rust-src && rustup target install aarch64-unknown-linux-gnu
+$ rustup component add rust-src && rustup target install aarch64-unknown-linux-gnu arm-unknown-linux-gnueabihf
 
 # install patched Xargo
 $ cargo install --git https://github.com/mssun/xargo.git --branch mssun/relative-patch-path --force
@@ -45,6 +45,14 @@ $ make optee
 Before building examples, the environment should be properly setup.
 
 ``` sh
+$ source environment
+```
+
+By default, the target platform is `aarch64`. If you want to build for the `arm`
+target, you can setup `ARCH` before source the environment like this:
+
+```sh
+$ export ARCH=arm
 $ source environment
 ```
 
