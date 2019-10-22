@@ -226,11 +226,11 @@ pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
         && f.abi.is_none()
         && (f.decl.inputs.len() == 0 || f.decl.inputs.len() == 1)
         && f.decl.generics.where_clause.is_none()
-        && f.decl.variadic.is_none();
-    &&match f.decl.output {
-        syn::ReturnType::Default => true,
-        _ => false,
-    };
+        && f.decl.variadic.is_none()
+        && match f.decl.output {
+            syn::ReturnType::Default => true,
+            _ => false,
+        };
 
     if !valid_signature {
         return syn::parse::Error::new(
