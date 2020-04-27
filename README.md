@@ -24,7 +24,14 @@ $ (cd rust/compiler-builtins && git submodule update --init libm)
 $ (cd rust/rust && git submodule update --init src/stdsimd src/llvm-project)
 
 # install dependencies
-$ sudo apt-get install curl make gcc python python-crypto xz-utils
+$ sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
+        automake bc bison build-essential ccache cscope curl device-tree-compiler \
+        expect flex ftp-upload gdisk iasl libattr1-dev libc6:i386 libcap-dev \
+        libfdt-dev libftdi-dev libglib2.0-dev libhidapi-dev libncurses5-dev \
+        libpixman-1-dev libssl-dev libstdc++6:i386 libtool libz1:i386 make \
+        mtools netcat python-crypto python3-crypto python-pyelftools \
+        python3-pycryptodome python3-pyelftools python-serial python3-serial \
+        rsync unzip uuid-dev xdg-utils xterm xz-utils zlib1g-dev
 
 # install Rust and select a proper version
 $ curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2019-07-08
