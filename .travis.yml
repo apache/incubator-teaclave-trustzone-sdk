@@ -16,15 +16,14 @@ install:
   - sudo apt-get install -y curl make gcc python python-crypto xz-utils
   - rustup component add rust-src
   - rustup target install aarch64-unknown-linux-gnu
-  - cargo install --git https://github.com/mssun/xargo.git --branch mssun/relative-patch-path --force
+  - rustup default 1.44.0 && cargo install xargo
 
 script:
   - make optee
   - source environment
+  - rustup default nightly-2019-07-08
   - (cd optee-utee && xargo build --target aarch64-unknown-optee-trustzone -vv)
-  - (cd optee-utee && cargo build --manifest-path systest/Cargo.toml --target aarch64-unknown-linux-gnu)
   - (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
-  - (cd optee-teec && cargo build --manifest-path systest/Cargo.toml --target aarch64-unknown-linux-gnu)
   - make examples
   - docker run --rm -it -v$(pwd):/rust-optee-trustzone-sdk -w /rust-optee-trustzone-sdk mesalocklinux/rust-optee-trustzone-sdk-qemuv8-ci bash -c "cd ci && ./ci.sh"
 
