@@ -39,7 +39,7 @@ $ source $HOME/.cargo/env
 $ rustup component add rust-src && rustup target install aarch64-unknown-linux-gnu arm-unknown-linux-gnueabihf
 
 # install Xargo
-$ rustup default 1.44.0 && cargo install xargo
+$ rustup default 1.44.0 && cargo +1.44.0 install xargo
 # switch to nightly
 $ rustup default nightly-2019-07-08
 ```
