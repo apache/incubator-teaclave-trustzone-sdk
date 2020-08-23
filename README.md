@@ -17,7 +17,7 @@ Alternatively, you can use a docker container built with our [Dockerfile](Docker
 
 ``` sh
 # clone the project and initialize related submodules
-$ git clone git@github.com:mesalock-linux/rust-optee-trustzone-sdk.git
+$ git clone git@github.com:sccommunity/rust-optee-trustzone-sdk.git
 $ cd rust-optee-trustzone-sdk
 $ git submodule update --init
 $ (cd rust/compiler-builtins && git submodule update --init libm)
