@@ -12,7 +12,7 @@ third-party libraries (i.e., crates).
 ## Getting started
 
 To get started, you need to clone the project, initialize related submodules,
-and install building dependencies.
+and install building dependencies (The complete list of prerequisites can be found here: [OP-TEE Prerequisites](https://optee.readthedocs.io/en/latest/building/prerequisites.html)).
 Alternatively, you can use a docker container built with our [Dockerfile](Dockerfile).
 
 ``` sh
