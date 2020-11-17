@@ -9,6 +9,7 @@ specifications and provides ergonomic APIs. In addition, it enables capability
 to write TrustZone applications with Rust's standard library and many
 third-party libraries (i.e., crates).
 
+
 ## Getting started
 
 To get started, you need to clone the project, initialize related submodules,
@@ -79,6 +80,24 @@ more documents [here](https://optee.readthedocs.io/en/latest/general/platforms.h
 ## Contributing
 
 Contributions are very welcome, please submit issues or send pull requests.
+
+## Publication
+
+More details about the design and implementation can be found in our paper
+published in ACSAC 2020:
+[RusTEE: Developing Memory-Safe ARM TrustZone Applications](https://csis.gmu.edu/ksun/publications/ACSAC20_RusTEE_2020.pdf).
+Here is the BiBTeX record for your reference.
+
+```
+@inproceedings{wan20rustee,
+    author    = "Shengye Wan and Mingshen Sun and Kun Sun and Ning Zhang and Xu He",
+    title     = "{RusTEE: Developing Memory-Safe ARM TrustZone Applications}",
+    booktitle = "Proceedings of the 36th Annual Computer Security Applications Conference",
+    series    = "ACSAC '20",
+    year      = "2020",
+    month     = "12",
+}
+```
 
 ## License
 
