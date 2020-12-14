@@ -2,7 +2,7 @@ use super::*;
 use libc::*;
 
 extern "C" {
-    pub fn utee_return(ret: c_ulong);
+    pub fn utee_return(ret: c_ulong) -> !;
     pub fn utee_log(buf: *const c_void, len: size_t);
     pub fn utee_panic(code: c_ulong);
     pub fn utee_get_property(

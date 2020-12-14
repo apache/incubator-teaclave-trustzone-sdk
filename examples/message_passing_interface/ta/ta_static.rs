@@ -5,12 +5,24 @@ pub static mut trace_level: libc::c_int = TRACE_LEVEL;
 pub static trace_ext_prefix: &[u8] = TRACE_EXT_PREFIX;
 
 extern "C" {
-    fn __utee_entry(
+    pub fn __utee_entry(
         func: libc::c_ulong,
         session_id: libc::c_ulong,
         up: *mut optee_utee_sys::utee_params,
         cmd_id: libc::c_ulong,
-    );
+    ) -> optee_utee_sys::TEE_Result;
+}
+
+#[no_mangle]
+pub unsafe extern "C" fn __ta_entry(
+    func: libc::c_ulong,
+    session_id: libc::c_ulong,
+    up: *mut optee_utee_sys::utee_params,
+    cmd_id: libc::c_ulong,
+) -> ! {
+    let res: optee_utee_sys::TEE_Result = __utee_entry(func, session_id, up, cmd_id);
+
+    optee_utee_sys::utee_return(res.into());
 }
 
 #[no_mangle]
@@ -19,13 +31,7 @@ pub static ta_head: optee_utee_sys::ta_head = optee_utee_sys::ta_head {
     uuid: TA_UUID,
     stack_size: TA_STACK_SIZE + TA_FRAMEWORK_STACK_SIZE,
     flags: TA_FLAGS,
-    entry: __utee_entry
-        as unsafe extern "C" fn(
-            libc::c_ulong,
-            libc::c_ulong,
-            *mut optee_utee_sys::utee_params,
-            libc::c_ulong,
-        ),
+    depr_entry: 0xFFFF_FFFF_FFFF_FFFF,
 };
 
 #[no_mangle]
@@ -61,12 +67,12 @@ pub static ta_props: [optee_utee_sys::user_ta_property; 9] = [
     optee_utee_sys::user_ta_property {
         name: optee_utee_sys::TA_PROP_STR_DATA_SIZE,
         prop_type: optee_utee_sys::user_ta_prop_type::USER_TA_PROP_TYPE_U32,
-        value: &TA_DATA_SIZE as *const libc::uint32_t as *mut _,
+        value: &TA_DATA_SIZE as *const u32 as *mut _,
     },
     optee_utee_sys::user_ta_property {
         name: optee_utee_sys::TA_PROP_STR_STACK_SIZE,
         prop_type: optee_utee_sys::user_ta_prop_type::USER_TA_PROP_TYPE_U32,
-        value: &TA_STACK_SIZE as *const libc::uint32_t as *mut _,
+        value: &TA_STACK_SIZE as *const u32 as *mut _,
     },
     optee_utee_sys::user_ta_property {
         name: optee_utee_sys::TA_PROP_STR_VERSION,
@@ -86,7 +92,7 @@ pub static ta_props: [optee_utee_sys::user_ta_property; 9] = [
     optee_utee_sys::user_ta_property {
         name: "gp.ta.version\0".as_ptr(),
         prop_type: optee_utee_sys::user_ta_prop_type::USER_TA_PROP_TYPE_U32,
-        value: &EXT_PROP_VALUE_2 as *const libc::uint32_t as *mut _,
+        value: &EXT_PROP_VALUE_2 as *const u32 as *mut _,
     },
 ];
 

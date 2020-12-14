@@ -1,5 +1,4 @@
 use super::tee_api_types::*;
-use super::utee_types::*;
 use libc::*;
 
 pub const TA_FLAG_SINGLE_INSTANCE: u32 = (1 << 2);
@@ -16,7 +15,7 @@ pub struct ta_head {
     pub uuid: TEE_UUID,
     pub stack_size: u32,
     pub flags: u32,
-    pub entry: unsafe extern "C" fn(c_ulong, c_ulong, *mut utee_params, c_ulong),
+    pub depr_entry: u64,
 }
 
 unsafe impl Sync for ta_head {}

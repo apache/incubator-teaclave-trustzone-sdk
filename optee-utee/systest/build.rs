@@ -33,7 +33,7 @@ fn main() {
             || s == "user_ta_property"
     });
     cfg.skip_field(|s, field| {
-        (s == "ta_head" && field == "entry")
+        (s == "ta_head" && field == "depr_entry")
             || field == "content"
             || field == "value"
             || field == "memref"
