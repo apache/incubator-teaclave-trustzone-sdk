@@ -44,23 +44,19 @@ fn destroy() {
 }
 
 fn generate_key(dh: &mut DiffieHellman, params: &mut Parameters) -> Result<()> {
-    let p0 = unsafe { params.0.as_value().unwrap() };
+    let mut p0 = unsafe { params.0.as_memref().unwrap() };
     let mut p1 = unsafe { params.1.as_value().unwrap() };
     let mut p2 = unsafe { params.2.as_memref().unwrap() };
     let mut p3 = unsafe { params.3.as_memref().unwrap() };
 
     // Extract prime and base from parameters
-    let prime_u32 = p0.a();
-    let base_u32 = p0.b();
-    let mut key_prime = BigInt::new(64);
-    let mut key_base = BigInt::new(64);
-    key_prime.convert_from_s32(prime_u32 as i32);
-    key_base.convert_from_s32(base_u32 as i32);
+	let prime_base_vec = p0.buffer();
+	let prime_slice = &prime_base_vec[..KEY_SIZE/8];
+	let base_slice = &prime_base_vec[KEY_SIZE/8..];
 
-    let prime_vec = key_prime.convert_to_octet_string().unwrap();
-    let attr_prime = AttributeMemref::from_ref(AttributeId::DhPrime, prime_vec.as_slice());
-    let base_slice = key_base.convert_to_octet_string().unwrap();
-    let attr_base = AttributeMemref::from_ref(AttributeId::DhBase, base_slice.as_slice());
+    let attr_prime = AttributeMemref::from_ref(AttributeId::DhPrime, prime_slice);
+    let attr_base = AttributeMemref::from_ref(AttributeId::DhBase, base_slice);
+
 
     // Generate key pair
     dh.key = TransientObject::allocate(TransientObjectType::DhKeypair, KEY_SIZE).unwrap();

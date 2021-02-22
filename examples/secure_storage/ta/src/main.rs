@@ -74,8 +74,11 @@ pub fn delete_object(params: &mut Parameters) -> Result<()> {
 pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
     let mut p0 = unsafe { params.0.as_memref().unwrap() };
     let mut p1 = unsafe { params.1.as_memref().unwrap() };
+
     let mut obj_id = vec![0; p0.buffer().len() as usize];
     obj_id.clone_from_slice(p0.buffer());
+    let mut data_buffer = vec![0; p1.buffer().len() as usize];
+    data_buffer.clone_from_slice(p1.buffer());
 
     let obj_data_flag = DataFlag::ACCESS_READ
         | DataFlag::ACCESS_WRITE
@@ -83,6 +86,7 @@ pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
         | DataFlag::OVERWRITE;
 
     let mut init_data: [u8; 0] = [0; 0];
+
     match PersistentObject::create(
         ObjectStorageConstants::Private,
         &mut obj_id,
@@ -94,7 +98,7 @@ pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
             return Err(e);
         }
 
-        Ok(mut object) => match object.write(p1.buffer()) {
+        Ok(mut object) => match object.write(&data_buffer) {
             Ok(()) => {
                 return Ok(());
             }
@@ -113,6 +117,9 @@ pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
     let mut obj_id = vec![0; p0.buffer().len() as usize];
     obj_id.clone_from_slice(p0.buffer());
 
+    let mut data_buffer = vec![0;p1.buffer().len() as usize];
+    data_buffer.clone_from_slice(p1.buffer());
+
     match PersistentObject::open(
         ObjectStorageConstants::Private,
         &mut obj_id,
@@ -127,14 +134,16 @@ pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
                 p1.set_updated_size(obj_info.data_size());
                 return Err(Error::new(ErrorKind::ShortBuffer));
             }
-
-            let read_bytes = object.read(p1.buffer()).unwrap();
+            
+            let read_bytes = object.read(&mut data_buffer).unwrap();
 
             if read_bytes != obj_info.data_size() as u32 {
                 return Err(Error::new(ErrorKind::ExcessData));
             }
 
             p1.set_updated_size(read_bytes as usize);
+            unsafe { std::ptr::copy(data_buffer.as_ptr() as _, p1.buffer().as_ptr() as _, p1.buffer().len() as usize) };
+
             Ok(())
         }
     }

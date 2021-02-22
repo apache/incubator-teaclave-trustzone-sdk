@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cd optee-qemuv8-3.4.0 && ./qemu-system-aarch64 \
+cd optee-qemuv8-3.11.0 && ./qemu-system-aarch64 \
     -nodefaults \
     -nographic \
     -serial stdio -serial file:/tmp/serial.log \

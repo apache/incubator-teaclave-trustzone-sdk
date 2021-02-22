@@ -34,7 +34,7 @@ impl Trace {
 impl io::Write for Trace {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
         unsafe {
-            raw::utee_log(buf.as_ptr() as *const libc::c_void, buf.len());
+            raw::_utee_log(buf.as_ptr() as *const libc::c_void, buf.len());
         }
         Ok(buf.len())
     }

@@ -49,15 +49,19 @@ fn invoke_command(sess_ctx: &mut AEOp, cmd_id: u32, params: &mut Parameters) -> 
     trace_println!("[+] TA invoke command");
     match Command::from(cmd_id) {
         Command::Prepare => {
+            trace_println!("[+] TA prepare");
             return prepare(sess_ctx, params);
         }
         Command::Update => {
+            trace_println!("[+] TA update");
             return update(sess_ctx, params);
         }
         Command::EncFinal => {
+            trace_println!("[+] TA encrypt_final");
             return encrypt_final(sess_ctx, params);
         }
         Command::DecFinal => {
+            trace_println!("[+] TA decrypt_final");
             return decrypt_final(sess_ctx, params);
         }
         _ => {
@@ -105,12 +109,24 @@ pub fn encrypt_final(digest: &mut AEOp, params: &mut Parameters) -> Result<()> {
     let mut p0 = unsafe { params.0.as_memref().unwrap() };
     let mut p1 = unsafe { params.1.as_memref().unwrap() };
     let mut p2 = unsafe { params.2.as_memref().unwrap() };
-    let clear = p0.buffer();
-    let ciph = p1.buffer();
-    let tag = p2.buffer();
-    match digest.op.encrypt_final(clear, ciph, tag) {
+    
+    let mut clear = vec![0; p0.buffer().len() as usize];
+    clear.clone_from_slice(p0.buffer());
+    let mut ciph = vec![0; p1.buffer().len() as usize];
+    ciph.clone_from_slice(p1.buffer());
+    let mut tag = vec![0; p2.buffer().len() as usize];
+    tag.clone_from_slice(p2.buffer());
+
+    match digest.op.encrypt_final(&clear, &mut ciph, &mut tag) {
+
         Err(e) => Err(e),
-        Ok((_ciph_len, _tag_len)) => Ok(()),
+        Ok((_ciph_len, _tag_len)) => {
+            unsafe { std::ptr::copy(clear.as_ptr() as _, p0.buffer().as_ptr() as _, p0.buffer().len() as usize) };
+            unsafe { std::ptr::copy(ciph.as_ptr() as _, p1.buffer().as_ptr() as _, p1.buffer().len() as usize) };
+            unsafe { std::ptr::copy(tag.as_ptr() as _, p2.buffer().as_ptr() as _, p2.buffer().len() as usize) };
+            
+            Ok(())
+        },
     }
 }
 
@@ -118,12 +134,23 @@ pub fn decrypt_final(digest: &mut AEOp, params: &mut Parameters) -> Result<()> {
     let mut p0 = unsafe { params.0.as_memref().unwrap() };
     let mut p1 = unsafe { params.1.as_memref().unwrap() };
     let mut p2 = unsafe { params.2.as_memref().unwrap() };
-    let ciph = p0.buffer();
-    let clear = p1.buffer();
-    let tag = p2.buffer();
-    match digest.op.decrypt_final(ciph, clear, tag) {
+     
+    let mut clear = vec![0; p0.buffer().len() as usize];
+    clear.clone_from_slice(p0.buffer());
+    let mut ciph = vec![0; p1.buffer().len() as usize];
+    ciph.clone_from_slice(p1.buffer());
+    let mut tag = vec![0; p2.buffer().len() as usize];
+    tag.clone_from_slice(p2.buffer());
+
+    match digest.op.decrypt_final(&clear, &mut ciph, &tag) {
         Err(e) => Err(e),
-        Ok(_clear_len) => Ok(()),
+        Ok((_clear_len)) => {
+            unsafe { std::ptr::copy(clear.as_ptr() as _, p0.buffer().as_ptr() as _, p0.buffer().len() as usize) };
+            unsafe { std::ptr::copy(ciph.as_ptr() as _, p1.buffer().as_ptr() as _, p1.buffer().len() as usize) };
+            unsafe { std::ptr::copy(tag.as_ptr() as _, p2.buffer().as_ptr() as _, p2.buffer().len() as usize) };
+
+            Ok(())    
+        },
     }
 }
 

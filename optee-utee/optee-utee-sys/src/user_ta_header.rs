@@ -1,4 +1,5 @@
 use super::tee_api_types::*;
+use super::utee_syscalls::*;
 use super::utee_types::*;
 use libc::*;
 
@@ -16,7 +17,18 @@ pub struct ta_head {
     pub uuid: TEE_UUID,
     pub stack_size: u32,
     pub flags: u32,
-    pub entry: unsafe extern "C" fn(c_ulong, c_ulong, *mut utee_params, c_ulong),
+    pub depr_entry: u64,
+}
+
+extern "C" {
+    pub fn __utee_entry(func: c_ulong, session_id: c_ulong, up: *mut utee_params, cmd_id: c_ulong) -> TEE_Result;
+}
+
+#[no_mangle]
+pub fn __ta_entry(func: c_ulong, session_id: c_ulong, up: *mut utee_params, cmd_id: c_ulong) {
+    let res: u32 = unsafe { __utee_entry(func, session_id, up, cmd_id) };
+
+    unsafe { _utee_return(res.into()) };
 }
 
 unsafe impl Sync for ta_head {}

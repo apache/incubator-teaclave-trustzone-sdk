@@ -4,28 +4,13 @@ pub static mut trace_level: libc::c_int = TRACE_LEVEL;
 #[no_mangle]
 pub static trace_ext_prefix: &[u8] = TRACE_EXT_PREFIX;
 
-extern "C" {
-    fn __utee_entry(
-        func: libc::c_ulong,
-        session_id: libc::c_ulong,
-        up: *mut optee_utee_sys::utee_params,
-        cmd_id: libc::c_ulong,
-    );
-}
-
 #[no_mangle]
 #[link_section = ".ta_head"]
 pub static ta_head: optee_utee_sys::ta_head = optee_utee_sys::ta_head {
     uuid: TA_UUID,
     stack_size: TA_STACK_SIZE + TA_FRAMEWORK_STACK_SIZE,
     flags: TA_FLAGS,
-    entry: __utee_entry
-        as unsafe extern "C" fn(
-            libc::c_ulong,
-            libc::c_ulong,
-            *mut optee_utee_sys::utee_params,
-            libc::c_ulong,
-        ),
+    depr_entry: std::u64::MAX,
 };
 
 #[no_mangle]
