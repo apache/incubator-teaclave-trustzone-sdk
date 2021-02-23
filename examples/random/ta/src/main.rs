@@ -6,7 +6,6 @@ use optee_utee::{
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use optee_utee::{Random};
 use proto::Command;
-use optee_utee_sys as raw;
 
 #[ta_create]
 fn create() -> Result<()> {
@@ -32,13 +31,11 @@ fn destroy() {
 
 pub fn random_number_generate(params: &mut Parameters) -> Result<()> {
     let mut p = unsafe { params.0.as_memref().unwrap()};
-	let mut buf = vec![0; p.buffer().len() as usize];
-	buf.clone_from_slice(p.buffer());
+    let mut buf = vec![0; p.buffer().len() as usize];
+    buf.copy_from_slice(p.buffer());
 
-	unsafe {
-		raw::TEE_GenerateRandom(buf.as_ptr() as _, p.buffer().len() as _);
-		std::ptr::copy(buf.as_ptr() as _, p.buffer().as_ptr() as _, p.buffer().len() as usize);
-	}
+    Random::generate(buf.as_mut() as _);
+    p.buffer().copy_from_slice(&buf);
 
     Ok(())
 }

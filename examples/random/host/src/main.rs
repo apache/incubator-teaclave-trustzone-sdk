@@ -9,7 +9,7 @@ fn random(session: &mut Session) -> optee_teec::Result<()> {
 
     println!("Invoking TA to generate random UUID...");
     session.invoke_command(Command::RandomGenerator as u32, &mut operation)?;
-	println!("Invokding done!");
+    println!("Invoking done!");
 
     let generate_uuid = Uuid::from_slice(&random_uuid).unwrap();
 

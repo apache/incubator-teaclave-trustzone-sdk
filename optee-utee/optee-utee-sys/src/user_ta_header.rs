@@ -25,7 +25,7 @@ extern "C" {
 }
 
 #[no_mangle]
-pub fn __ta_entry(func: c_ulong, session_id: c_ulong, up: *mut utee_params, cmd_id: c_ulong) {
+pub fn __ta_entry(func: c_ulong, session_id: c_ulong, up: *mut utee_params, cmd_id: c_ulong) -> ! {
     let res: u32 = unsafe { __utee_entry(func, session_id, up, cmd_id) };
 
     unsafe { _utee_return(res.into()) };

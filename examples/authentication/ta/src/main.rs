@@ -111,19 +111,19 @@ pub fn encrypt_final(digest: &mut AEOp, params: &mut Parameters) -> Result<()> {
     let mut p2 = unsafe { params.2.as_memref().unwrap() };
     
     let mut clear = vec![0; p0.buffer().len() as usize];
-    clear.clone_from_slice(p0.buffer());
+    clear.copy_from_slice(p0.buffer());
     let mut ciph = vec![0; p1.buffer().len() as usize];
-    ciph.clone_from_slice(p1.buffer());
+    ciph.copy_from_slice(p1.buffer());
     let mut tag = vec![0; p2.buffer().len() as usize];
-    tag.clone_from_slice(p2.buffer());
+    tag.copy_from_slice(p2.buffer());
 
     match digest.op.encrypt_final(&clear, &mut ciph, &mut tag) {
 
         Err(e) => Err(e),
         Ok((_ciph_len, _tag_len)) => {
-            unsafe { std::ptr::copy(clear.as_ptr() as _, p0.buffer().as_ptr() as _, p0.buffer().len() as usize) };
-            unsafe { std::ptr::copy(ciph.as_ptr() as _, p1.buffer().as_ptr() as _, p1.buffer().len() as usize) };
-            unsafe { std::ptr::copy(tag.as_ptr() as _, p2.buffer().as_ptr() as _, p2.buffer().len() as usize) };
+            p0.buffer().copy_from_slice(&clear);
+            p1.buffer().copy_from_slice(&ciph);
+            p2.buffer().copy_from_slice(&tag);
             
             Ok(())
         },
@@ -136,18 +136,18 @@ pub fn decrypt_final(digest: &mut AEOp, params: &mut Parameters) -> Result<()> {
     let mut p2 = unsafe { params.2.as_memref().unwrap() };
      
     let mut clear = vec![0; p0.buffer().len() as usize];
-    clear.clone_from_slice(p0.buffer());
+    clear.copy_from_slice(p0.buffer());
     let mut ciph = vec![0; p1.buffer().len() as usize];
-    ciph.clone_from_slice(p1.buffer());
+    ciph.copy_from_slice(p1.buffer());
     let mut tag = vec![0; p2.buffer().len() as usize];
-    tag.clone_from_slice(p2.buffer());
+    tag.copy_from_slice(p2.buffer());
 
     match digest.op.decrypt_final(&clear, &mut ciph, &tag) {
         Err(e) => Err(e),
         Ok((_clear_len)) => {
-            unsafe { std::ptr::copy(clear.as_ptr() as _, p0.buffer().as_ptr() as _, p0.buffer().len() as usize) };
-            unsafe { std::ptr::copy(ciph.as_ptr() as _, p1.buffer().as_ptr() as _, p1.buffer().len() as usize) };
-            unsafe { std::ptr::copy(tag.as_ptr() as _, p2.buffer().as_ptr() as _, p2.buffer().len() as usize) };
+            p0.buffer().copy_from_slice(&clear);
+            p1.buffer().copy_from_slice(&ciph);
+            p2.buffer().copy_from_slice(&tag);
 
             Ok(())    
         },

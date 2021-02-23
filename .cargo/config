@@ -2,7 +2,7 @@
 linker = "optee/toolchains/aarch64/bin/aarch64-linux-gnu-ld"
 ar = "optee/toolchains/aarch64/bin/aarch64-linux-gnu-gcc-ar"
 rustflags = [
-	"-C", "link-arg=-e__ta_entry",
+    "-C", "link-arg=-e__ta_entry",
     "-C", "link-arg=-nostdlib",
     "-C", "link-arg=-Tta.lds",
     "-C", "link-arg=--sort-section=alignment",
@@ -19,7 +19,7 @@ ar = "optee/toolchains/aarch64/bin/aarch64-linux-gnu-gcc-ar"
 linker = "optee/toolchains/aarch32/bin/arm-linux-gnueabihf-ld.bfd"
 ar = "optee/toolchains/aarch32/bin/arm-linux-gnueabihf-ar"
 rustflags = [
-	"-C", "link-arg=-e__ta_entry",
+    "-C", "link-arg=-e__ta_entry",
     "-C", "link-arg=-nostdlib",
     "-C", "link-arg=-Tta.lds",
     "-C", "link-arg=--sort-section=alignment",

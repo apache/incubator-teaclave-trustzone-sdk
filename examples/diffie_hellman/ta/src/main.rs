@@ -50,13 +50,12 @@ fn generate_key(dh: &mut DiffieHellman, params: &mut Parameters) -> Result<()> {
     let mut p3 = unsafe { params.3.as_memref().unwrap() };
 
     // Extract prime and base from parameters
-	let prime_base_vec = p0.buffer();
-	let prime_slice = &prime_base_vec[..KEY_SIZE/8];
-	let base_slice = &prime_base_vec[KEY_SIZE/8..];
+    let prime_base_vec = p0.buffer();
+    let prime_slice = &prime_base_vec[..KEY_SIZE/8];
+    let base_slice = &prime_base_vec[KEY_SIZE/8..];
 
     let attr_prime = AttributeMemref::from_ref(AttributeId::DhPrime, prime_slice);
     let attr_base = AttributeMemref::from_ref(AttributeId::DhBase, base_slice);
-
 
     // Generate key pair
     dh.key = TransientObject::allocate(TransientObjectType::DhKeypair, KEY_SIZE).unwrap();
