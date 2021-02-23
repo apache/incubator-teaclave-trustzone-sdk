@@ -7,7 +7,7 @@ rustflags = [
     "-C", "link-arg=-Tta.lds",
     "-C", "link-arg=--sort-section=alignment",
     "-C", "link-arg=-pie",
-    "-C", "link-arg=-O0",
+    "-C", "link-arg=-Os",
     "-C", "link-dead-code",
 ]
 
