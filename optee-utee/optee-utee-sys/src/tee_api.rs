@@ -253,6 +253,10 @@ extern "C" {
         dstOperation: TEE_OperationHandle,
         srcOperation: TEE_OperationHandle,
     ) -> c_void;
+    pub fn TEE_IsAlgorithmSupported(
+        algId: u32,
+        element: u32, 
+    ) -> TEE_Result;
 
     // Cryptographic Operations API - Message Digest Functions
 

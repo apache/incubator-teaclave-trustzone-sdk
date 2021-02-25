@@ -3,7 +3,8 @@
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
-use optee_utee::{AlgorithmId, Cipher, OperationMode};
+use optee_utee::{is_algorithm_supported};
+use optee_utee::{AlgorithmId, ElementId, Cipher, OperationMode};
 use optee_utee::{AttributeId, AttributeMemref, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::{Algo, Command, KeySize, Mode};
@@ -99,6 +100,9 @@ pub fn alloc_resources(aes: &mut AesCipher, params: &mut Parameters) -> Result<(
     let mode_id_value = unsafe { params.2.as_value().unwrap().a() };
 
     aes.key_size = ta2tee_key_size(key_size_value).unwrap();
+
+    // check whether the algorithm is supported
+    is_algorithm_supported(ta2tee_algo_id(algo_value).unwrap() as u32, ElementId::ElementNone as u32)?;
 
     aes.cipher = Cipher::allocate(
         ta2tee_algo_id(algo_value).unwrap(),

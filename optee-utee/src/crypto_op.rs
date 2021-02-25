@@ -209,6 +209,14 @@ impl OperationHandle {
     }
 }
 
+/// determine whether a combination of algId and element is supported
+pub fn is_algorithm_supported(alg_id: u32, element: u32) -> Result<()> {
+    match unsafe { raw::TEE_IsAlgorithmSupported(alg_id, element) } {
+        raw::TEE_SUCCESS => Ok(()),
+        code => Err(Error::from_raw_error(code)),
+    }
+}
+
 // free before check it's not null
 /// Deallocate all resources associated with an operation handle. After this function is called,
 /// the operation handle is no longer valid. All cryptographic material in the operation is destroyed.
@@ -1724,6 +1732,9 @@ pub enum AlgorithmId {
 /// This specification defines support for optional cryptographic elements.
 #[repr(u32)]
 pub enum ElementId {
+    /// Where algId fully defines the required support,
+    /// the special value TEE_CRYPTO_ELEMENT_NONE should be used
+    ElementNone = 0x00000000,
     /// Source: `NIST`, Generic: `Y`, Size: 192 bits
     EccCurveNistP192 = 0x00000001,
     /// Source: `NIST`, Generic: `Y`, Size: 224 bits
@@ -1735,4 +1746,3 @@ pub enum ElementId {
     /// Source: `NIST`, Generic: `Y`, Size: 521 bits
     EccCurveNistP521 = 0x00000005,
 }
-//OP-TEE does not implement function: TEE_IsAlgorithmSuppddorted
