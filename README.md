@@ -1,14 +1,12 @@
-# Rust OP-TEE TrustZone SDK
+# Teaclave TrustZone SDK
 
-[![Build Status](https://travis-ci.com/sccommunity/rust-optee-trustzone-sdk.svg?branch=master)](https://travis-ci.com/sccommunity/rust-optee-trustzone-sdk)
-
-Rust OP-TEE TrustZone SDK provides abilities to build safe TrustZone
-applications in Rust. The SDK is based on the [OP-TEE](https://www.op-tee.org/)
-project which follows [GlobalPlatform](https://globalplatform.org/) TEE
-specifications and provides ergonomic APIs. In addition, it enables capability
-to write TrustZone applications with Rust's standard library and many
-third-party libraries (i.e., crates).
-
+Teaclave TrustZone SDK (Rust OP-TEE TrustZone SDK) provides abilities to build
+safe TrustZone applications in Rust. The SDK is based on the
+[OP-TEE](https://www.op-tee.org/) project which follows
+[GlobalPlatform](https://globalplatform.org/) TEE specifications and provides
+ergonomic APIs. In addition, it enables capability to write TrustZone
+applications with Rust's standard library and many third-party libraries (i.e.,
+crates). Teaclave TrustZone SDK is a sub-project of [Apache Teaclave (incubating)](https://teaclave.apache.org/).
 
 ## Getting started
 
@@ -79,7 +77,9 @@ more documents [here](https://optee.readthedocs.io/en/latest/general/platforms.h
 
 ## Contributing
 
-Contributions are very welcome, please submit issues or send pull requests.
+Teaclave TrustZone SDK is open source in [The Apache Way](https://www.apache.org/theapacheway/),
+we aim to create a project that is maintained and owned by the community. All
+kinds of contributions are welcome. Thanks to our [contributors](https://teaclave.apache.org/contributors/).
 
 ## Publication
 
@@ -101,5 +101,5 @@ Here is the BiBTeX record for your reference.
 
 ## License
 
-Rust OP-TEE TrustZone SDK is distributed under the Apache License (Version 2.0).
+Teaclave TrustZone SDK is distributed under the Apache License (Version 2.0).
 See [LICENSE](LICENSE) for details.
