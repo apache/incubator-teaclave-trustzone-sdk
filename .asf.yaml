@@ -1,0 +1,10 @@
+github:
+  description: "Teaclave TrustZone SDK enables safe, functional, and ergonomic development of trustlets."
+  homepage: https://teaclave.apache.org
+  labels:
+    - secure-computing
+    - confidential-computing
+    - trusted-execution-environment
+    - tee
+    - trustzone
+    - rust
