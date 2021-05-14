@@ -4,6 +4,9 @@ OPTEE_OS_PATH     ?= $(OPTEE_PATH)/optee_os
 OPTEE_CLIENT_PATH ?= $(OPTEE_PATH)/optee_client
 VENDOR            ?= qemu_v8.mk
 
+CCACHE ?= $(shell which ccache)
+AARCH_CROSS_COMPILE ?= $(OPTEE_PATH)/toolchains/aarch64/bin/aarch64-linux-gnu-
+
 EXAMPLES = $(wildcard examples/*)
 EXAMPLES_INSTALL = $(EXAMPLES:%=%-install)
 EXAMPLES_CLEAN  = $(EXAMPLES:%=%-clean)
@@ -25,8 +28,12 @@ toolchains:
 optee-os:
 	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) optee-os
 
+OPTEE_CLIENT_FLAGS ?= CROSS_COMPILE="$(CCACHE) $(AARCH_CROSS_COMPILE)" \
+	CFG_TEE_BENCHMARK=n \
+	CFG_TA_TEST_PATH=y
+
 optee-client:
-	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) optee-client-common
+	make -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_FLAGS)
 
 examples: $(EXAMPLES) toolchains optee-os optee-client
 $(EXAMPLES):
@@ -41,7 +48,7 @@ optee-os-clean:
 	make -C $(OPTEE_OS_PATH) O=out/arm clean
 
 optee-client-clean:
-	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) optee-client-clean-common
+	make -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_CLEAN_FLAGS) clean
 
 examples-clean: $(EXAMPLES_CLEAN) out-clean
 $(EXAMPLES_CLEAN):
