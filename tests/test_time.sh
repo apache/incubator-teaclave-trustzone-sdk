@@ -36,5 +36,5 @@ sleep 5
 }
 
 rm -rf screenlog.0
-rm -rf optee-qemuv8-3.11.0
+rm -rf optee-qemuv8-3.13.0
 rm -rf shared
