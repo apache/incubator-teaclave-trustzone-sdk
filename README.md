@@ -16,8 +16,8 @@ Alternatively, you can use a docker container built with our [Dockerfile](Docker
 
 ``` sh
 # clone the project and initialize related submodules
-$ git clone git@github.com:sccommunity/rust-optee-trustzone-sdk.git
-$ cd rust-optee-trustzone-sdk
+$ git clone git@github.com:apache/incubator-teaclave-trustzone-sdk.git
+$ cd incubator-teaclave-trustzone-sdk
 $ git submodule update --init
 $ (cd rust/compiler-builtins && git submodule update --init libm)
 $ (cd rust/rust && git submodule update --init src/stdsimd src/llvm-project)
@@ -71,7 +71,7 @@ $ make examples
 ```
 
 Please read detailed
-[instructions](https://github.com/mesalock-linux/rust-optee-trustzone-sdk/wiki/Getting-started-with-OPTEE-for-QEMU-ARMv8)
+[instructions](https://github.com/apache/incubator-teaclave-trustzone-sdk/wiki/Getting-started-with-OPTEE-for-QEMU-ARMv8)
 to run these examples on OP-TEE for QEMU. For other supported devices, please find
 more documents [here](https://optee.readthedocs.io/en/latest/general/platforms.html).
 

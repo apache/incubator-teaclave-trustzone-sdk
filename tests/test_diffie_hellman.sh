@@ -2,10 +2,10 @@
 set -xe
 
 rm -rf screenlog.0
-rm -rf optee-qemuv8-3.11.0
+rm -rf optee-qemuv8-3.13.0
 rm -rf shared
 
-curl http://mesalock-linux.org/assets/optee-qemuv8-3.11.0.tar.gz | tar zxv
+curl http://mesalock-linux.org/assets/optee-qemuv8-3.13.0.tar.gz | tar zxv
 mkdir shared
 cp ../examples/diffie_hellman/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
 cp ../examples/diffie_hellman/host/target/aarch64-unknown-linux-gnu/release/diffie_hellman shared
@@ -34,5 +34,5 @@ sleep 5
 }
 
 rm -rf screenlog.0
-rm -rf optee-qemuv8-3.11.0
+rm -rf optee-qemuv8-3.13.0
 rm -rf shared

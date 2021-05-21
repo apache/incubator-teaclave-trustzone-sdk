@@ -21,8 +21,8 @@ Download OP-TEE for QEMU ARMv8 source code.
 $ mkdir -p ~/bin
 $ curl https://storage.googleapis.com/git-repo-downloads/repo-1 > ~/bin/repo && chmod a+x ~/bin/repo
 $ export PATH=~/bin:$PATH
-$ mkdir optee-qemuv8-3.8.0 && cd optee-qemuv8-3.8.0 && \
-  repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml -b 3.8.0 && \
+$ mkdir optee-qemuv8-3.13.0 && cd optee-qemuv8-3.13.0 && \
+  repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml -b 3.13.0 && \
   repo sync -j4 --no-clone-bundle
 ```
 
