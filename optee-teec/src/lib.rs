@@ -21,6 +21,7 @@ pub use self::operation::Operation;
 pub use self::parameter::{Param, ParamNone, ParamTmpRef, ParamType, ParamTypes, ParamValue};
 pub use self::session::{ConnectionMethods, Session};
 pub use self::uuid::Uuid;
+pub use self::extension::*;
 
 mod context;
 mod error;
@@ -28,3 +29,4 @@ mod operation;
 mod parameter;
 mod session;
 mod uuid;
+mod extension;
