@@ -13,7 +13,7 @@ proto = { path = "../proto" }
 optee-teec = { path = "../../../optee-teec" }
 
 [build_dependencies]
-uuid = { version = "0.7", features = ["v4"] }
+uuid = { version = "0.8", features = ["v4"] }
 
 [profile.release]
 lto = true
