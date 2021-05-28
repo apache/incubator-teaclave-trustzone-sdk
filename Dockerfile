@@ -1,4 +1,5 @@
 FROM ubuntu:16.04
+MAINTAINER Teaclave Contributors <dev@teaclave.apache.org>
 
 RUN dpkg --add-architecture i386
 RUN apt-get update && \
