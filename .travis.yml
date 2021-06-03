@@ -26,7 +26,7 @@ script:
   - (cd optee-utee && xargo build --target aarch64-unknown-optee-trustzone -vv)
   - (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
   - make examples
-  - docker run --rm -it -v$(pwd):/teaclave-trustzone-sdk -w /teaclave-trustzone-sdk teaclave/teaclave-trustzone-sdk-build:0.1.0 bash -c "cd ci && ./ci.sh"
+  - docker run --rm -it -v$(pwd):/teaclave-trustzone-sdk -w /teaclave-trustzone-sdk teaclave/teaclave-trustzone-sdk-build:0.1.1 bash -c "cd ci && ./ci.sh"
 
 cache:
   timeout: 1000

@@ -10,7 +10,10 @@ RUN apt-get update && \
   libpixman-1-dev libssl-dev libstdc++6:i386 libtool libz1:i386 make \
   mtools netcat python-crypto python-serial python-wand unzip uuid-dev \
   xdg-utils xterm xz-utils zlib1g-dev git wget cpio libssl-dev iasl \
-  screen libbrlapi-dev libaio-dev libcurl3 libbluetooth-dev libsdl2-2.0
+  screen libbrlapi-dev libaio-dev libcurl3 libbluetooth-dev libsdl2-2.0 \
+  python3 python3-pip python3-pyelftools
+
+RUN pip3 install pycryptodome
 
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
   . $HOME/.cargo/env && \
