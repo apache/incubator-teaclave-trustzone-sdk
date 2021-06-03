@@ -209,9 +209,12 @@ licenses/ for text of these licenses.
 
 Apache License, Version 2.0
 ---------------------------
-rust/compiler-builtins
 rust/libc
 rust/rust
+
+University of Illinois/NCSA Open Source License and MIT License
+---------------------------------------------------------------
+rust/compiler-builtins
 
 BSD 2-Clause License
 --------------------
