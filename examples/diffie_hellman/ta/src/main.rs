@@ -17,7 +17,6 @@
 
 #![no_main]
 
-use optee_utee::BigInt;
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };

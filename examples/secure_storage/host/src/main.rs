@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use optee_teec::{Context, ErrorKind, Operation, ParamNone, ParamTmpRef, ParamType, Session, Uuid};
+use optee_teec::{Context, ErrorKind, Operation, ParamNone, ParamTmpRef, Session, Uuid};
 use proto::{Command, UUID};
 use std::ffi::CString;
 

@@ -161,7 +161,7 @@ pub fn decrypt_final(digest: &mut AEOp, params: &mut Parameters) -> Result<()> {
 
     match digest.op.decrypt_final(&clear, &mut ciph, &tag) {
         Err(e) => Err(e),
-        Ok((_clear_len)) => {
+        Ok(_clear_len) => {
             p0.buffer().copy_from_slice(&clear);
             p1.buffer().copy_from_slice(&ciph);
             p2.buffer().copy_from_slice(&tag);
