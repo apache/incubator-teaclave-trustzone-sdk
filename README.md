@@ -20,7 +20,7 @@ $ git clone git@github.com:apache/incubator-teaclave-trustzone-sdk.git
 $ cd incubator-teaclave-trustzone-sdk
 $ git submodule update --init
 $ (cd rust/compiler-builtins && git submodule update --init libm)
-$ (cd rust/rust && git submodule update --init src/stdsimd src/llvm-project)
+$ (cd rust/rust && git submodule update --init src/stdsimd)
 
 # install dependencies
 $ sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
