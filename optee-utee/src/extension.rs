@@ -18,16 +18,16 @@
 use crate::{Error, Result, Uuid};
 use optee_utee_sys as raw;
 
-pub struct LoadablePlugin<'a> {
-    uuid: &'a Uuid
+pub struct LoadablePlugin {
+    uuid: Uuid
 }
 
-impl<'a> LoadablePlugin<'a> {
-    pub fn new(uuid: &'a Uuid) -> Self {
-        Self { uuid }
+impl LoadablePlugin {
+    pub fn new(uuid: &Uuid) -> Self {
+        Self { uuid: uuid.to_owned() }
     }
     pub fn invoke(&mut self, command_id: u32, subcommand_id: u32, data: &[u8]) -> Result<Vec<u8>> {
-        let raw_uuid: Uuid = (*self.uuid).clone();
+        let raw_uuid: Uuid = self.uuid;
         let mut outlen: u32 = 0;
         match unsafe {
             raw::tee_invoke_supp_plugin(
