@@ -17,7 +17,7 @@
 
 use optee_teec_sys as raw;
 use libc::{c_char};
-use crate::{Result};
+use crate::{Result, Error, ErrorKind};
 
 #[repr(C)]
 pub struct PluginMethod {
@@ -44,5 +44,27 @@ pub struct PluginParameters<'a> {
     pub cmd: u32,
     pub sub_cmd: u32,
     pub inbuf: &'a [u8],
-    pub outbuf: Vec<u8>,
+    outbuf: Vec<u8>,
+}
+impl<'a> PluginParameters<'a> {
+    pub fn new(cmd: u32, sub_cmd: u32, inbuf: &'a [u8]) -> Self {
+        let mut outbuf = vec![0u8; inbuf.len() as usize];
+        Self {
+            cmd,
+            sub_cmd,
+            inbuf,
+            outbuf,
+        }
+    }
+    pub fn set_outbuf_from_slice(&mut self, sendslice: &[u8]) -> Result<()> {
+        if self.inbuf.len() < sendslice.len() {
+            println!("Overflow: Input length is less than output length");
+            return Err(Error::new(ErrorKind::Security));
+        }
+        self.outbuf[..sendslice.len()].copy_from_slice(&sendslice);
+        Ok(())
+    }
+    pub fn get_outbuf_as_slice(&self) -> &[u8] {
+        self.outbuf.as_slice()
+    }
 }

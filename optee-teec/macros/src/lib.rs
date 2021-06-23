@@ -34,7 +34,7 @@ pub fn plugin_init(_args: TokenStream, input: TokenStream) -> TokenStream {
     if !valid_signature {
         return syn::parse::Error::new(
             f.span(),
-            "`#[plugin_invoke]` function must have signature `fn()`",
+            "`#[plugin_init]` function must have signature `fn()`",
         )
         .to_compile_error()
         .into();
@@ -94,18 +94,9 @@ pub fn plugin_invoke(_args: TokenStream, input: TokenStream) -> TokenStream {
             out_len: *mut u32
         ) -> optee_teec::Result<()> {
             let inbuf = unsafe { std::slice::from_raw_parts(data, in_len as usize) };
-            let mut outbuf = vec![0u8; in_len as usize];
-            let mut params = PluginParameters {
-                cmd: cmd,
-                sub_cmd: sub_cmd,
-                inbuf: inbuf,
-                outbuf: outbuf,
-            };
+            let mut params = PluginParameters::new(cmd, sub_cmd, inbuf);
             #f_block
-            if params.inbuf.len() > params.outbuf.len() {
-                panic!("Overflow: Input length is less than output length");
-            }
-            let mut outslice = params.outbuf.as_slice();
+            let outslice = params.get_outbuf_as_slice();
             unsafe { std::ptr::copy(outslice.as_ptr(), data, outslice.len()) };
 
             Ok(())
