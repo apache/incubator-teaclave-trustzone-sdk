@@ -22,6 +22,7 @@ pub use self::parameter::{Param, ParamNone, ParamTmpRef, ParamType, ParamTypes, 
 pub use self::session::{ConnectionMethods, Session};
 pub use self::uuid::Uuid;
 pub use self::extension::*;
+pub use optee_teec_macros::{plugin_init, plugin_invoke};
 
 mod context;
 mod error;

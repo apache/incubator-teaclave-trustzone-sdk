@@ -20,7 +20,7 @@ use libc::{c_char};
 use crate::{Result};
 
 #[repr(C)]
-pub struct Plugin_Method {
+pub struct PluginMethod {
     pub name: *mut c_char,
     pub uuid: raw::TEEC_UUID,
     pub init: fn() -> Result<()>,
@@ -31,4 +31,18 @@ pub struct Plugin_Method {
         in_len: u32,
         out_len: *mut u32,
     ) -> Result<()>,
+}
+
+/// struct PluginParameters {
+/// @cmd: u32,          plugin cmd, defined in proto/
+/// @sub_cmd: u32,      plugin subcmd, defined in proto/
+/// @inbuf: &'a [u8],   input buffer sent from TA
+/// @outbuf: Vec<u8>,   output buffer sent from plugin to TA,
+///                     outlen SHOULD be less than or equal to inlen
+/// }
+pub struct PluginParameters<'a> {
+    pub cmd: u32,
+    pub sub_cmd: u32,
+    pub inbuf: &'a [u8],
+    pub outbuf: Vec<u8>,
 }

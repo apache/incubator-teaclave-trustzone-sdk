@@ -16,11 +16,11 @@
 // under the License.
 
 #[no_mangle]
-pub static mut plugin_method: Plugin_Method = Plugin_Method {
+pub static mut plugin_method: PluginMethod = PluginMethod {
     name: plugin_name.as_ptr() as *mut c_char,
     uuid: PLUGIN_UUID_STRUCT,
-    init: syslog_plugin_init,
-    invoke: syslog_plugin_invoke,
+    init: _plugin_init,
+    invoke: _plugin_invoke,
 };
 
 #[no_mangle]

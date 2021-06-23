@@ -16,40 +16,27 @@
 // under the License.
 
 use libc::{c_char};
-use optee_teec::{Error, ErrorKind, Plugin_Method};
+use optee_teec::{Error, ErrorKind, PluginMethod, PluginParameters};
+use optee_teec::{plugin_init, plugin_invoke};
 use proto::{PluginCommand};
 
-#[no_mangle]
-fn syslog_plugin_init() -> optee_teec::Result<()> {
+#[plugin_init]
+fn init() {
     println!("*plugin*: init");
-
-    Ok(())
 }
 
-#[no_mangle]
-fn syslog_plugin_invoke(
-    cmd: u32, 
-    sub_cmd: u32, 
-    data: *mut c_char, 
-    in_len: u32, 
-    out_len: *mut u32
-) -> optee_teec::Result<()> {
+#[plugin_invoke]
+fn invoke(params: &mut PluginParameters) {
     println!("*plugin*: invoke");
-    match PluginCommand::from(cmd) {
+    match PluginCommand::from(params.cmd) {
         PluginCommand::Print => {
-            let received_slice = unsafe { std::slice::from_raw_parts(data, in_len as usize) };
-            println!("*plugin*: receive value: {:?} length {:?}", received_slice, in_len);
+            println!("*plugin*: receive value: {:?} length {:?}", params.inbuf, params.inbuf.len());
 
-            let send_slice: [u8;10] = [0x40;10];
-            unsafe { 
-                *out_len = send_slice.len() as u32;
-                std::ptr::copy(send_slice.as_ptr(), data, send_slice.len());
-                println!("*plugin*: send value: {:?} length {:?} to ta", send_slice, *out_len);
-            };
-            
-            Ok(())
+            let send_slice: [u8;9] = [0x40;9];
+            params.outbuf[..9].copy_from_slice(&send_slice);
+            println!("*plugin*: send value: {:?} length {:?} to ta", params.outbuf, params.outbuf.len());
         }
-        _ => Err(Error::new(ErrorKind::NotSupported)),
+        _ => println!("Unsupported plugin command: {:?}", params.cmd),
     }
 }
 
