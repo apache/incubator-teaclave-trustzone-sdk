@@ -21,7 +21,7 @@ use crate::{Result, Error, ErrorKind};
 
 #[repr(C)]
 pub struct PluginMethod {
-    pub name: *mut c_char,
+    pub name: *const c_char,
     pub uuid: raw::TEEC_UUID,
     pub init: fn() -> Result<()>,
     pub invoke: fn(
