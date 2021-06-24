@@ -93,11 +93,14 @@ pub fn plugin_invoke(_args: TokenStream, input: TokenStream) -> TokenStream {
             in_len: u32,
             out_len: *mut u32
         ) -> optee_teec::Result<()> {
-            let inbuf = unsafe { std::slice::from_raw_parts(data, in_len as usize) };
+            let mut inbuf = unsafe { std::slice::from_raw_parts_mut(data, in_len as usize) };
             let mut params = PluginParameters::new(cmd, sub_cmd, inbuf);
             #f_block
-            let outslice = params.get_outbuf_as_slice();
-            unsafe { std::ptr::copy(outslice.as_ptr(), data, outslice.len()) };
+            let outslice = params.get_out_slice();
+            unsafe {
+                *out_len = outslice.len() as u32;
+                std::ptr::copy(outslice.as_ptr(), data, outslice.len());
+            }
 
             Ok(())
         }

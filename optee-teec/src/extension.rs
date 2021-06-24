@@ -34,37 +34,36 @@ pub struct PluginMethod {
 }
 
 /// struct PluginParameters {
-/// @cmd: u32,          plugin cmd, defined in proto/
-/// @sub_cmd: u32,      plugin subcmd, defined in proto/
-/// @inbuf: &'a [u8],   input buffer sent from TA
-/// @outbuf: Vec<u8>,   output buffer sent from plugin to TA,
-///                     outlen SHOULD be less than or equal to inlen
+/// @cmd: u32,              plugin cmd, defined in proto/
+/// @sub_cmd: u32,          plugin subcmd, defined in proto/
+/// @inout: &'a mut [u8],   input/output buffer shared with TA and plugin
+/// @outlen,                length of output sent to TA
 /// }
 pub struct PluginParameters<'a> {
     pub cmd: u32,
     pub sub_cmd: u32,
-    pub inbuf: &'a [u8],
-    outbuf: Vec<u8>,
+    pub inout: &'a mut [u8],
+    outlen: usize,
 }
 impl<'a> PluginParameters<'a> {
-    pub fn new(cmd: u32, sub_cmd: u32, inbuf: &'a [u8]) -> Self {
-        let mut outbuf = vec![0u8; inbuf.len() as usize];
+    pub fn new(cmd: u32, sub_cmd: u32, inout: &'a mut [u8]) -> Self {
         Self {
-            cmd,
-            sub_cmd,
-            inbuf,
-            outbuf,
+            cmd: cmd,
+            sub_cmd: sub_cmd,
+            inout: inout,
+            outlen: 0 as usize,
         }
     }
-    pub fn set_outbuf_from_slice(&mut self, sendslice: &[u8]) -> Result<()> {
-        if self.inbuf.len() < sendslice.len() {
+    pub fn set_buf_from_slice(&mut self, sendslice: &[u8]) -> Result<()> {
+        if self.inout.len() < sendslice.len() {
             println!("Overflow: Input length is less than output length");
             return Err(Error::new(ErrorKind::Security));
         }
-        self.outbuf[..sendslice.len()].copy_from_slice(&sendslice);
+        self.outlen = sendslice.len() as usize;
+        self.inout[..self.outlen].copy_from_slice(&sendslice);
         Ok(())
     }
-    pub fn get_outbuf_as_slice(&self) -> &[u8] {
-        self.outbuf.as_slice()
+    pub fn get_out_slice(&self) -> &[u8] {
+        &self.inout[..self.outlen]
     }
 }

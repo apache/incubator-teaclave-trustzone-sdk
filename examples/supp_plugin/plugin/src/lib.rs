@@ -30,10 +30,10 @@ fn invoke(params: &mut PluginParameters) {
     println!("*plugin*: invoke");
     match PluginCommand::from(params.cmd) {
         PluginCommand::Print => {
-            println!("*plugin*: receive value: {:?} length {:?}", params.inbuf, params.inbuf.len());
+            println!("*plugin*: receive value: {:?} length {:?}", params.inout, params.inout.len());
 
             let send_slice: [u8;9] = [0x40;9];
-            params.set_outbuf_from_slice(&send_slice)?;
+            params.set_buf_from_slice(&send_slice)?;
             println!("*plugin*: send value: {:?} length {:?} to ta", send_slice, send_slice.len());
         }
         _ => println!("Unsupported plugin command: {:?}", params.cmd),
