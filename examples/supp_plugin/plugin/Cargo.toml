@@ -14,7 +14,7 @@ optee-teec = { path = "../../../optee-teec" }
 optee-teec-sys = { path = "../../../optee-teec/optee-teec-sys" }
 
 [build_dependencies]
-uuid = { version = "0.7", features = ["v4"] }
+uuid = { version = "0.8" }
 proto = { path = "../proto" }
 
 [profile.release]

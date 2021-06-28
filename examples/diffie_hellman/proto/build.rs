@@ -18,7 +18,6 @@
 use std::fs;
 use std::path::PathBuf;
 use std::fs::File;
-use uuid::Uuid;
 use std::env;
 use std::io::Write;
 
@@ -28,9 +27,7 @@ fn main() {
             u.trim().to_string()
         },
         Err(_) => {
-            let u = Uuid::new_v4().to_string();
-            fs::write("../uuid.txt", &u).unwrap();
-            u
+            panic!("Cannot find uuid.txt");
         }
     };
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());

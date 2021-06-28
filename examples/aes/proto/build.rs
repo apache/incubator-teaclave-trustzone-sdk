@@ -15,19 +15,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use std::env;
-use std::fs::{self, File};
-use std::io::Write;
+use std::fs;
 use std::path::PathBuf;
-use uuid::Uuid;
+use std::fs::File;
+use std::env;
+use std::io::Write;
 
 fn main() {
     let uuid = match fs::read_to_string("../uuid.txt") {
-        Ok(u) => u.trim().to_string(),
+        Ok(u) => {
+            u.trim().to_string()
+        },
         Err(_) => {
-            let u = Uuid::new_v4().to_string();
-            fs::write("../uuid.txt", &u).unwrap();
-            u
+            panic!("Cannot find uuid.txt");
         }
     };
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());

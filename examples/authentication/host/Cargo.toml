@@ -12,8 +12,5 @@ libc = "0.2.48"
 proto = { path = "../proto" }
 optee-teec = { path = "../../../optee-teec" }
 
-[build_dependencies]
-uuid = { version = "0.8", features = ["v4"] }
-
 [profile.release]
 lto = true
