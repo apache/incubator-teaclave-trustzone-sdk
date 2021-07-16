@@ -42,7 +42,7 @@ screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
 
 {
-	grep -q "Success" screenlog.0 &&
+	grep -q "Success" screenlog.0
 } || {
 	cat -v screenlog.0
 	cat -v /tmp/serial.log
