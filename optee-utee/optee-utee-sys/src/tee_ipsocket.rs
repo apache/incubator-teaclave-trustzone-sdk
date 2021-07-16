@@ -15,28 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#![allow(non_camel_case_types, non_snake_case)]
-
-pub use tee_api::*;
-pub use tee_api_defines::*;
-pub use tee_api_types::*;
-pub use tee_internal_api_extensions::*;
-pub use tee_isocket::*;
-pub use tee_tcpsocket::*;
-pub use tee_ipsocket::*;
-pub use trace::*;
-pub use user_ta_header::*;
-pub use utee_syscalls::*;
-pub use utee_types::*;
-
-mod tee_api;
-mod tee_api_defines;
-mod tee_api_types;
-mod tee_internal_api_extensions;
-mod tee_isocket;
-mod tee_tcpsocket;
-mod trace;
-mod user_ta_header;
-mod utee_syscalls;
-mod utee_types;
-mod tee_ipsocket;
+#[repr(C)]
+pub enum TEE_ipSocket_ipVersion {
+    TEE_IP_VERSION_DC = 0,
+    TEE_IP_VERSION_4 = 1,
+    TEE_IP_VERSION_6 = 2,
+}

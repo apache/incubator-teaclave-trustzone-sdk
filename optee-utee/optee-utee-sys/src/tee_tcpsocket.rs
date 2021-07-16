@@ -15,28 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#![allow(non_camel_case_types, non_snake_case)]
+use super::*;
+use libc::*;
 
-pub use tee_api::*;
-pub use tee_api_defines::*;
-pub use tee_api_types::*;
-pub use tee_internal_api_extensions::*;
-pub use tee_isocket::*;
-pub use tee_tcpsocket::*;
-pub use tee_ipsocket::*;
-pub use trace::*;
-pub use user_ta_header::*;
-pub use utee_syscalls::*;
-pub use utee_types::*;
+pub type TEE_tcpSocket_Setup = TEE_tcpSocket_Setup_s;
+#[repr(C)]
+pub struct TEE_tcpSocket_Setup_s {
+    pub ipVersion: TEE_ipSocket_ipVersion,
+    pub server_addr: *const c_char,
+    pub server_port: u16,
+}
 
-mod tee_api;
-mod tee_api_defines;
-mod tee_api_types;
-mod tee_internal_api_extensions;
-mod tee_isocket;
-mod tee_tcpsocket;
-mod trace;
-mod user_ta_header;
-mod utee_syscalls;
-mod utee_types;
-mod tee_ipsocket;
+extern "C" {
+    #[no_mangle]
+    pub static TEE_tcpSocket: *const TEE_iSocket;
+}
+
+
+pub const TEE_ISOCKET_PROTOCOLID_TCP: u32 = 0x65;
+pub const TEE_ISOCKET_TCP_WARNING_UNKNOWN_OUT_OF_BAND: u32 = 0xF1010002;
+
+pub const TEE_TCP_SET_RECVBUF: u32 = 0x65f00000;
+pub const TEE_TCP_SET_SENDBUF: u32 = 0x65f00001;
