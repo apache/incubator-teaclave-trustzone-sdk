@@ -1,0 +1,21 @@
+[package]
+name = "ta"
+version = "0.1.0"
+authors = ["Teaclave Contributors <dev@teaclave.apache.org>"]
+license = "Apache-2.0"
+repository = "https://github.com/apache/incubator-teaclave-trustzone-sdk.git"
+description = "An example of Rust OP-TEE TrustZone SDK."
+edition = "2018"
+
+[dependencies]
+libc = { path = "../../../rust/libc" }
+proto = { path = "../proto" }
+optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys" }
+optee-utee = { path = "../../../optee-utee" }
+
+[build_dependencies]
+uuid = { version = "0.8" }
+proto = { path = "../proto" }
+
+[profile.release]
+lto = true
