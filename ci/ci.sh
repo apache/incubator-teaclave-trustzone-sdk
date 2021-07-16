@@ -33,5 +33,6 @@ pushd ../tests
 ./test_digest.sh
 ./test_authentication.sh
 ./test_time.sh
+./test_tcp_client.sh
 
 popd
