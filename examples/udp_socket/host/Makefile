@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -17,23 +15,31 @@
 # specific language governing permissions and limitations
 # under the License.
 
-set -xe
+NAME := udp_client
+ARCH ?= aarch64
 
-pushd ../tests
+OPTEE_DIR ?= ../../../optee
 
-./test_hello_world.sh
-./test_random.sh
-./test_secure_storage.sh
-./test_aes.sh
-./test_serde.sh
-./test_hotp.sh
-./test_acipher.sh
-./test_big_int.sh
-./test_diffie_hellman.sh
-./test_digest.sh
-./test_authentication.sh
-./test_time.sh
-./test_tcp_client.sh
-./test_udp_socket.sh
+ifeq ($(ARCH), arm)
+	OPTEE_BIN := $(OPTEE_DIR)/toolchains/aarch32/bin
+	OBJCOPY := $(OPTEE_BIN)/arm-linux-gnueabihf-objcopy
+	TARGET := arm-unknown-linux-gnueabihf
+else
+	OPTEE_BIN := $(OPTEE_DIR)/toolchains/$(ARCH)/bin
+	OBJCOPY := $(OPTEE_BIN)/aarch64-linux-gnu-objcopy
+	TARGET := aarch64-unknown-linux-gnu
+endif
 
-popd
+OUT_DIR := $(CURDIR)/target/$(TARGET)/release
+
+
+all: host strip
+
+host:
+	@cargo build --target $(TARGET) --release
+
+strip:
+	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/$(NAME) $(OUT_DIR)/$(NAME)
+
+clean:
+	@cargo clean
