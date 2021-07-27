@@ -15,27 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-pub use self::error::{Error, ErrorKind, Result};
-pub use self::object::*;
-pub use self::crypto_op::*;
-pub use self::time::*;
-pub use self::arithmetical::*;
-pub use self::extension::*;
-pub use self::uuid::*;
-pub use self::parameter::{ParamType, ParamTypes, Parameter, Parameters};
-pub use optee_utee_macros::{
-    ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session,
-};
+use super::*;
+use libc::*;
 
-pub mod trace;
-#[macro_use]
-mod macros;
-mod error;
-mod parameter;
-pub mod object;
-pub mod crypto_op;
-pub mod time;
-pub mod arithmetical;
-pub mod extension;
-pub mod uuid;
-pub mod net;
+pub type TEE_tcpSocket_Setup = TEE_tcpSocket_Setup_s;
+#[repr(C)]
+pub struct TEE_tcpSocket_Setup_s {
+    pub ipVersion: TEE_ipSocket_ipVersion,
+    pub server_addr: *const c_char,
+    pub server_port: u16,
+}
+
+extern "C" {
+    #[no_mangle]
+    pub static TEE_tcpSocket: *const TEE_iSocket;
+}
+
+
+pub const TEE_ISOCKET_PROTOCOLID_TCP: u32 = 0x65;
+pub const TEE_ISOCKET_TCP_WARNING_UNKNOWN_OUT_OF_BAND: u32 = 0xF1010002;
+
+pub const TEE_TCP_SET_RECVBUF: u32 = 0x65f00000;
+pub const TEE_TCP_SET_SENDBUF: u32 = 0x65f00001;

@@ -15,27 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-pub use self::error::{Error, ErrorKind, Result};
-pub use self::object::*;
-pub use self::crypto_op::*;
-pub use self::time::*;
-pub use self::arithmetical::*;
-pub use self::extension::*;
-pub use self::uuid::*;
-pub use self::parameter::{ParamType, ParamTypes, Parameter, Parameters};
-pub use optee_utee_macros::{
-    ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session,
-};
+use std::fs;
+use std::path::PathBuf;
+use std::fs::File;
+use std::env;
+use std::io::Write;
 
-pub mod trace;
-#[macro_use]
-mod macros;
-mod error;
-mod parameter;
-pub mod object;
-pub mod crypto_op;
-pub mod time;
-pub mod arithmetical;
-pub mod extension;
-pub mod uuid;
-pub mod net;
+fn main() {
+    let uuid = match fs::read_to_string("../uuid.txt") {
+        Ok(u) => {
+            u.trim().to_string()
+        },
+        Err(_) => {
+            panic!("Cannot find uuid.txt");
+        }
+    };
+    let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
+    let mut buffer = File::create(out.join("uuid.txt")).unwrap();
+    write!(buffer, "{}", uuid).unwrap();
+}

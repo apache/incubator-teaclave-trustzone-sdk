@@ -15,27 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-pub use self::error::{Error, ErrorKind, Result};
-pub use self::object::*;
-pub use self::crypto_op::*;
-pub use self::time::*;
-pub use self::arithmetical::*;
-pub use self::extension::*;
-pub use self::uuid::*;
-pub use self::parameter::{ParamType, ParamTypes, Parameter, Parameters};
-pub use optee_utee_macros::{
-    ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session,
-};
+use super::*;
+use libc::*;
 
-pub mod trace;
-#[macro_use]
-mod macros;
-mod error;
-mod parameter;
-pub mod object;
-pub mod crypto_op;
-pub mod time;
-pub mod arithmetical;
-pub mod extension;
-pub mod uuid;
-pub mod net;
+pub type TEE_udpSocket_Setup = TEE_udpSocket_Setup_s;
+#[repr(C)]
+pub struct TEE_udpSocket_Setup_s {
+    pub ipVersion: TEE_ipSocket_ipVersion,
+    pub server_addr: *const c_char,
+    pub server_port: u16,
+}
+
+extern "C" {
+    #[no_mangle]
+    pub static TEE_udpSocket: *const TEE_iSocket;
+}
+
+pub const TEE_ISOCKET_PROTOCOLID_UDP: u32 = 0x66;
+pub const TEE_ISOCKET_UDP_WARNING_UNKNOWN_OUT_OF_BAND: u32 = 0xF1020002;
+pub const TEE_UDP_CHANGEADDR: u32 = 0x66000001;
+pub const TEE_UDP_CHANGEPORT: u32 = 0x66000002;

@@ -15,27 +15,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-pub use self::error::{Error, ErrorKind, Result};
-pub use self::object::*;
-pub use self::crypto_op::*;
-pub use self::time::*;
-pub use self::arithmetical::*;
-pub use self::extension::*;
-pub use self::uuid::*;
-pub use self::parameter::{ParamType, ParamTypes, Parameter, Parameters};
-pub use optee_utee_macros::{
-    ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session,
-};
+pub enum Command {
+    Start,
+    Unknown,
+}
 
-pub mod trace;
-#[macro_use]
-mod macros;
-mod error;
-mod parameter;
-pub mod object;
-pub mod crypto_op;
-pub mod time;
-pub mod arithmetical;
-pub mod extension;
-pub mod uuid;
-pub mod net;
+impl From<u32> for Command {
+    #[inline]
+    fn from(value: u32) -> Command {
+        match value {
+            0 => Command::Start,
+            _ => Command::Unknown,
+        }
+    }
+}
+
+pub const UUID: &str = &include_str!(concat!(env!("OUT_DIR"), "/uuid.txt"));

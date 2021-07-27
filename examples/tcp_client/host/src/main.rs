@@ -15,27 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
-pub use self::error::{Error, ErrorKind, Result};
-pub use self::object::*;
-pub use self::crypto_op::*;
-pub use self::time::*;
-pub use self::arithmetical::*;
-pub use self::extension::*;
-pub use self::uuid::*;
-pub use self::parameter::{ParamType, ParamTypes, Parameter, Parameters};
-pub use optee_utee_macros::{
-    ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session,
-};
+use optee_teec::{Context, Operation, Session, Uuid};
+use optee_teec::ParamNone;
+use proto::{UUID, Command};
 
-pub mod trace;
-#[macro_use]
-mod macros;
-mod error;
-mod parameter;
-pub mod object;
-pub mod crypto_op;
-pub mod time;
-pub mod arithmetical;
-pub mod extension;
-pub mod uuid;
-pub mod net;
+fn tcp_client(session: &mut Session) -> optee_teec::Result<()> {
+    let mut operation = Operation::new(0, ParamNone, ParamNone, ParamNone, ParamNone);
+    session.invoke_command(Command::Start as u32, &mut operation)?;
+    Ok(())
+}
+
+fn main() -> optee_teec::Result<()> {
+    let mut ctx = Context::new()?;
+    let uuid = Uuid::parse_str(UUID).unwrap();
+    let mut session = ctx.open_session(uuid)?;
+
+    tcp_client(&mut session)?;
+
+    println!("Success");
+    Ok(())
+}
