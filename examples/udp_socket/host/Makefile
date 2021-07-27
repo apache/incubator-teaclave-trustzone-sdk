@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-NAME := udp_client
+NAME := udp_socket
 ARCH ?= aarch64
 
 OPTEE_DIR ?= ../../../optee
