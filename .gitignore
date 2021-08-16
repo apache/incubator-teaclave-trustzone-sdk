@@ -15,8 +15,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-optee-utee/Cargo.lock
-optee-teec/Cargo.lock
 examples/**/proto/Cargo.lock
 **/*.rs.bk
 .user_ta_header.o.d
