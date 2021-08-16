@@ -15,23 +15,67 @@
 # specific language governing permissions and limitations
 # under the License.
 
-FROM ubuntu:16.04
+FROM ubuntu:20.04
 MAINTAINER Teaclave Contributors <dev@teaclave.apache.org>
+ENV DEBIAN_FRONTEND=noninteractive
 
-RUN dpkg --add-architecture i386
+# Install dependencies for building OP-TEE
 RUN apt-get update && \
-  apt-get install -y -q android-tools-adb android-tools-fastboot autoconf \
-  automake bc bison build-essential cscope curl device-tree-compiler \
-  expect flex ftp-upload gdisk iasl libattr1-dev libc6:i386 libcap-dev \
-  libfdt-dev libftdi-dev libglib2.0-dev libhidapi-dev libncurses5-dev \
-  libpixman-1-dev libssl-dev libstdc++6:i386 libtool libz1:i386 make \
-  mtools netcat python-crypto python-serial python-wand unzip uuid-dev \
-  xdg-utils xterm xz-utils zlib1g-dev git wget cpio libssl-dev iasl \
-  screen libbrlapi-dev libaio-dev libcurl3 libbluetooth-dev libsdl2-2.0 \
-  python3 python3-pip python3-pyelftools
+    apt-get install -y \
+    git \
+    android-tools-adb \
+    android-tools-fastboot \
+    autoconf \
+    automake \
+    bc \
+    bison \
+    build-essential \
+    ccache \
+    cscope \
+    curl \
+    device-tree-compiler \
+    expect \
+    flex \
+    ftp-upload \
+    gdisk \
+    iasl \
+    libattr1-dev \
+    libcap-dev \
+    libfdt-dev \
+    libftdi-dev \
+    libglib2.0-dev \
+    libgmp-dev \
+    libhidapi-dev \
+    libmpc-dev \
+    libncurses5-dev \
+    libpixman-1-dev \
+    libssl-dev \
+    libtool \
+    make \
+    mtools \
+    netcat \
+    ninja-build \
+    python \
+    python-crypto \
+    python3-crypto \
+    python-pyelftools \
+    python3-pycryptodome \
+    python3-pyelftools \
+    python3-serial \
+    rsync \
+    unzip \
+    uuid-dev \
+    xdg-utils \
+    xterm \
+    xz-utils \
+    zlib1g-dev \
+    wget \
+    cpio \
+    libcap-ng-dev \
+    screen \
+    libvdeplug-dev
 
-RUN pip3 install pycryptodome
-
+# Install Rust
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
   . $HOME/.cargo/env && \
   rustup default nightly-2019-07-08 && \
