@@ -25,8 +25,8 @@ rm -rf shared
 
 curl http://mesalock-linux.org/assets/optee-qemuv8-3.13.0-ubuntu-20.04.tar.gz | tar zxv
 mkdir shared
-cp ../examples/time/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
-cp ../examples/time/host/target/aarch64-unknown-linux-gnu/release/time shared
+cp ../examples/time-rs/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
+cp ../examples/time-rs/host/target/aarch64-unknown-linux-gnu/release/time-rs shared
 
 screen -L -d -m -S qemu_screen ./optee-qemuv8.sh
 sleep 30
@@ -36,7 +36,7 @@ screen -S qemu_screen -p 0 -X stuff "mkdir shared && mount -t 9p -o trans=virtio
 sleep 5
 screen -S qemu_screen -p 0 -X stuff "cp *.ta /lib/optee_armtz/\n"
 sleep 5
-screen -S qemu_screen -p 0 -X stuff "./time\n"
+screen -S qemu_screen -p 0 -X stuff "./time-rs\n"
 sleep 5
 screen -S qemu_screen -p 0 -X stuff "^C"
 sleep 5
