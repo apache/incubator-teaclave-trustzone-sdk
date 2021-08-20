@@ -71,7 +71,7 @@ $ make examples
 ```
 
 Please read detailed
-[instructions](https://github.com/apache/incubator-teaclave-trustzone-sdk/wiki/Getting-started-with-OPTEE-for-QEMU-ARMv8)
+[instructions](https://teaclave.apache.org/trustzone-sdk-docs/getting-started-with-optee-for-qemu-armv8/)
 to run these examples on OP-TEE for QEMU. For other supported devices, please find
 more documents [here](https://optee.readthedocs.io/en/latest/general/platforms.html).
 

@@ -24,7 +24,7 @@ defaults:
 jobs:
   build-and-run-examples:
     runs-on: ubuntu-20.04
-    container: teaclave/teaclave-trustzone-sdk-build:0.2.0
+    container: teaclave/teaclave-trustzone-sdk-build:0.2.1
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
