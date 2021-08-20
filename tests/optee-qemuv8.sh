@@ -17,7 +17,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-cd optee-qemuv8-3.13.0-ubuntu-20.04 && ./qemu-system-aarch64 \
+cd optee-qemuv8-3.14.0-ubuntu-20.04 && ./qemu-system-aarch64 \
     -nodefaults \
     -nographic \
     -serial stdio -serial file:/tmp/serial.log \
