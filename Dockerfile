@@ -73,7 +73,13 @@ RUN apt-get update && \
     cpio \
     libcap-ng-dev \
     screen \
-    libvdeplug-dev
+    libvdeplug-dev \
+    libsdl2-dev
+
+RUN apt-get install -y software-properties-common && \
+    add-apt-repository ppa:linuxuprising/libpng12 && \
+    apt-get update && \
+    apt-get install libpng12-0
 
 # Install Rust
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
