@@ -37,8 +37,8 @@ jobs:
           ln -sf /root/.cargo ~/.cargo
       - name: Building
         run: |
-          make optee &&
           source environment &&
+          make optee &&
           . ~/.cargo/env &&
           rustup default nightly-2019-07-08 &&
           make examples
@@ -60,8 +60,8 @@ jobs:
           ln -sf /root/.cargo ~/.cargo
       - name: Building
         run: |
-          make optee &&
           source environment &&
+          make optee &&
           . ~/.cargo/env &&
           rustup default nightly-2019-07-08 &&
           (cd optee-utee && xargo build --target aarch64-unknown-optee-trustzone -vv) &&
