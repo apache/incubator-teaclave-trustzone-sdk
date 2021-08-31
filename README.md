@@ -43,18 +43,23 @@ $ rustup default 1.44.0 && cargo +1.44.0 install xargo
 $ rustup default nightly-2019-07-08
 ```
 
-Then, download ARM toolchains and build OP-TEE libraries. Note that the OP-TEE
-target is QEMUv8, and you can modify the Makefile to other targets accordingly.
-
-``` sh
-$ make optee
-```
-
 Before building examples, the environment should be properly setup.
 
 ``` sh
 $ source environment
 ```
+
+By default, the `OPTEE_DIR` is `incubator-teaclave-trustzone-sdk/optee/`.
+If you already have [OP-TEE repository](https://github.com/OP-TEE) 
+cloned, you can set OP-TEE root directory before source environment:
+
+``` sh
+$ export OPTEE_DIR=path/to/your/optee/root/directory
+$ source environment
+```
+
+Note that your OPTEE root directory should have `build/`, `optee_os/` and 
+`optee_client/` as sub-directory.
 
 By default, the target platform is `aarch64`. If you want to build for the `arm`
 target, you can setup `ARCH` before source the environment like this:
@@ -62,6 +67,13 @@ target, you can setup `ARCH` before source the environment like this:
 ```sh
 $ export ARCH=arm
 $ source environment
+```
+
+Then, download ARM toolchains and build OP-TEE libraries. Note that the OP-TEE
+target is QEMUv8, and you can modify the Makefile to other targets accordingly.
+
+``` sh
+$ make optee
 ```
 
 At last, you can get started with our examples.

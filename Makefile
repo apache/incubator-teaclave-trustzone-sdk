@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-OPTEE_PATH        ?= $(CURDIR)/optee
+OPTEE_PATH        ?= $(OPTEE_DIR)
 OPTEE_BUILD_PATH  ?= $(OPTEE_PATH)/build
 OPTEE_OS_PATH     ?= $(OPTEE_PATH)/optee_os
 OPTEE_CLIENT_PATH ?= $(OPTEE_PATH)/optee_client
@@ -60,6 +60,9 @@ examples-install: $(EXAMPLES_INSTALL)
 $(EXAMPLES_INSTALL):
 	install -D $(@:%-install=%)/host/target/$(HOST_TARGET)/release/$(@:examples/%-install=%) -t out/host/
 	install -D $(@:%-install=%)/ta/target/$(TA_TARGET)/release/*.ta -t out/ta/
+	if [ -d "$(@:%-install=%)/plugin/target/" ]; then \
+		install -D $(@:%-install=%)/plugin/target/$(HOST_TARGET)/release/*.plugin.so -t out/plugin/; \
+	fi
 
 optee-os-clean:
 	make -C $(OPTEE_OS_PATH) O=out/arm clean

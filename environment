@@ -17,7 +17,10 @@
 
 export RUST_TARGET_PATH="$(pwd)"
 export RUST_COMPILER_RT_ROOT=$RUST_TARGET_PATH/rust/rust/src/llvm-project/compiler-rt
-export OPTEE_DIR="$(pwd)/optee"
+if [ -z "$OPTEE_DIR" ]
+then
+  export OPTEE_DIR="$(pwd)/optee"
+fi
 export OPTEE_OS_DIR="$OPTEE_DIR/optee_os"
 export OPTEE_CLIENT_DIR="$OPTEE_DIR/optee_client"
 export OPTEE_CLIENT_INCLUDE="$OPTEE_DIR/optee_client/out/export/usr/include"
