@@ -16,8 +16,8 @@
 # under the License.
 
 [target.aarch64-unknown-optee-trustzone]
-linker = "optee/toolchains/aarch64/bin/aarch64-linux-gnu-ld"
-ar = "optee/toolchains/aarch64/bin/aarch64-linux-gnu-gcc-ar"
+linker = "aarch64-linux-gnu-ld"
+ar = "aarch64-linux-gnu-gcc-ar"
 rustflags = [
     "-C", "link-arg=-e__ta_entry",
     "-C", "link-arg=-nostdlib",
@@ -29,12 +29,12 @@ rustflags = [
 ]
 
 [target.aarch64-unknown-linux-gnu]
-linker = "optee/toolchains/aarch64/bin/aarch64-linux-gnu-gcc"
-ar = "optee/toolchains/aarch64/bin/aarch64-linux-gnu-gcc-ar"
+linker = "aarch64-linux-gnu-gcc"
+ar = "aarch64-linux-gnu-gcc-ar"
 
 [target.arm-unknown-optee-trustzone]
-linker = "optee/toolchains/aarch32/bin/arm-linux-gnueabihf-ld.bfd"
-ar = "optee/toolchains/aarch32/bin/arm-linux-gnueabihf-ar"
+linker = "arm-linux-gnueabihf-ld.bfd"
+ar = "arm-linux-gnueabihf-ar"
 rustflags = [
     "-C", "link-arg=-e__ta_entry",
     "-C", "link-arg=-nostdlib",
@@ -45,5 +45,5 @@ rustflags = [
 ]
 
 [target.arm-unknown-linux-gnueabihf]
-linker = "optee/toolchains/aarch32/bin/arm-linux-gnueabihf-gcc"
-ar = "optee/toolchains/aarch32/bin/arm-linux-gnueabihf-gcc-ar"
+linker = "arm-linux-gnueabihf-gcc"
+ar = "arm-linux-gnueabihf-gcc-ar"
