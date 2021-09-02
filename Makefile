@@ -19,19 +19,21 @@ OPTEE_PATH        ?= $(OPTEE_DIR)
 OPTEE_BUILD_PATH  ?= $(OPTEE_PATH)/build
 OPTEE_OS_PATH     ?= $(OPTEE_PATH)/optee_os
 OPTEE_CLIENT_PATH ?= $(OPTEE_PATH)/optee_client
-VENDOR            ?= qemu_v8.mk
 
 CCACHE ?= $(shell which ccache)
-AARCH_CROSS_COMPILE ?= $(OPTEE_PATH)/toolchains/aarch64/bin/aarch64-linux-gnu-
 
 EXAMPLES = $(wildcard examples/*)
 EXAMPLES_INSTALL = $(EXAMPLES:%=%-install)
 EXAMPLES_CLEAN  = $(EXAMPLES:%=%-clean)
 
 ifneq ($(ARCH), arm)
+	VENDOR := qemu_v8.mk
+	AARCH_CROSS_COMPILE := $(OPTEE_PATH)/toolchains/aarch64/bin/aarch64-linux-gnu-
 	HOST_TARGET := aarch64-unknown-linux-gnu
 	TA_TARGET := aarch64-unknown-optee-trustzone
 else
+	VENDOR := qemu.mk
+	ARCH_CROSS_COMPILE := $(OPTEE_PATH)/toolchains/aarch32/bin/arm-linux-gnueabihf-
 	HOST_TARGET := arm-unknown-linux-gnueabihf
 	TA_TARGET := arm-unknown-optee-trustzone
 endif
