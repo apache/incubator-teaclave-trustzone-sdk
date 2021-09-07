@@ -22,7 +22,7 @@ then
   export OPTEE_DIR="$(pwd)/optee"
 fi
 export OPTEE_OS_DIR="$OPTEE_DIR/optee_os"
-export OPTEE_CLIENT_DIR="$OPTEE_DIR/optee_client"
+export OPTEE_CLIENT_DIR="$OPTEE_DIR/optee_client/out"
 export OPTEE_CLIENT_INCLUDE="$OPTEE_DIR/optee_client/out/export/usr/include"
 if [ "$ARCH" = "arm" ]
 then
