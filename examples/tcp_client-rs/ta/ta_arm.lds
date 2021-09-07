@@ -39,7 +39,6 @@ SECTIONS {
 	.ARM.exidx : { *(.ARM.exidx* .gnu.linkonce.armexidx.*) }
         .ctors : { *(.ctors) }
         .dtors : { *(.dtors) }
-	.got : { *(.got.plt) *(.got) }
 	.rel.text : { *(.rel.text) *(.rel.gnu.linkonce.t*) }
 	.rela.text : { *(.rela.text) *(.rela.gnu.linkonce.t*) }
 	.rel.data : { *(.rel.data) *(.rel.gnu.linkonce.d*) }
@@ -70,6 +69,7 @@ SECTIONS {
 	. = ALIGN(4096);
 
 	.data : { *(.data .data.* .gnu.linkonce.d.*) } :rwdata
+	.got : { *(.got.plt) *(.got) }
 	.bss : {
 		*(.bss .bss.* .gnu.linkonce.b.* COMMON)
 
