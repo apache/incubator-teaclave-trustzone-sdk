@@ -15,13 +15,6 @@ and install building dependencies (The complete list of prerequisites can be fou
 Alternatively, you can use a docker container built with our [Dockerfile](Dockerfile).
 
 ``` sh
-# clone the project and initialize related submodules
-$ git clone git@github.com:apache/incubator-teaclave-trustzone-sdk.git
-$ cd incubator-teaclave-trustzone-sdk
-$ git submodule update --init
-$ (cd rust/compiler-builtins && git submodule update --init libm)
-$ (cd rust/rust && git submodule update --init src/stdsimd)
-
 # install dependencies
 $ sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
         automake bc bison build-essential ccache cscope curl device-tree-compiler \
@@ -32,34 +25,33 @@ $ sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
         python3-pycryptodome python3-pyelftools python-serial python3-serial \
         rsync unzip uuid-dev xdg-utils xterm xz-utils zlib1g-dev
 
-# install Rust and select a proper version
-$ curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2019-07-08
-$ source $HOME/.cargo/env
-$ rustup component add rust-src && rustup target install aarch64-unknown-linux-gnu arm-unknown-linux-gnueabihf
-
-# install Xargo
-$ rustup default 1.44.0 && cargo +1.44.0 install xargo
-# switch to nightly
-$ rustup default nightly-2019-07-08
+# clone the project
+$ git clone git@github.com:apache/incubator-teaclave-trustzone-sdk.git
+$ cd incubator-teaclave-trustzone-sdk
+# initialize related submodules and install Rust environment
+$ ./setup.sh
 ```
+
+By default, the `OPTEE_DIR` is `incubator-teaclave-trustzone-sdk/optee/`.
+``` sh
+# initialize OP-TEE submodule
+$ git submodule update --init -- optee
+```
+If you already have [OP-TEE repository](https://github.com/OP-TEE) 
+cloned, you can set OP-TEE root directory:
+
+``` sh
+$ export OPTEE_DIR=path/to/your/optee/root/directory
+```
+
+Note that your OPTEE root directory should have `build/`, `optee_os/` and 
+`optee_client/` as sub-directory.
 
 Before building examples, the environment should be properly setup.
 
 ``` sh
 $ source environment
 ```
-
-By default, the `OPTEE_DIR` is `incubator-teaclave-trustzone-sdk/optee/`.
-If you already have [OP-TEE repository](https://github.com/OP-TEE) 
-cloned, you can set OP-TEE root directory before source environment:
-
-``` sh
-$ export OPTEE_DIR=path/to/your/optee/root/directory
-$ source environment
-```
-
-Note that your OPTEE root directory should have `build/`, `optee_os/` and 
-`optee_client/` as sub-directory.
 
 By default, the target platform is `aarch64`. If you want to build for the `arm`
 target, you can setup `ARCH` before source the environment like this:
