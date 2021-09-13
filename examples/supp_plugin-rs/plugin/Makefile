@@ -38,6 +38,6 @@ all: host
 
 host:
 	@cargo build --target $(TARGET) --release
-	mv $(CURDIR)/target/$(TARGET)/release/lib$(NAME).so $(CURDIR)/target/$(TARGET)/release/$(PLUGIN_UUID).plugin.so 
+	cp $(CURDIR)/target/$(TARGET)/release/lib$(NAME).so $(CURDIR)/target/$(TARGET)/release/$(PLUGIN_UUID).plugin.so 
 clean:
 	@cargo clean
