@@ -66,6 +66,34 @@ jobs:
           rustup default nightly-2019-07-08 &&
           (cd optee-utee && xargo build --target aarch64-unknown-optee-trustzone -vv) &&
           (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
+  build-and-run-examples-in-OPTEE-repo:
+    runs-on: ubuntu-20.04
+    container: teaclave/teaclave-trustzone-sdk-build:0.2.1
+    steps:
+      - name: Checkout OP-TEE repository
+        run: |
+          mkdir -p ~/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo-1 > ~/bin/repo && chmod a+x ~/bin/repo
+          export PATH=~/bin:$PATH
+          mkdir optee-qemuv8 && cd optee-qemuv8 &&
+          repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml &&
+          repo sync -j4 --no-clone-bundle   
+      # This step will be removed after merging those commits to upstream:
+      - name: Switch to current commits
+        run: |
+          cd optee-qemuv8
+          (cd optee_rust && git fetch github pull/45/head && git checkout FETCH_HEAD)
+          (cd build && git fetch https://github.com/DemesneGH/build.git && git checkout FETCH_HEAD)
+      - name: Build images
+        run: |
+          cd optee-qemuv8
+          cd build &&
+          make -j2 toolchains &&
+          make OPTEE_RUST_ENABLE=y CFG_TEE_RAM_VA_SIZE=0x00300000
+      - name: Test Rust applications
+        run: |
+          cd optee-qemuv8
+          cd build && make CFG_TEE_CORE_LOG_LEVEL=0 check-rust
   license:
     runs-on: ubuntu-20.04
     steps:
