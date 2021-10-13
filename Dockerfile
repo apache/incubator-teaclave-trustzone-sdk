@@ -74,7 +74,8 @@ RUN apt-get update && \
     libcap-ng-dev \
     screen \
     libvdeplug-dev \
-    libsdl2-dev
+    libsdl2-dev \
+    ca-certificates
 
 RUN apt-get install -y software-properties-common && \
     add-apt-repository ppa:linuxuprising/libpng12 && \
