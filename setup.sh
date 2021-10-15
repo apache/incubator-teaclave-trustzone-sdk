@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,25 +17,17 @@
 # specific language governing permissions and limitations
 # under the License.
 
-[package]
-name = "ta"
-version = "0.1.0"
-authors = ["Teaclave Contributors <dev@teaclave.apache.org>"]
-license = "Apache-2.0"
-repository = "https://github.com/apache/incubator-teaclave-trustzone-sdk.git"
-description = "An example of Rust OP-TEE TrustZone SDK."
-edition = "2018"
+# install Rust and select a proper version
+curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2019-07-08
+source $HOME/.cargo/env
+rustup component add rust-src && rustup target install aarch64-unknown-linux-gnu arm-unknown-linux-gnueabihf
 
-[dependencies]
-libc = { path = "../../../rust/libc" }
-proto = { path = "../proto" }
-optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys" }
-optee-utee = { path = "../../../optee-utee" }
+# install Xargo
+rustup default 1.44.0 && cargo +1.44.0 install xargo
+# switch to nightly
+rustup default nightly-2019-07-08
 
-[build_dependencies]
-uuid = { version = "0.8" }
-proto = { path = "../proto" }
-
-[profile.release]
-lto = true
-opt-level = 1
+# initialize Teaclave TrustZone SDK submodule
+git submodule update --init -- rust
+cd rust/compiler-builtins && git submodule update --init libm
+cd ../rust && git submodule update --init src/stdsimd
