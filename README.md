@@ -1,5 +1,9 @@
 # Teaclave TrustZone SDK
 
+[![License](https://img.shields.io/badge/license-Apache-green.svg)](LICENSE)
+[![Release](https://img.shields.io/github/v/tag/apache/incubator-teaclave-trustzone-sdk?label=release&sort=semver)](https://github.com/apache/incubator-teaclave-trustzone-sdk/releases)
+[![Homepage](https://img.shields.io/badge/site-homepage-blue)](https://teaclave.apache.org/)
+
 Teaclave TrustZone SDK (Rust OP-TEE TrustZone SDK) provides abilities to build
 safe TrustZone applications in Rust. The SDK is based on the
 [OP-TEE](https://www.op-tee.org/) project which follows
@@ -79,11 +83,12 @@ Please read detailed
 to run these examples on OP-TEE for QEMU. For other supported devices, please find
 more documents [here](https://optee.readthedocs.io/en/latest/general/platforms.html).
 
-## Contributing
+## Documentation
 
-Teaclave TrustZone SDK is open source in [The Apache Way](https://www.apache.org/theapacheway/),
-we aim to create a project that is maintained and owned by the community. All
-kinds of contributions are welcome. Thanks to our [contributors](https://teaclave.apache.org/contributors/).
+- [Getting Started with OPTEE for QEMU ARMv8](docs/getting-started-with-optee-for-qemu-armv8.md)
+- [Overview of OP-TEE Rust Examples](docs/overview-of-optee-rust-examples.md)
+- [Host API Reference](https://teaclave.apache.org/api-docs/trustzone-sdk/optee-teec/)
+- [TA API Reference](https://teaclave.apache.org/api-docs/trustzone-sdk/optee-utee/)
 
 ## Publication
 
@@ -103,7 +108,15 @@ Here is the BiBTeX record for your reference.
 }
 ```
 
-## License
+## Contributing
 
-Teaclave TrustZone SDK is distributed under the Apache License (Version 2.0).
-See [LICENSE](LICENSE) for details.
+Teaclave is open source in [The Apache Way](https://www.apache.org/theapacheway/),
+we aim to create a project that is maintained and owned by the community. All
+kinds of contributions are welcome.
+Thanks to our [contributors](https://teaclave.apache.org/contributors/).
+
+## Community
+
+- Join us on our [mailing list](https://lists.apache.org/list.html?dev@teaclave.apache.org).
+- Follow us at [@ApacheTeaclave](https://twitter.com/ApacheTeaclave).
+- See [more](https://teaclave.apache.org/community/).
