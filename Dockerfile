@@ -75,7 +75,10 @@ RUN apt-get update && \
     screen \
     libvdeplug-dev \
     libsdl2-dev \
+    pip \
     ca-certificates
+
+RUN pip install cryptography 
 
 RUN apt-get install -y software-properties-common && \
     add-apt-repository ppa:linuxuprising/libpng12 && \
@@ -85,10 +88,10 @@ RUN apt-get install -y software-properties-common && \
 # Install Rust
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
   . $HOME/.cargo/env && \
-  rustup default nightly-2019-07-08 && \
+  rustup default nightly-2021-09-20 && \
   rustup component add rust-src && \
   rustup target install aarch64-unknown-linux-gnu && \
   rustup default 1.44.0 && cargo +1.44.0 install xargo && \
-  rustup default nightly-2019-07-08
+  rustup default nightly-2021-09-20
 
 ENV PATH="/root/.cargo/bin:$PATH"

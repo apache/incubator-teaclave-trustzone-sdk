@@ -18,16 +18,16 @@
 # under the License.
 
 # install Rust and select a proper version
-curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2019-07-08
+curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2021-09-20
 source $HOME/.cargo/env
 rustup component add rust-src && rustup target install aarch64-unknown-linux-gnu arm-unknown-linux-gnueabihf
 
 # install Xargo
 rustup default 1.44.0 && cargo +1.44.0 install xargo
 # switch to nightly
-rustup default nightly-2019-07-08
+rustup default nightly-2021-09-20
 
 # initialize Teaclave TrustZone SDK submodule
 git submodule update --init -- rust
 cd rust/compiler-builtins && git submodule update --init libm
-cd ../rust && git submodule update --init src/stdsimd
+cd ../rust && git submodule update --init library/stdarch && git submodule update --init library/backtrace

@@ -16,10 +16,10 @@
 # under the License.
 
 [dependencies.std]
-path = "../../../rust/rust/src/libstd"
+path = "../../../rust/rust/library/std"
 
 [patch.crates-io]
 libc =  { path = "../../../rust/libc" }
 compiler_builtins =  { path = "../../../rust/compiler-builtins" }
-rustc-std-workspace-core = { path = "../../../rust/rust/src/tools/rustc-std-workspace-core" }
-rustc-std-workspace-alloc = { path = "../../../rust/rust/src/tools/rustc-std-workspace-alloc" }
+rustc-std-workspace-core = { path = "../../../rust/rust/library/rustc-std-workspace-core" }
+rustc-std-workspace-alloc = { path = "../../../rust/rust/library/rustc-std-workspace-alloc" }

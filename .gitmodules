@@ -9,13 +9,13 @@
 	url = https://github.com/OP-TEE/optee_client.git
 [submodule "rust/rust"]
 	path = rust/rust
-	url = https://github.com/mesalock-linux/rust.git
-	branch = optee-trustzone
+	url = https://github.com/RMheng/rust.git
+	branch = update_v1.56.1-new
 [submodule "rust/libc"]
 	path = rust/libc
-	url = https://github.com/mesalock-linux/libc.git
-	branch = optee-trustzone
+	url = https://github.com/RMheng/libc.git
+	branch = update_v0.2.99
 [submodule "rust/compiler-builtins"]
 	path = rust/compiler-builtins
-	url = https://github.com/mesalock-linux/compiler-builtins.git
-	branch = optee-trustzone
+	url = https://github.com/RMheng/compiler-builtins.git
+	branch = update_v0.1.44
