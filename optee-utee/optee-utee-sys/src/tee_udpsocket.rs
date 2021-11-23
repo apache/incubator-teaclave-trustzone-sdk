@@ -27,7 +27,6 @@ pub struct TEE_udpSocket_Setup_s {
 }
 
 extern "C" {
-    #[no_mangle]
     pub static TEE_udpSocket: *const TEE_iSocket;
 }
 

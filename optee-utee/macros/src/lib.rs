@@ -91,11 +91,11 @@ pub fn ta_destroy(_args: TokenStream, input: TokenStream) -> TokenStream {
         && f.abi.is_none()
         && f.decl.inputs.is_empty()
         && f.decl.generics.where_clause.is_none()
-        && f.decl.variadic.is_none();
-    &&match f.decl.output {
-        syn::ReturnType::Default => true,
-        _ => false,
-    };
+        && f.decl.variadic.is_none()
+        && match f.decl.output {
+            syn::ReturnType::Default => true,
+            _ => false,
+        };
 
     if !valid_signature {
         return syn::parse::Error::new(

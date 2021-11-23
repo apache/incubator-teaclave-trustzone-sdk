@@ -266,11 +266,11 @@ pub const TEE_ATTR_SM2_KEP_CONFIRMATION_IN: u32 = 0xD0000746;
 pub const TEE_ATTR_SM2_KEP_CONFIRMATION_OUT: u32 = 0xD0000846;
 pub const TEE_ATTR_ECC_EPHEMERAL_PUBLIC_VALUE_X: u32 = 0xD0000946;
 pub const TEE_ATTR_ECC_EPHEMERAL_PUBLIC_VALUE_Y: u32 = 0xD0000A46;
-pub const TEE_ATTR_FLAG_PUBLIC: u32 = (1 << 28);
-pub const TEE_ATTR_FLAG_VALUE: u32 = (1 << 29);
+pub const TEE_ATTR_FLAG_PUBLIC: u32 = 1 << 28;
+pub const TEE_ATTR_FLAG_VALUE: u32 = 1 << 29;
 // Deprecated, but kept for backwards compatibility
-pub const TEE_ATTR_BIT_PROTECTED: u32 = (1 << 28);
-pub const TEE_ATTR_BIT_VALUE: u32 = (1 << 29);
+pub const TEE_ATTR_BIT_PROTECTED: u32 = 1 << 28;
+pub const TEE_ATTR_BIT_VALUE: u32 = 1 << 29;
 
 // List of Supported ECC Curves
 pub const TEE_CRYPTO_ELEMENT_NONE: u32 = 0x00000000;
