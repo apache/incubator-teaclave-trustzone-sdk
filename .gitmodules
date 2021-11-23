@@ -10,12 +10,12 @@
 [submodule "rust/rust"]
 	path = rust/rust
 	url = https://github.com/mesalock-linux/rust.git
-	branch = optee-trustzone
+	branch = teaclave-trustzone-sdk-1.56.1
 [submodule "rust/libc"]
 	path = rust/libc
 	url = https://github.com/mesalock-linux/libc.git
-	branch = optee-trustzone
+	branch = teaclave-trustzone-sdk-0.2.99
 [submodule "rust/compiler-builtins"]
 	path = rust/compiler-builtins
 	url = https://github.com/mesalock-linux/compiler-builtins.git
-	branch = optee-trustzone
+	branch = teaclave-trustzone-sdk-0.1.44

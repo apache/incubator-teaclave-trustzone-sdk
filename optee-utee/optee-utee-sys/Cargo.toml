@@ -25,4 +25,4 @@ description = "Native bindings to the libutee library."
 edition = "2018"
 
 [dependencies]
-libc = { path = "../../rust/libc", version = "=0.2.59" }
+libc = { path = "../../rust/libc", version = "=0.2.99" }
