@@ -20,12 +20,12 @@ use super::utee_syscalls::*;
 use super::utee_types::*;
 use libc::*;
 
-pub const TA_FLAG_SINGLE_INSTANCE: u32 = (1 << 2);
-pub const TA_FLAG_MULTI_SESSION: u32 = (1 << 3);
-pub const TA_FLAG_INSTANCE_KEEP_ALIVE: u32 = (1 << 4);
-pub const TA_FLAG_SECURE_DATA_PATH: u32 = (1 << 5);
-pub const TA_FLAG_REMAP_SUPPORT: u32 = (1 << 6);
-pub const TA_FLAG_CACHE_MAINTENANCE: u32 = (1 << 7);
+pub const TA_FLAG_SINGLE_INSTANCE: u32 = 1 << 2;
+pub const TA_FLAG_MULTI_SESSION: u32 = 1 << 3;
+pub const TA_FLAG_INSTANCE_KEEP_ALIVE: u32 = 1 << 4;
+pub const TA_FLAG_SECURE_DATA_PATH: u32 = 1 << 5;
+pub const TA_FLAG_REMAP_SUPPORT: u32 = 1 << 6;
+pub const TA_FLAG_CACHE_MAINTENANCE: u32 = 1 << 7;
 
 pub const TA_FLAG_EXEC_DDR: u32 = 0;
 pub const TA_FLAG_USER_MODE: u32 = 0;

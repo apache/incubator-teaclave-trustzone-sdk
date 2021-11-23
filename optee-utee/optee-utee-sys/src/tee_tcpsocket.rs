@@ -27,7 +27,6 @@ pub struct TEE_tcpSocket_Setup_s {
 }
 
 extern "C" {
-    #[no_mangle]
     pub static TEE_tcpSocket: *const TEE_iSocket;
 }
 
