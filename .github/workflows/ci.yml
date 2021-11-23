@@ -40,7 +40,7 @@ jobs:
           source environment &&
           make optee &&
           . ~/.cargo/env &&
-          rustup component add rust-src && 
+          rustup component add rust-src &&
           rustup target install aarch64-unknown-linux-gnu arm-unknown-linux-gnueabihf &&
           rustup default nightly-2021-09-20 &&
           make examples
@@ -81,7 +81,7 @@ jobs:
           export PATH=~/bin:$PATH
           mkdir optee-qemuv8 && cd optee-qemuv8 &&
           repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml &&
-          repo sync -j4 --no-clone-bundle   
+          repo sync -j4 --no-clone-bundle
       - name: Build images and run tests
         run: |
           cd optee-qemuv8
@@ -93,4 +93,4 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Check License Header
-        uses: apache/skywalking-eyes@main 
+        uses: apache/skywalking-eyes@main

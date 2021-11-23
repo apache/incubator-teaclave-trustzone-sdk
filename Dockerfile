@@ -78,7 +78,7 @@ RUN apt-get update && \
     pip \
     ca-certificates
 
-RUN pip install cryptography 
+RUN pip install cryptography
 
 RUN apt-get install -y software-properties-common && \
     add-apt-repository ppa:linuxuprising/libpng12 && \
