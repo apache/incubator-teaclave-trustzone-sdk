@@ -17,12 +17,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-cd optee-qemuv8-3.14.0-ubuntu-20.04 && ./qemu-system-aarch64 \
+cd optee-qemuv8-3.16.0-ubuntu-20.04 && ./qemu-system-aarch64 \
     -nodefaults \
     -nographic \
     -serial stdio -serial file:/tmp/serial.log \
     -smp 2 \
-    -s -machine virt,secure=on -cpu cortex-a57 \
+    -s -machine virt,secure=on,gic-version=3 -cpu cortex-a57 \
     -d unimp -semihosting-config enable=on,target=native \
     -m 1057 \
     -bios bl1.bin \

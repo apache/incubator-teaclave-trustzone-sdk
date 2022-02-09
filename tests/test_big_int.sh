@@ -20,10 +20,10 @@
 set -xe
 
 rm -rf screenlog.0
-rm -rf optee-qemuv8-3.14.0-ubuntu-20.04
+rm -rf optee-qemuv8-3.16.0-ubuntu-20.04
 rm -rf shared
 
-curl http://mesalock-linux.org/assets/optee-qemuv8-3.14.0-ubuntu-20.04.tar.gz | tar zxv
+curl http://mesalock-linux.org/assets/optee-qemuv8-3.16.0-ubuntu-20.04.tar.gz | tar zxv
 mkdir shared
 cp ../examples/big_int-rs/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
 cp ../examples/big_int-rs/host/target/aarch64-unknown-linux-gnu/release/big_int-rs shared
@@ -58,5 +58,5 @@ sleep 5
 }
 
 rm -rf screenlog.0
-rm -rf optee-qemuv8-3.14.0-ubuntu-20.04
+rm -rf optee-qemuv8-3.16.0-ubuntu-20.04
 rm -rf shared
