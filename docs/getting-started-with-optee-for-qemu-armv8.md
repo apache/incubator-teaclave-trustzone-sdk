@@ -97,8 +97,8 @@ index 8271590..1c4a91b 100644
 Before start QEMU, run two `nc` to listen port `54320` and `54321`.
 
 ```
-$ nc -l 127.0.0.1 -p 54320
-$ nc -l 127.0.0.1 -p 54321
+$ nc -l 127.0.0.1 54320
+$ nc -l 127.0.0.1 54321
 ```
 
 Then open QEMU by `make run-only`, and start by input `c`.
