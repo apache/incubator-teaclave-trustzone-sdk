@@ -37,6 +37,7 @@ jobs:
           ln -sf /root/.cargo ~/.cargo
       - name: Building
         run: |
+          ./setup.sh &&
           source environment &&
           make optee &&
           . ~/.cargo/env &&
@@ -62,6 +63,7 @@ jobs:
           ln -sf /root/.cargo ~/.cargo
       - name: Building
         run: |
+          ./setup.sh &&
           source environment &&
           make optee &&
           . ~/.cargo/env &&

@@ -14,8 +14,10 @@ crates). Teaclave TrustZone SDK is a sub-project of [Apache Teaclave (incubating
 
 ## Getting started
 
-To get started, you need to clone the project, initialize related submodules,
-and install building dependencies (The complete list of prerequisites can be found here: [OP-TEE Prerequisites](https://optee.readthedocs.io/en/latest/building/prerequisites.html)).
+#### 1. Clone the project and install building dependencies 
+
+The complete list of prerequisites can be found here: [OP-TEE Prerequisites](https://optee.readthedocs.io/en/latest/building/prerequisites.html).
+
 Alternatively, you can use a docker container built with our [Dockerfile](Dockerfile).
 
 ``` sh
@@ -32,16 +34,11 @@ $ sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
 # clone the project
 $ git clone git@github.com:apache/incubator-teaclave-trustzone-sdk.git
 $ cd incubator-teaclave-trustzone-sdk
-# initialize related submodules and install Rust environment
-$ ./setup.sh
 ```
 
-By default, the `OPTEE_DIR` is `incubator-teaclave-trustzone-sdk/optee/`.
-``` sh
-# initialize OP-TEE submodule
-$ git submodule update --init -- optee
-```
-If you already have [OP-TEE repository](https://github.com/OP-TEE) 
+#### 2. Install Rust environment and initialize related submodules
+
+* By default, the `OPTEE_DIR` is `incubator-teaclave-trustzone-sdk/optee/`.If you already have [OP-TEE repository](https://github.com/OP-TEE) 
 cloned, you can set OP-TEE root directory:
 
 ``` sh
@@ -50,6 +47,16 @@ $ export OPTEE_DIR=path/to/your/optee/root/directory
 
 Note that your OPTEE root directory should have `build/`, `optee_os/` and 
 `optee_client/` as sub-directory.
+
+
+
+* Run the script as follows to install Rust environment and set up submodules in `optee/` and `rust/`.
+
+```
+$ ./setup.sh
+```
+
+#### 3. Set environment variables
 
 Before building examples, the environment should be properly setup.
 
@@ -65,6 +72,8 @@ $ export ARCH=arm
 $ source environment
 ```
 
+#### 4. Build OP-TEE libraries
+
 Then, download ARM toolchains and build OP-TEE libraries. Note that the OP-TEE
 target is QEMUv8, and you can modify the Makefile to other targets accordingly.
 
@@ -72,11 +81,21 @@ target is QEMUv8, and you can modify the Makefile to other targets accordingly.
 $ make optee
 ```
 
-At last, you can get started with our examples.
+#### 5. Build Rust examples
+
+Run this command to build all Rust examples:
 
 ``` sh
 $ make examples
 ```
+
+Collect all example CAs and TAs to `/incubator-teaclave-trustzone-sdk/out`:
+
+``` sh
+$ make examples-install
+```
+
+#### 6. Run Rust examples
 
 Please read detailed
 [instructions](https://teaclave.apache.org/trustzone-sdk-docs/getting-started-with-optee-for-qemu-armv8/)
@@ -85,8 +104,9 @@ more documents [here](https://optee.readthedocs.io/en/latest/general/platforms.h
 
 ## Documentation
 
-- [Getting Started with OPTEE for QEMU ARMv8](docs/getting-started-with-optee-for-qemu-armv8.md)
-- [Overview of OP-TEE Rust Examples](docs/overview-of-optee-rust-examples.md)
+- [Getting Started with OPTEE for QEMU ARMv8](https://teaclave.apache.org/trustzone-sdk-docs/getting-started-with-optee-for-qemu-armv8/)
+- [Overview of OP-TEE Rust Examples](https://teaclave.apache.org/trustzone-sdk-docs/overview-of-optee-rust-examples/)
+- [Debugging OP-TEE TA](https://teaclave.apache.org/trustzone-sdk-docs/debugging-optee-ta.md/)
 - [Host API Reference](https://teaclave.apache.org/api-docs/trustzone-sdk/optee-teec/)
 - [TA API Reference](https://teaclave.apache.org/api-docs/trustzone-sdk/optee-utee/)
 
