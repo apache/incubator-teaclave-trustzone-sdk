@@ -68,7 +68,7 @@ pub enum ErrorKind {
     /// Expected data was missing.
     NoData = 0xFFFF000B,
     /// System ran out of resources.
-    OutOfMEmory = 0xFFFF000C,
+    OutOfMemory = 0xFFFF000C,
     /// The system is busy working on something else.
     Busy = 0xFFFF000D,
     /// Communication with a remote party failed.
@@ -104,7 +104,7 @@ impl ErrorKind {
                 "The requested operation is valid but is not supported in this implementation."
             }
             ErrorKind::NoData => "Expected data was missing.",
-            ErrorKind::OutOfMEmory => "System ran out of resources.",
+            ErrorKind::OutOfMemory => "System ran out of resources.",
             ErrorKind::Busy => "The system is busy working on something else.",
             ErrorKind::Communication => "Communication with a remote party failed.",
             ErrorKind::Security => "A security fault was detected.",
@@ -157,7 +157,7 @@ impl Error {
             raw::TEEC_ERROR_NOT_IMPLEMENTED => ErrorKind::NotImplemented,
             raw::TEEC_ERROR_NOT_SUPPORTED => ErrorKind::NotSupported,
             raw::TEEC_ERROR_NO_DATA => ErrorKind::NoData,
-            raw::TEEC_ERROR_OUT_OF_MEMORY => ErrorKind::OutOfMEmory,
+            raw::TEEC_ERROR_OUT_OF_MEMORY => ErrorKind::OutOfMemory,
             raw::TEEC_ERROR_BUSY => ErrorKind::Busy,
             raw::TEEC_ERROR_COMMUNICATION => ErrorKind::Communication,
             raw::TEEC_ERROR_SECURITY => ErrorKind::Security,
