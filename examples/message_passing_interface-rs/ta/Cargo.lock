@@ -26,7 +26,7 @@ version = "0.2.99"
 
 [[package]]
 name = "optee-utee"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bitflags",
  "hex",
@@ -38,7 +38,7 @@ dependencies = [
 
 [[package]]
 name = "optee-utee-macros"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "quote",
  "syn",
@@ -46,7 +46,7 @@ dependencies = [
 
 [[package]]
 name = "optee-utee-sys"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "libc",
 ]
@@ -62,7 +62,7 @@ dependencies = [
 
 [[package]]
 name = "proto"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "serde",
  "serde_json",
@@ -128,7 +128,7 @@ dependencies = [
 
 [[package]]
 name = "ta"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "libc",
  "optee-utee",
