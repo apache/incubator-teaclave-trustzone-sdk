@@ -82,7 +82,7 @@ fi
 
 ########################################################
 # initialize submodules: rust / compiler-builtins / libc
-RUST_COMMIT_ID=6abda667852184641149d34da4730d96ba4f7d31
+RUST_COMMIT_ID=cb8a61693c80ebc615c2b66f40f0789cd16e699a
 COMPILER_BUILTINS_COMMIT_ID=45a2e4996fe732172004b292b07397f9a02265ab
 LIBC_COMMIT_ID=1ddfbbbc190bec0f5ec32b08e97585b34d0c6b09
 
