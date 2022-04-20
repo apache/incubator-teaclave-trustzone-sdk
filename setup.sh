@@ -34,7 +34,7 @@ rustup default nightly-2021-09-20
 # initialize submodules: optee_os / optee_client / build
 OPTEE_RELEASE_VERSION=3.16.0
 
-if [[ -z $OPTEE_DIR ]] || [[ $OPTEE_DIR==$PWD/optee ]]
+if [[ -z $OPTEE_DIR ]] || [[ $OPTEE_DIR == $PWD/optee ]]
 then
 	OPTEE_DIR=$PWD/optee
 	echo optee dir: $OPTEE_DIR
@@ -82,18 +82,16 @@ fi
 
 ########################################################
 # initialize submodules: rust / compiler-builtins / libc
-RUST_COMMIT_ID=6abda667852184641149d34da4730d96ba4f7d31
+RUST_COMMIT_ID=cb8a61693c80ebc615c2b66f40f0789cd16e699a
 COMPILER_BUILTINS_COMMIT_ID=45a2e4996fe732172004b292b07397f9a02265ab
 LIBC_COMMIT_ID=1ddfbbbc190bec0f5ec32b08e97585b34d0c6b09
 
-if [ ! -d rust/ ]
+if [ -d rust/ ]
 then
-        mkdir rust/
-else
-        rm -r rust/*
+        rm -r rust/
 fi
 
-cd rust
+mkdir rust && cd rust
 
 git clone https://github.com/mesalock-linux/rust.git && \
 	(cd rust && \
