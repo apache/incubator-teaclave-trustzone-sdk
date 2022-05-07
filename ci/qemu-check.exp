@@ -283,4 +283,18 @@ expect {
 		exit 1
 	}
 }
+
+expect "# "
+info "Running signature_verification-rs...\n"
+send -- "signature_verification-rs\r"
+expect {
+	"Success" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
 info "Test Rust application finished\n"
