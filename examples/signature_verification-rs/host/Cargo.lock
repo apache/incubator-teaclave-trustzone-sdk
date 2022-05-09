@@ -10,9 +10,9 @@ checksum = "805026a5d0141ffc30abb3be3173848ad46a1b1664fe632428479619a3644d77"
 
 [[package]]
 name = "libc"
-version = "0.2.95"
+version = "0.2.125"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "789da6d93f1b866ffe175afc5322a4d76c038605a1c3319bb57b06967ca98a36"
+checksum = "5916d2ae698f6de9bfb891ad7a8d65c09d232dc58cc4ac433c7da3b2fd84bc2b"
 
 [[package]]
 name = "optee-teec"
@@ -22,7 +22,7 @@ dependencies = [
  "libc",
  "optee-teec-macros",
  "optee-teec-sys",
- "uuid 0.7.2",
+ "uuid 0.7.4",
 ]
 
 [[package]]
@@ -51,7 +51,7 @@ dependencies = [
 
 [[package]]
 name = "proto"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "uuid 0.8.2",
 ]
@@ -67,7 +67,7 @@ dependencies = [
 
 [[package]]
 name = "signature_verification-rs"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "libc",
  "optee-teec",
@@ -93,9 +93,9 @@ checksum = "fc72304796d0818e357ead4e000d19c9c174ab23dc11093ac919054d20a6a7fc"
 
 [[package]]
 name = "uuid"
-version = "0.7.2"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0238db0c5b605dd1cf51de0f21766f97fba2645897024461d6a00c036819a768"
+checksum = "90dbc611eb48397705a6b0f6e917da23ae517e4d127123d2cf7674206627d32a"
 
 [[package]]
 name = "uuid"
