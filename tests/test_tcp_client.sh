@@ -23,7 +23,7 @@ rm -rf screenlog.0
 rm -rf optee-qemuv8-3.17.0-ubuntu-20.04
 rm -rf shared
 
-curl http://mesalock-linux.org/assets/optee-qemuv8-3.17.0-ubuntu-20.04.tar.gz | tar zxv
+curl https://nightlies.apache.org/teaclave/teaclave-trustzone-sdk/optee-qemuv8-3.17.0-ubuntu-20.04.tar.gz | tar zxv
 mkdir shared
 cp ../examples/tcp_client-rs/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
 cp ../examples/tcp_client-rs/host/target/aarch64-unknown-linux-gnu/release/tcp_client-rs shared
