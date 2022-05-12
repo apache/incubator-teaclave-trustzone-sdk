@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -17,19 +15,31 @@
 # specific language governing permissions and limitations
 # under the License.
 
-cd optee-qemuv8-3.17.0-ubuntu-20.04 && ./qemu-system-aarch64 \
-    -nodefaults \
-    -nographic \
-    -serial stdio -serial file:/tmp/serial.log \
-    -smp 2 \
-    -s -machine virt,secure=on,gic-version=3 -cpu cortex-a57 \
-    -d unimp -semihosting-config enable=on,target=native \
-    -m 1057 \
-    -bios bl1.bin \
-    -initrd rootfs.cpio.gz \
-    -append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2' \
-    -kernel Image -no-acpi \
-    -fsdev local,id=fsdev0,path=$(pwd)/../shared,security_model=none \
-    -device virtio-9p-device,fsdev=fsdev0,mount_tag=host \
-    -netdev user,id=vmnic,hostfwd=:127.0.0.1:54433-:4433 \
-    -device virtio-net-device,netdev=vmnic
+NAME := tls_server-rs
+ARCH ?= aarch64
+
+OPTEE_DIR ?= ../../../optee
+
+ifeq ($(ARCH), arm)
+	OPTEE_BIN := $(OPTEE_DIR)/toolchains/aarch32/bin
+	OBJCOPY := $(OPTEE_BIN)/arm-linux-gnueabihf-objcopy
+	TARGET := arm-unknown-linux-gnueabihf
+else
+	OPTEE_BIN := $(OPTEE_DIR)/toolchains/$(ARCH)/bin
+	OBJCOPY := $(OPTEE_BIN)/aarch64-linux-gnu-objcopy
+	TARGET := aarch64-unknown-linux-gnu
+endif
+
+OUT_DIR := $(CURDIR)/target/$(TARGET)/release
+
+
+all: host strip
+
+host:
+	@cargo build --target $(TARGET) --release
+
+strip:
+	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/$(NAME) $(OUT_DIR)/$(NAME)
+
+clean:
+	@cargo clean
