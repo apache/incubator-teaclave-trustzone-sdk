@@ -34,3 +34,4 @@ header:
     - 'KEYS'
     - 'DISCLAIMER-WIP'
     - '.gitmodules'
+    - 'examples/tls_server-rs/ta/test-ca/**'
