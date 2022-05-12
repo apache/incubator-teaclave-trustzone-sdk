@@ -32,3 +32,4 @@ To compile one of the examples, run `make -C examples/EXAMPLE_DIR`.
 | time-rs                      | `21b1a1da-bdab-11eb-b614-275a7098826f` | Set / get TEE time.                                          |
 | udp_socket-rs                | `87c2d78e-eb7b-11eb-8d25-df4d5338f285` | Do UDP socket connection from Trusted Application.           |
 | signature_verification-rs    | `c7e478c2-89b3-46eb-ac19-571e66c3830d` | Sign a message and verify the signature using the third party crate [ring](https://github.com/veracruz-project/ring). |
+| tls_client-rs                | `ec55bfe2-d9c7-11eb-8b0e-f3f8fad927f7` | Do TLS connection from Trusted Application.                  |
