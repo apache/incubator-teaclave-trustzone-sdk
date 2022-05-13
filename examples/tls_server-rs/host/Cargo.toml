@@ -15,23 +15,19 @@
 # specific language governing permissions and limitations
 # under the License.
 
-header:
-  license:
-    spdx-id: Apache-2.0
-    copyright-owner: Apache Software Foundation
+[package]
+name = "tls_server-rs"
+version = "0.2.0"
+authors = ["Teaclave Contributors <dev@teaclave.apache.org>"]
+license = "Apache-2.0"
+repository = "https://github.com/apache/incubator-teaclave-trustzone-sdk.git"
+description = "An example of Rust OP-TEE TrustZone SDK."
+edition = "2018"
 
-  paths-ignore:
-    - 'dist'
-    - 'licenses'
-    - '**/*.md'
-    - 'LICENSE'
-    - 'NOTICE'
-    - 'rust-toolchain'
-    - '**/Cargo.lock'
-    - '**/*.lds'
-    - 'aarch64-unknown-optee-trustzone.json'
-    - 'arm-unknown-optee-trustzone.json'
-    - 'KEYS'
-    - 'DISCLAIMER-WIP'
-    - '.gitmodules'
-    - 'examples/tls_server-rs/ta/test-ca/**'
+[dependencies]
+libc = "0.2.48"
+proto = { path = "../proto" }
+optee-teec = { path = "../../../optee-teec" }
+
+[profile.release]
+lto = true

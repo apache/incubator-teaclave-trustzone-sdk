@@ -15,23 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
-header:
-  license:
-    spdx-id: Apache-2.0
-    copyright-owner: Apache Software Foundation
+all:
+	@make -s -C host
+	@make -s -C ta
 
-  paths-ignore:
-    - 'dist'
-    - 'licenses'
-    - '**/*.md'
-    - 'LICENSE'
-    - 'NOTICE'
-    - 'rust-toolchain'
-    - '**/Cargo.lock'
-    - '**/*.lds'
-    - 'aarch64-unknown-optee-trustzone.json'
-    - 'arm-unknown-optee-trustzone.json'
-    - 'KEYS'
-    - 'DISCLAIMER-WIP'
-    - '.gitmodules'
-    - 'examples/tls_server-rs/ta/test-ca/**'
+clean:
+	@make -s -C host clean
+	@make -s -C ta clean

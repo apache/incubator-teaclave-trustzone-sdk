@@ -15,23 +15,16 @@
 # specific language governing permissions and limitations
 # under the License.
 
-header:
-  license:
-    spdx-id: Apache-2.0
-    copyright-owner: Apache Software Foundation
+[package]
+name = "proto"
+version = "0.2.0"
+authors = ["Teaclave Contributors <dev@teaclave.apache.org>"]
+license = "Apache-2.0"
+repository = "https://github.com/apache/incubator-teaclave-trustzone-sdk.git"
+description = "Data structures and functions shared by host and TA."
+edition = "2018"
 
-  paths-ignore:
-    - 'dist'
-    - 'licenses'
-    - '**/*.md'
-    - 'LICENSE'
-    - 'NOTICE'
-    - 'rust-toolchain'
-    - '**/Cargo.lock'
-    - '**/*.lds'
-    - 'aarch64-unknown-optee-trustzone.json'
-    - 'arm-unknown-optee-trustzone.json'
-    - 'KEYS'
-    - 'DISCLAIMER-WIP'
-    - '.gitmodules'
-    - 'examples/tls_server-rs/ta/test-ca/**'
+[dependencies]
+
+[build_dependencies]
+uuid = { version = "0.8" }
