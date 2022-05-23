@@ -74,6 +74,12 @@ $ source environment
 
 #### 4. Build Rust applications
 
+Before building built-in rust examples, you need to build OP-TEE libraries using:
+
+``` sh
+$ make optee
+```
+
 Run this command to build all Rust examples:
 
 ``` sh
