@@ -157,9 +157,13 @@ $ sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
 	mtools netcat python-crypto python3-crypto python-pyelftools \
 	python3-pycryptodome python3-pyelftools python-serial python3-serial \
 	rsync unzip uuid-dev xdg-utils xterm xz-utils zlib1g-dev
+```
 
+After installing dependencies or building the Docker container, fetch the source code from the official GitHub repository:
+
+``` sh
 # clone the project
-$ git clone git@github.com:apache/incubator-teaclave-trustzone-sdk.git
+$ git clone https://github.com/apache/incubator-teaclave-trustzone-sdk.git
 $ cd incubator-teaclave-trustzone-sdk
 ```
 
