@@ -188,46 +188,15 @@ Note that your OPTEE root directory should have `build/`, `optee_os/` and
 $ ./setup.sh
 ```
 
-#### 3. Set environment variables
+#### 3. Set environment, and build
 
-Before building examples, the environment should be properly setup.
-
-``` sh
-$ source environment
-```
-
-By default, the target platform is `aarch64`. If you want to build for the `arm`
-target, you can setup `ARCH` before `source environment` like this:
+The remaining steps are the same as described in [Getting Started - Set environment variables](#3-set-environment-variables) and  [Getting Started - Build Rust applications](#4-build-rust-applications). Besides, you can collect all example CAs and TAs to `/incubator-teaclave-trustzone-sdk/out`:
 
 ```sh
-$ export ARCH=arm
-$ source environment
-```
-
-#### 4. Build OP-TEE libraries
-
-Then, download ARM toolchains and build OP-TEE libraries. Note that the OP-TEE
-target is QEMUv8, and you can modify the Makefile to other targets accordingly.
-
-``` sh
-$ make optee
-```
-
-#### 5. Build Rust examples
-
-Run this command to build all Rust examples:
-
-``` sh
-$ make examples
-```
-
-Collect all example CAs and TAs to `/incubator-teaclave-trustzone-sdk/out`:
-
-``` sh
 $ make examples-install
 ```
 
-#### 6. Run Rust examples
+#### 4. Run Rust examples
 
 Copy the applications to your platform and run.
 
