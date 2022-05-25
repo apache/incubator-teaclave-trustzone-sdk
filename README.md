@@ -7,15 +7,26 @@
 Teaclave TrustZone SDK (Rust OP-TEE TrustZone SDK) provides abilities to build
 safe TrustZone applications in Rust. The SDK is based on the
 [OP-TEE](https://www.op-tee.org/) project which follows
-[GlobalPlatform](https://globalplatform.org/) TEE specifications and provides
-ergonomic APIs. In addition, it enables the capability to write TrustZone
-applications with Rust's standard library and many third-party libraries (i.e.,
-crates). Teaclave TrustZone SDK is a sub-project of [Apache Teaclave
-(incubating)](https://teaclave.apache.org/).
+[GlobalPlatform](https://globalplatform.org/) [TEE
+specifications](https://globalplatform.org/specs-library/tee-internal-core-api-specification/)
+and provides ergonomic APIs. In addition, it enables the capability to write
+TrustZone applications with Rust's standard library (std) and many third-party
+libraries (i.e., crates). Teaclave TrustZone SDK is a sub-project of [Apache
+Teaclave (incubating)](https://teaclave.apache.org/).
 
-## Getting started
+## Table of Contents
 
-### Quick start with the OP-TEE Repo for QEMUv8
+- [Quick start with the OP-TEE Repo for QEMUv8](#quick-start-with-the-op-tee-repo-for-qemuv8)
+- [Getting started](#getting-started)
+  - [Environment](#environment)
+  - [Build & Install](#build--install)
+  - [Run Rust Applications](#run-rust-applications)
+- [Documentation](#documentation)
+- [Publication](#publication)
+- [Contributing](#contributing)
+- [Community](#community)
+
+## Quick start with the OP-TEE Repo for QEMUv8
 
 Teaclave TrustZone SDK has been integrated into the OP-TEE Repo since OP-TEE
 Release 3.15.0 (18/Oct/21). The aarch64 Rust examples are built and installed
@@ -23,114 +34,32 @@ into OP-TEE's default filesystem for QEMUv8. Follow [this
 documentation](https://optee.readthedocs.io/en/latest/building/optee_with_rust.html)
 to set up the OP-TEE repo and try the Rust examples!
 
-### Develop your trusted applications in Rust
+## Getting started
+
+### Environment
+
+To get started with Teaclave TrustZone SDK, you could either choose QEMU for
+Armv8-A (QEMUv8). or other platforms ([platforms OP-TEE
+supported](https://optee.readthedocs.io/en/latest/general/platforms.html)) as
+your development environment.
+
+#### Develop Rust trusted applications with QEMUv8
 
 The OP-TEE libraries are needed when building Rust applications, so you should
-finish the `Quick start with the OP-TEE Repo for QEMUv8` part first. Then
+finish the [Quick start with the OP-TEE Repo for QEMUv8](#quick-start-with-the-op-tee-repo-for-qemuv8) part first. Then
 initialize the building environment in Teaclave TrustZone SDK, build Rust
 applications and copy them into the target's filesystem.
 
-#### 1. Update the project 
-
-Teaclave TrustZone SDK is located in `YOUR_OPTEE_DIR/optee_rust/`. Teaclave
+Teaclave TrustZone SDK is located in `[YOUR_OPTEE_DIR]/optee_rust/`. Teaclave
 TrustZone SDK in OP-TEE repo is pinned to the release version. Alternatively,
 you can try the develop version using `git pull`:
 
-```
-$ cd [YOUR_OPTEE_DIR]/optee_rust/
-$ git pull github master
-```
-
-#### 2. Install Rust environment and initialize related submodules
-
-* Set the OP-TEE root directory:
-
-``` sh
-$ export OPTEE_DIR=[YOUR_OPTEE_DIR]
-```
-
-* Run the script as follows to install Rust environment and initialize
-  submodules:
-
-```
-$ ./setup.sh
-```
-
-#### 3. Set environment variables
-
-Before building examples, the environment should be properly setup.
-
-``` sh
-$ source environment
-```
-
-By default, the target platform is `aarch64`. If you want to build for the `arm`
-target, you can setup `ARCH` before `source environment`:
-
 ```sh
-$ export ARCH=arm
-$ source environment
+cd [YOUR_OPTEE_DIR]/optee_rust/
+git pull github master
 ```
 
-#### 4. Build Rust applications
-
-Before building rust examples, you need to build OP-TEE libraries using:
-
-``` sh
-$ make optee
-```
-
-Run this command to build all Rust examples:
-
-``` sh
-$ make examples
-```
-
-Or build your own CA and TA:
-
-```
-$ make -C examples/[YOUR_APPLICATION]
-```
-
-#### 5. Run Rust applications
-
-The shared folder is needed to share CAs and TAs with the QEMU guest system.
-Recompile QEMU in OP-TEE to enable QEMU VirtFS:
-
-```
-$ (cd $OPTEE_DIR/build && make QEMU_VIRTFS_ENABLE=y qemu)
-```
-
-Note: the path `/project/root/dir/` should be replaced as the root directory of
-your local project "Teaclave TrustZone SDK". Copy all the Rust examples or your
-own applications to the shared folder:
-
-```sh
-$ mkdir shared_folder
-$ (cd /project/root/dir/ && make examples-install)
-$ cp -r /project/root/dir/out/* shared_folder/
-```
-
-Run QEMU:
-
-```sh
-$ (cd $OPTEE_DIR/build && make run-only QEMU_VIRTFS_ENABLE=y
-QEMU_VIRTFS_HOST_DIR=$(pwd)/shared_folder)
-```
-
-After the QEMU has been booted, you need to mount the shared folder in QEMU
-guest system (username: root), in order to access the compiled CA/TA from QEMU.
-Run the command as follows in the QEMU guest terminal:
-
-```sh
-$ mkdir shared && mount -t 9p -o trans=virtio host shared
-```
-
-Then run CA and TA as 
-[this documentation](https://optee.readthedocs.io/en/latest/building/optee_with_rust.html)
- describes.
-
-## Use OP-TEE libraries as submodules
+#### Develop Rust trusted applications with other platforms
 
 If you are building trusted applications for other platforms ([platforms OP-TEE
 supported](https://optee.readthedocs.io/en/latest/general/platforms.html)). QEMU
@@ -139,21 +68,19 @@ clone the project and build applications independently from the complete OP-TEE
 repo. In this case, the necessary OP-TEE libraries are initialized in the setup
 process.
 
-#### 1. Clone the project and install building dependencies
-
 The complete list of prerequisites can be found here: [OP-TEE
 Prerequisites](https://optee.readthedocs.io/en/latest/building/prerequisites.html).
 
 ``` sh
 # install dependencies
-$ sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
-	automake bc bison build-essential ccache cscope curl device-tree-compiler \
-	expect flex ftp-upload gdisk iasl libattr1-dev libc6:i386 libcap-dev \
-	libfdt-dev libftdi-dev libglib2.0-dev libhidapi-dev libncurses5-dev \
-	libpixman-1-dev libssl-dev libstdc++6:i386 libtool libz1:i386 make \
-	mtools netcat python-crypto python3-crypto python-pyelftools \
-	python3-pycryptodome python3-pyelftools python-serial python3-serial \
-	rsync unzip uuid-dev xdg-utils xterm xz-utils zlib1g-dev
+sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
+  automake bc bison build-essential ccache cscope curl device-tree-compiler \
+  expect flex ftp-upload gdisk iasl libattr1-dev libc6:i386 libcap-dev \
+  libfdt-dev libftdi-dev libglib2.0-dev libhidapi-dev libncurses5-dev \
+  libpixman-1-dev libssl-dev libstdc++6:i386 libtool libz1:i386 make \
+  mtools netcat python-crypto python3-crypto python-pyelftools \
+  python3-pycryptodome python3-pyelftools python-serial python3-serial \
+  rsync unzip uuid-dev xdg-utils xterm xz-utils zlib1g-dev
 ```
 
 Alternatively, you can use a docker container built with our
@@ -163,47 +90,102 @@ After installing dependencies or building the Docker image, fetch the source cod
 
 ``` sh
 # clone the project
-$ git clone https://github.com/apache/incubator-teaclave-trustzone-sdk.git
-$ cd incubator-teaclave-trustzone-sdk
+git clone https://github.com/apache/incubator-teaclave-trustzone-sdk.git
+cd incubator-teaclave-trustzone-sdk
 ```
 
-#### 2. Set your OP-TEE directory
+### Build & Install
 
-* By default, the `OPTEE_DIR` is
-  `incubator-teaclave-trustzone-sdk/optee/`.OP-TEE submodules (`optee_os`,
-`optee_client` and `build`) will be initialized automatically in `setup.sh`. If
-you already have [OP-TEE repository](https://github.com/OP-TEE)  cloned
-somewhere, you can set OP-TEE root directory:
+To build the project, the Rust environment and several related submodules are required.
 
-``` sh
-$ export OPTEE_DIR=[YOUR_OPTEE_DIR]
-```
-
-Note that your OPTEE root directory should have `build/`, `optee_os/` and 
-`optee_client/` as sub-directory.
-
-* Run the script as follows to install Rust environment and set up submodules.
-
-```
-$ ./setup.sh
-```
-
-#### 3. Set environment, and build
-
-Follow the steps described in [Getting Started - Set environment
-variables](#3-set-environment-variables) and  [Getting Started - Build Rust
-applications](#4-build-rust-applications) to set the environment and build both
-the  OP-TEE libraries and the Rust examples. Besides, you can collect all
-example CAs and TAs to `/incubator-teaclave-trustzone-sdk/out`:
+Set the OP-TEE root directory:
 
 ```sh
-$ make examples-install
+export OPTEE_DIR=[YOUR_OPTEE_DIR]
 ```
 
-#### 4. Run Rust examples
+Run the script as follows to install the Rust environment and initialize
+  submodules:
+
+```sh
+./setup.sh
+```
+
+Before building examples, the environment should be properly set up.
+
+``` sh
+source environment
+```
+
+By default, the target platform is `aarch64`. If you want to build for the `arm`
+target, you can setup `ARCH` before the `source environment` command:
+
+```sh
+export ARCH=arm
+source environment
+```
+
+Before building rust examples and applications, you need to build OP-TEE libraries using:
+
+``` sh
+make optee
+```
+
+Run this command to build all Rust examples:
+
+``` sh
+make examples
+```
+
+Or build your own CA and TA:
+
+```sh
+make -C examples/[YOUR_APPLICATION]
+```
+
+### Run Rust Applications
+
+#### Run Rust Applications in QEMUv8
+
+The shared folder is needed to share CAs and TAs with the QEMU guest system.
+Recompile QEMU in OP-TEE to enable QEMU VirtFS:
+
+```sh
+(cd $OPTEE_DIR/build && make QEMU_VIRTFS_ENABLE=y qemu)
+```
+
+Note: the path `/project/root/dir/` should be replaced as the root directory of
+your local project "Teaclave TrustZone SDK". Copy all the Rust examples or your
+own applications to the shared folder:
+
+```sh
+mkdir shared_folder
+cd /project/root/dir/ && make examples-install)
+cp -r /project/root/dir/out/* shared_folder/
+```
+
+Run QEMU:
+
+```sh
+(cd $OPTEE_DIR/build && make run-only QEMU_VIRTFS_ENABLE=y
+QEMU_VIRTFS_HOST_DIR=$(pwd)/shared_folder)
+```
+
+After the QEMU has been booted, you need to mount the shared folder in QEMU
+guest system (username: root), in order to access the compiled CA/TA from QEMU.
+Run the command as follows in the QEMU guest terminal:
+
+```sh
+mkdir shared && mount -t 9p -o trans=virtio host shared
+```
+
+Then run CA and TA as [this
+documentation](https://optee.readthedocs.io/en/latest/building/optee_with_rust.html)
+describes.
+
+#### Run Rust Applications on other platforms
 
 Copy the applications to your platform and run.
-
 
 ## Documentation
 
