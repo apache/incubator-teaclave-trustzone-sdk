@@ -74,7 +74,8 @@ $ source environment
 
 #### 4. Build Rust applications
 
-Before building built-in rust examples, you need to build OP-TEE libraries using:
+Before building built-in rust examples, you need to build OP-TEE libraries
+using:
 
 ``` sh
 $ make optee
@@ -190,7 +191,11 @@ $ ./setup.sh
 
 #### 3. Set environment, and build
 
-The remaining steps are the same as described in [Getting Started - Set environment variables](#3-set-environment-variables) and  [Getting Started - Build Rust applications](#4-build-rust-applications). Besides, you can collect all example CAs and TAs to `/incubator-teaclave-trustzone-sdk/out`:
+Follow the steps described in [Getting Started - Set environment
+variables](#3-set-environment-variables) and  [Getting Started - Build Rust
+applications](#4-build-rust-applications) to set the environment and build both
+the  OP-TEE libraries and the Rust examples. Besides, you can collect all
+example CAs and TAs to `/incubator-teaclave-trustzone-sdk/out`:
 
 ```sh
 $ make examples-install
