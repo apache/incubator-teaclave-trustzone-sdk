@@ -19,8 +19,8 @@ Teaclave (incubating)](https://teaclave.apache.org/).
 - [Quick start with the OP-TEE Repo for QEMUv8](#quick-start-with-the-op-tee-repo-for-qemuv8)
 - [Getting started](#getting-started)
   - [Environment](#environment)
-    - [Develop Rust trusted applications with QEMUv8](#develop-rust-trusted-applications-with-qemuv8)
-    - [Develop Rust trusted applications with other platforms](#develop-rust-trusted-applications-with-other-platforms)
+    - [Develop with QEMUv8](#develop-with-qemuv8)
+    - [Develop on other platforms](#develop-on-other-platforms)
   - [Build & Install](#build--install)
   - [Run Rust Applications](#run-rust-applications)
     - [Run Rust Applications in QEMUv8](#run-rust-applications-in-qemuv8)
@@ -43,11 +43,12 @@ to set up the OP-TEE repo and try the Rust examples!
 ### Environment
 
 To get started with Teaclave TrustZone SDK, you could choose either [QEMU for
-Armv8-A](#develop-rust-trusted-applications-with-qemuv8) (QEMUv8) or [other platforms](#develop-rust-trusted-applications-with-other-platforms) ([platforms OP-TEE
+Armv8-A](#develop-with-qemuv8) (QEMUv8) or [other
+platforms](#develop-on-other-platforms) ([platforms OP-TEE
 supported](https://optee.readthedocs.io/en/latest/general/platforms.html)) as
 your development environment.
 
-#### Develop Rust trusted applications with QEMUv8
+#### Develop with QEMUv8
 
 The OP-TEE libraries are needed when building Rust applications, so you should
 finish the [Quick start with the OP-TEE Repo for QEMUv8](#quick-start-with-the-op-tee-repo-for-qemuv8) part first. Then
@@ -63,7 +64,7 @@ cd [YOUR_OPTEE_DIR]/optee_rust/
 git pull github master
 ```
 
-#### Develop Rust trusted applications with other platforms
+#### Develop on other platforms
 
 If you are building trusted applications for other platforms ([platforms OP-TEE
 supported](https://optee.readthedocs.io/en/latest/general/platforms.html)). QEMU
