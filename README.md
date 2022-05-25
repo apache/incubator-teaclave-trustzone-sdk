@@ -8,7 +8,7 @@ Teaclave TrustZone SDK (Rust OP-TEE TrustZone SDK) provides abilities to build
 safe TrustZone applications in Rust. The SDK is based on the
 [OP-TEE](https://www.op-tee.org/) project which follows
 [GlobalPlatform](https://globalplatform.org/) TEE specifications and provides
-ergonomic APIs. In addition, it enables capability to write TrustZone
+ergonomic APIs. In addition, it enables the capability to write TrustZone
 applications with Rust's standard library and many third-party libraries (i.e.,
 crates). Teaclave TrustZone SDK is a sub-project of [Apache Teaclave
 (incubating)](https://teaclave.apache.org/).
@@ -32,7 +32,7 @@ applications and copy them into the target's filesystem.
 
 #### 1. Update the project 
 
-Teaclave TrustZone SDK is located in `YOUR_OPTEE_DIR/optee_rust/`.Teaclave
+Teaclave TrustZone SDK is located in `YOUR_OPTEE_DIR/optee_rust/`. Teaclave
 TrustZone SDK in OP-TEE repo is pinned to the release version. Alternatively,
 you can try the develop version using `git pull`:
 
@@ -74,8 +74,7 @@ $ source environment
 
 #### 4. Build Rust applications
 
-Before building built-in rust examples, you need to build OP-TEE libraries
-using:
+Before building rust examples, you need to build OP-TEE libraries using:
 
 ``` sh
 $ make optee
@@ -96,7 +95,7 @@ $ make -C examples/[YOUR_APPLICATION]
 #### 5. Run Rust applications
 
 The shared folder is needed to share CAs and TAs with the QEMU guest system.
-Recompile QEMU in OP-TEE to enable QEMU virtfs:
+Recompile QEMU in OP-TEE to enable QEMU VirtFS:
 
 ```
 $ (cd $OPTEE_DIR/build && make QEMU_VIRTFS_ENABLE=y qemu)
