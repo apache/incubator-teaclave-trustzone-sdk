@@ -159,7 +159,7 @@ $ sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
 	rsync unzip uuid-dev xdg-utils xterm xz-utils zlib1g-dev
 ```
 
-After installing dependencies or building the Docker container, fetch the source code from the official GitHub repository:
+After installing dependencies or building the Docker image, fetch the source code from the official GitHub repository:
 
 ``` sh
 # clone the project
