@@ -19,8 +19,12 @@ Teaclave (incubating)](https://teaclave.apache.org/).
 - [Quick start with the OP-TEE Repo for QEMUv8](#quick-start-with-the-op-tee-repo-for-qemuv8)
 - [Getting started](#getting-started)
   - [Environment](#environment)
+    - [Develop Rust trusted applications with QEMUv8](#develop-rust-trusted-applications-with-qemuv8)
+    - [Develop Rust trusted applications with other platforms](#develop-rust-trusted-applications-with-other-platforms)
   - [Build & Install](#build--install)
   - [Run Rust Applications](#run-rust-applications)
+    - [Run Rust Applications in QEMUv8](#run-rust-applications-in-qemuv8)
+    - [Run Rust Applications on other platforms](#run-rust-applications-on-other-platforms)
 - [Documentation](#documentation)
 - [Publication](#publication)
 - [Contributing](#contributing)
@@ -38,8 +42,8 @@ to set up the OP-TEE repo and try the Rust examples!
 
 ### Environment
 
-To get started with Teaclave TrustZone SDK, you could either choose QEMU for
-Armv8-A (QEMUv8). or other platforms ([platforms OP-TEE
+To get started with Teaclave TrustZone SDK, you could choose either [QEMU for
+Armv8-A](#develop-rust-trusted-applications-with-qemuv8) (QEMUv8) or [other platforms](#develop-rust-trusted-applications-with-other-platforms) ([platforms OP-TEE
 supported](https://optee.readthedocs.io/en/latest/general/platforms.html)) as
 your development environment.
 
@@ -98,26 +102,33 @@ cd incubator-teaclave-trustzone-sdk
 
 To build the project, the Rust environment and several related submodules are required.
 
-Set the OP-TEE root directory:
+If you are working without QEMUv8, by default, the `OPTEE_DIR` is
+  `incubator-teaclave-trustzone-sdk/optee/`. OP-TEE submodules (`optee_os`,
+`optee_client` and `build`) will be initialized automatically in `setup.sh`.
+
+If you are building within QEMUv8 or already have [OP-TEE repository](https://github.com/OP-TEE)  cloned
+somewhere, you can set OP-TEE root directory with:
 
 ```sh
 export OPTEE_DIR=[YOUR_OPTEE_DIR]
 ```
 
-Run the script as follows to install the Rust environment and initialize
-  submodules:
+Note: your OPTEE root directory should have `build/`, `optee_os/` and 
+`optee_client/` as sub-directory.
+
+Run the script as follows to install the Rust environment and initialize submodules:
 
 ```sh
 ./setup.sh
 ```
 
-Before building examples, the environment should be properly set up.
+Before building examples, the environment should be properly set up with:
 
 ``` sh
 source environment
 ```
 
-By default, the target platform is `aarch64`. If you want to build for the `arm`
+Note: by default, the target platform is `aarch64`. If you want to build for the `arm`
 target, you can setup `ARCH` before the `source environment` command:
 
 ```sh
@@ -143,7 +154,17 @@ Or build your own CA and TA:
 make -C examples/[YOUR_APPLICATION]
 ```
 
+Besides, you can collect all
+example CAs and TAs to `/incubator-teaclave-trustzone-sdk/out`:
+
+```sh
+$ make examples-install
+```
+
 ### Run Rust Applications
+
+Considering the platform has been chosen ([QEMUv8](#run-rust-applications-in-qemuv8) or [other](#run-rust-applications-on-other-platforms)), the ways to run the
+Rust applications are different.
 
 #### Run Rust Applications in QEMUv8
 
