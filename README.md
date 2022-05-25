@@ -111,7 +111,7 @@ $ (cd /project/root/dir/ && make examples-install)
 $ cp -r /project/root/dir/out/* shared_folder/
 ```
 
-Run QEMU.
+Run QEMU:
 
 ```sh
 $ (cd $OPTEE_DIR/build && make run-only QEMU_VIRTFS_ENABLE=y
@@ -144,9 +144,6 @@ process.
 The complete list of prerequisites can be found here: [OP-TEE
 Prerequisites](https://optee.readthedocs.io/en/latest/building/prerequisites.html).
 
-Alternatively, you can use a docker container built with our
-[Dockerfile](Dockerfile).
-
 ``` sh
 # install dependencies
 $ sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
@@ -158,6 +155,9 @@ $ sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
 	python3-pycryptodome python3-pyelftools python-serial python3-serial \
 	rsync unzip uuid-dev xdg-utils xterm xz-utils zlib1g-dev
 ```
+
+Alternatively, you can use a docker container built with our
+[Dockerfile](Dockerfile).
 
 After installing dependencies or building the Docker image, fetch the source code from the official GitHub repository:
 
@@ -171,7 +171,7 @@ $ cd incubator-teaclave-trustzone-sdk
 
 * By default, the `OPTEE_DIR` is
   `incubator-teaclave-trustzone-sdk/optee/`.OP-TEE submodules (`optee_os`,
-`optee_client` and` build`) will be initialized automatically in `setup.sh`. If
+`optee_client` and `build`) will be initialized automatically in `setup.sh`. If
 you already have [OP-TEE repository](https://github.com/OP-TEE)  cloned
 somewhere, you can set OP-TEE root directory:
 
