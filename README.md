@@ -73,7 +73,7 @@ steps to clone the project and build applications independently from the
 complete OP-TEE repo. In this case, the necessary OP-TEE libraries are
 initialized in the setup process.
 
-The complete list of prerequisites can be found here: [OP-TEE
+1. The complete list of prerequisites can be found here: [OP-TEE
 Prerequisites](https://optee.readthedocs.io/en/latest/building/prerequisites.html).
 
 ``` sh
@@ -91,7 +91,7 @@ sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
 Alternatively, you can use a docker container built with our
 [Dockerfile](Dockerfile).
 
-After installing dependencies or building the Docker image, fetch the source code from the official GitHub repository:
+2. After installing dependencies or building the Docker image, fetch the source code from the official GitHub repository:
 
 ``` sh
 # clone the project
@@ -103,9 +103,9 @@ cd incubator-teaclave-trustzone-sdk
 
 To build the project, the Rust environment and several related submodules are required.
 
-If you are working without QEMUv8, by default, the `OPTEE_DIR` is
-  `incubator-teaclave-trustzone-sdk/optee/`. OP-TEE submodules (`optee_os`,
-`optee_client` and `build`) will be initialized automatically in `setup.sh`.
+1. By default, the `OPTEE_DIR` is `incubator-teaclave-trustzone-sdk/optee/`. OP-TEE
+  submodules (`optee_os`, `optee_client` and `build`) will be initialized
+automatically in `setup.sh`.
 
 If you are building within QEMUv8 or already have the [OP-TEE
 repository](https://github.com/OP-TEE)  cloned somewhere, you can set the OP-TEE
@@ -118,13 +118,13 @@ export OPTEE_DIR=[YOUR_OPTEE_DIR]
 Note: your OPTEE root directory should have `build/`, `optee_os/` and
 `optee_client/` as sub-directory.
 
-Run the script as follows to install the Rust environment and initialize submodules:
+2. Run the script as follows to install the Rust environment and initialize submodules:
 
 ```sh
 ./setup.sh
 ```
 
-Before building examples, the environment should be properly set up with:
+3. Before building examples, the environment should be properly set up with:
 
 ``` sh
 source environment
@@ -138,13 +138,13 @@ export ARCH=arm
 source environment
 ```
 
-Before building rust examples and applications, you need to build OP-TEE libraries using:
+4. Before building rust examples and applications, you need to build OP-TEE libraries using:
 
 ``` sh
 make optee
 ```
 
-Run this command to build all Rust examples:
+5. Run this command to build all Rust examples:
 
 ``` sh
 make examples
@@ -170,14 +170,14 @@ Rust applications are different.
 
 #### Run Rust Applications in QEMUv8
 
-The shared folder is needed to share CAs and TAs with the QEMU guest system.
+1. The shared folder is needed to share CAs and TAs with the QEMU guest system.
 Recompile QEMU in OP-TEE to enable QEMU VirtFS:
 
 ```sh
 (cd $OPTEE_DIR/build && make QEMU_VIRTFS_ENABLE=y qemu)
 ```
 
-Copy all the Rust examples or your own applications to the shared folder:
+2. Copy all the Rust examples or your own applications to the shared folder:
 
 ```sh
 mkdir shared_folder
@@ -185,21 +185,21 @@ cd [YOUR_OPTEE_DIR]/optee_rust/ && make examples-install)
 cp -r [YOUR_OPTEE_DIR]/optee_rust/out/* shared_folder/
 ```
 
-Run QEMU:
+3. Run QEMU:
 
 ```sh
 (cd $OPTEE_DIR/build && make run-only QEMU_VIRTFS_ENABLE=y
 QEMU_VIRTFS_HOST_DIR=$(pwd)/shared_folder)
 ```
 
-After the QEMU has been booted, you need to mount the shared folder in the QEMU guest system (username: root), in order to access the compiled CA/TA from QEMU.
+4. After the QEMU has been booted, you need to mount the shared folder in the QEMU guest system (username: root), in order to access the compiled CA/TA from QEMU.
 Run the command as follows in the QEMU guest terminal:
 
 ```sh
 mkdir shared && mount -t 9p -o trans=virtio host shared
 ```
 
-Then run CA and TA as [this
+5. Then run CA and TA as [this
 documentation](https://optee.readthedocs.io/en/latest/building/optee_with_rust.html)
 describes.
 
