@@ -68,10 +68,10 @@ git pull github master
 
 If you are building trusted applications for other platforms ([platforms OP-TEE
 supported](https://optee.readthedocs.io/en/latest/general/platforms.html)). QEMU
-and the filesystem in OP-TEE repo are not needed.  You can follow these steps to
-clone the project and build applications independently from the complete OP-TEE
-repo. In this case, the necessary OP-TEE libraries are initialized in the setup
-process.
+and the filesystem in the OP-TEE repo are not needed.  You can follow these
+steps to clone the project and build applications independently from the
+complete OP-TEE repo. In this case, the necessary OP-TEE libraries are
+initialized in the setup process.
 
 The complete list of prerequisites can be found here: [OP-TEE
 Prerequisites](https://optee.readthedocs.io/en/latest/building/prerequisites.html).
@@ -107,14 +107,15 @@ If you are working without QEMUv8, by default, the `OPTEE_DIR` is
   `incubator-teaclave-trustzone-sdk/optee/`. OP-TEE submodules (`optee_os`,
 `optee_client` and `build`) will be initialized automatically in `setup.sh`.
 
-If you are building within QEMUv8 or already have [OP-TEE repository](https://github.com/OP-TEE)  cloned
-somewhere, you can set OP-TEE root directory with:
+If you are building within QEMUv8 or already have the [OP-TEE
+repository](https://github.com/OP-TEE)  cloned somewhere, you can set the OP-TEE
+root directory with:
 
 ```sh
 export OPTEE_DIR=[YOUR_OPTEE_DIR]
 ```
 
-Note: your OPTEE root directory should have `build/`, `optee_os/` and 
+Note: your OPTEE root directory should have `build/`, `optee_os/` and
 `optee_client/` as sub-directory.
 
 Run the script as follows to install the Rust environment and initialize submodules:
@@ -159,7 +160,7 @@ Besides, you can collect all
 example CAs and TAs to `/incubator-teaclave-trustzone-sdk/out`:
 
 ```sh
-$ make examples-install
+make examples-install
 ```
 
 ### Run Rust Applications
@@ -191,8 +192,7 @@ Run QEMU:
 QEMU_VIRTFS_HOST_DIR=$(pwd)/shared_folder)
 ```
 
-After the QEMU has been booted, you need to mount the shared folder in QEMU
-guest system (username: root), in order to access the compiled CA/TA from QEMU.
+After the QEMU has been booted, you need to mount the shared folder in the QEMU guest system (username: root), in order to access the compiled CA/TA from QEMU.
 Run the command as follows in the QEMU guest terminal:
 
 ```sh
@@ -226,7 +226,7 @@ published in ACSAC 2020:
 Applications](https://csis.gmu.edu/ksun/publications/ACSAC20_RusTEE_2020.pdf).
 Here is the BiBTeX record for your reference.
 
-```
+```bibtex
 @inproceedings{wan20rustee,
     author    = "Shengye Wan and Mingshen Sun and Kun Sun and Ning Zhang and Xu
 He",
