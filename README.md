@@ -51,7 +51,8 @@ your development environment.
 #### Develop with QEMUv8
 
 The OP-TEE libraries are needed when building Rust applications, so you should
-finish the [Quick start with the OP-TEE Repo for QEMUv8](#quick-start-with-the-op-tee-repo-for-qemuv8) part first. Then
+finish the [Quick start with the OP-TEE Repo for
+QEMUv8](#quick-start-with-the-op-tee-repo-for-qemuv8) part first. Then
 initialize the building environment in Teaclave TrustZone SDK, build Rust
 applications and copy them into the target's filesystem.
 
@@ -101,10 +102,11 @@ cd incubator-teaclave-trustzone-sdk
 
 ### Build & Install
 
-To build the project, the Rust environment and several related submodules are required.
+To build the project, the Rust environment and several related submodules are
+required.
 
-1. By default, the `OPTEE_DIR` is `incubator-teaclave-trustzone-sdk/optee/`. OP-TEE
-  submodules (`optee_os`, `optee_client` and `build`) will be initialized
+1. By default, the `OPTEE_DIR` is `incubator-teaclave-trustzone-sdk/optee/`.
+  OP-TEE submodules (`optee_os`, `optee_client` and `build`) will be initialized
 automatically in `setup.sh`.
 
 If you are building within QEMUv8 or already have the [OP-TEE
@@ -118,7 +120,8 @@ export OPTEE_DIR=[YOUR_OPTEE_DIR]
 Note: your OPTEE root directory should have `build/`, `optee_os/` and
 `optee_client/` as sub-directory.
 
-2. Run the script as follows to install the Rust environment and initialize submodules:
+2. Run the script as follows to install the Rust environment and initialize
+   submodules:
 
 ```sh
 ./setup.sh
@@ -130,15 +133,16 @@ Note: your OPTEE root directory should have `build/`, `optee_os/` and
 source environment
 ```
 
-Note: by default, the target platform is `aarch64`. If you want to build for the `arm`
-target, you can setup `ARCH` before the `source environment` command:
+Note: by default, the target platform is `aarch64`. If you want to build for the
+`arm` target, you can setup `ARCH` before the `source environment` command:
 
 ```sh
 export ARCH=arm
 source environment
 ```
 
-4. Before building rust examples and applications, you need to build OP-TEE libraries using:
+4. Before building rust examples and applications, you need to build OP-TEE
+   libraries using:
 
 ``` sh
 make optee
@@ -156,8 +160,8 @@ Or build your own CA and TA:
 make -C examples/[YOUR_APPLICATION]
 ```
 
-Besides, you can collect all
-example CAs and TAs to `/incubator-teaclave-trustzone-sdk/out`:
+Besides, you can collect all example CAs and TAs to
+`/incubator-teaclave-trustzone-sdk/out`:
 
 ```sh
 make examples-install
@@ -165,8 +169,10 @@ make examples-install
 
 ### Run Rust Applications
 
-Considering the platform has been chosen ([QEMUv8](#run-rust-applications-in-qemuv8) or [other](#run-rust-applications-on-other-platforms)), the ways to run the
-Rust applications are different.
+Considering the platform has been chosen
+([QEMUv8](#run-rust-applications-in-qemuv8) or
+[other](#run-rust-applications-on-other-platforms)), the ways to run the Rust
+applications are different.
 
 #### Run Rust Applications in QEMUv8
 
@@ -192,8 +198,9 @@ cp -r [YOUR_OPTEE_DIR]/optee_rust/out/* shared_folder/
 QEMU_VIRTFS_HOST_DIR=$(pwd)/shared_folder)
 ```
 
-4. After the QEMU has been booted, you need to mount the shared folder in the QEMU guest system (username: root), in order to access the compiled CA/TA from QEMU.
-Run the command as follows in the QEMU guest terminal:
+4. After the QEMU has been booted, you need to mount the shared folder in the
+QEMU guest system (username: root), in order to access the compiled CA/TA from
+QEMU. Run the command as follows in the QEMU guest terminal:
 
 ```sh
 mkdir shared && mount -t 9p -o trans=virtio host shared
