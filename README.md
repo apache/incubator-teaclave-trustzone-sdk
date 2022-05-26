@@ -176,14 +176,12 @@ Recompile QEMU in OP-TEE to enable QEMU VirtFS:
 (cd $OPTEE_DIR/build && make QEMU_VIRTFS_ENABLE=y qemu)
 ```
 
-Note: the path `/project/root/dir/` should be replaced as the root directory of
-your local project "Teaclave TrustZone SDK". Copy all the Rust examples or your
-own applications to the shared folder:
+Copy all the Rust examples or your own applications to the shared folder:
 
 ```sh
 mkdir shared_folder
-cd /project/root/dir/ && make examples-install)
-cp -r /project/root/dir/out/* shared_folder/
+cd [YOUR_OPTEE_DIR]/optee_rust/ && make examples-install)
+cp -r [YOUR_OPTEE_DIR]/optee_rust/out/* shared_folder/
 ```
 
 Run QEMU:
