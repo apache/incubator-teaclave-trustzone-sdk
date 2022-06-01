@@ -92,7 +92,8 @@ sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
 Alternatively, you can use a docker container built with our
 [Dockerfile](Dockerfile).
 
-2. After installing dependencies or building the Docker image, fetch the source code from the official GitHub repository:
+2. After installing dependencies or building the Docker image, fetch the source
+   code from the official GitHub repository:
 
 ``` sh
 # clone the project
