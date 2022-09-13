@@ -37,6 +37,7 @@ jobs:
           ln -sf /root/.cargo ~/.cargo
       - name: Building
         run: |
+          export CARGO_NET_GIT_FETCH_WITH_CLI=true &&
           ./setup.sh &&
           source environment &&
           make optee &&
@@ -63,6 +64,7 @@ jobs:
           ln -sf /root/.cargo ~/.cargo
       - name: Building
         run: |
+          export CARGO_NET_GIT_FETCH_WITH_CLI=true &&
           ./setup.sh &&
           source environment &&
           make optee &&
@@ -95,6 +97,7 @@ jobs:
           rm -rf optee_rust/ &&
           mv $GITHUB_WORKSPACE/incubator-teaclave-trustzone-sdk optee_rust/
           export OPTEE_DIR=$(pwd)
+          export CARGO_NET_GIT_FETCH_WITH_CLI=true &&
           cd build &&
           make -j2 toolchains &&
           make CFG_TEE_CORE_LOG_LEVEL=0 OPTEE_RUST_ENABLE=y CFG_TEE_RAM_VA_SIZE=0x00300000 -j$(getconf _NPROCESSORS_ONLN) check-rust
