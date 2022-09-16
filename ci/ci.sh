@@ -35,5 +35,10 @@ pushd ../tests
 ./test_time.sh
 ./test_tcp_client.sh
 ./test_udp_socket.sh
+./test_message_passing_interface.sh
+./test_signature_verification.sh
+./test_supp_plugin.sh
+./test_tls_client.sh
+./test_tls_server.sh
 
 popd

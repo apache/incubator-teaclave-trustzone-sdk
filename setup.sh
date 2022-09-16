@@ -32,7 +32,7 @@ rustup default nightly-2021-09-20
 
 ########################################################
 # initialize submodules: optee_os / optee_client / build
-OPTEE_RELEASE_VERSION=3.17.0
+OPTEE_RELEASE_VERSION=3.18.0
 
 if [[ -z $OPTEE_DIR ]] || [[ $OPTEE_DIR == $PWD/optee ]]
 then
