@@ -83,7 +83,7 @@ fn main() -> optee_teec::Result<()> {
     let mut session = ctx.open_session(uuid)?;
 
     let key = [0xa5u8; KEY_SIZE];
-    let nonce = [0x00u8; 2];
+    let nonce = [0x00u8; 8];
     let aad = [0xffu8; AAD_LEN];
     let clear1 = [0x5au8; BUFFER_SIZE + 3];
     let clear2 = [0xa5u8; BUFFER_SIZE - 3];
