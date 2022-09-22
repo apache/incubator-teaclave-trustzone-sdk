@@ -1,3 +1,7 @@
+---
+permalink: /trustzone-sdk-docs/building-rust-ca-as-android-elf.md
+---
+
 # Building Rust CA as Android ELF
 
 In Teaclave TrustZone SDK, example CAs are built as ARM64 Linux ELF by default.
