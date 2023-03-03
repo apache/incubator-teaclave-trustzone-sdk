@@ -20,10 +20,10 @@
 set -xe
 
 rm -rf screenlog.0
-rm -rf optee-qemuv8-3.18.0-ubuntu-20.04
+rm -rf optee-qemuv8-3.20.0-ubuntu-20.04
 rm -rf shared
 
-curl https://nightlies.apache.org/teaclave/teaclave-trustzone-sdk/optee-qemuv8-3.18.0-ubuntu-20.04.tar.gz | tar zxv
+curl https://nightlies.apache.org/teaclave/teaclave-trustzone-sdk/optee-qemuv8-3.20.0-ubuntu-20.04.tar.gz | tar zxv
 mkdir shared
 cp ../examples/supp_plugin-rs/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
 cp ../examples/supp_plugin-rs/host/target/aarch64-unknown-linux-gnu/release/supp_plugin-rs shared
@@ -61,5 +61,5 @@ sleep 5
 }
 
 rm -rf screenlog.0
-rm -rf optee-qemuv8-3.18.0-ubuntu-20.04
+rm -rf optee-qemuv8-3.20.0-ubuntu-20.04
 rm -rf shared
