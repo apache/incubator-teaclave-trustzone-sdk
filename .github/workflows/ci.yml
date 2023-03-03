@@ -37,6 +37,7 @@ jobs:
           ln -sf /root/.cargo ~/.cargo
       - name: Building
         run: |
+          apt update && apt install libslirp-dev -y
           export CARGO_NET_GIT_FETCH_WITH_CLI=true &&
           ./setup.sh &&
           source environment &&
@@ -93,6 +94,7 @@ jobs:
           repo sync -j4 --no-clone-bundle
       - name: Build images and run tests
         run: |
+          apt update && apt install libslirp-dev -y
           cd ~/optee-qemuv8
           rm -rf optee_rust/ &&
           mv $GITHUB_WORKSPACE/incubator-teaclave-trustzone-sdk optee_rust/
