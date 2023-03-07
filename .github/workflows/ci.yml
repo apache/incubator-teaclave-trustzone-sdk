@@ -101,8 +101,7 @@ jobs:
           export OPTEE_DIR=$(pwd)
           cd build &&
           make -j2 toolchains &&
-          make CFG_TEE_CORE_LOG_LEVEL=0 OPTEE_RUST_ENABLE=y CFG_TEE_RAM_VA_SIZE=0x00300000
-          make check-only-rust
+          make CFG_TEE_CORE_LOG_LEVEL=0 OPTEE_RUST_ENABLE=y CFG_TEE_RAM_VA_SIZE=0x00300000 check-rust
   license:
     runs-on: ubuntu-20.04
     steps:
