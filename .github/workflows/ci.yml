@@ -37,6 +37,7 @@ jobs:
           ln -sf /root/.cargo ~/.cargo
       - name: Building
         run: |
+          apt update && apt install libslirp-dev -y
           export CARGO_NET_GIT_FETCH_WITH_CLI=true &&
           ./setup.sh &&
           source environment &&
@@ -89,18 +90,18 @@ jobs:
           curl https://storage.googleapis.com/git-repo-downloads/repo-1 > ~/bin/repo && chmod a+x ~/bin/repo
           export PATH=~/bin:$PATH
           mkdir -p ~/optee-qemuv8 && cd ~/optee-qemuv8 &&
-          repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml &&
+          repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml -b 3.20.0 &&
           repo sync -j4 --no-clone-bundle
       - name: Build images and run tests
         run: |
+          apt update && apt install libslirp-dev -y
           cd ~/optee-qemuv8
           rm -rf optee_rust/ &&
           mv $GITHUB_WORKSPACE/incubator-teaclave-trustzone-sdk optee_rust/
           export OPTEE_DIR=$(pwd)
           cd build &&
           make -j2 toolchains &&
-          make CFG_TEE_CORE_LOG_LEVEL=0 OPTEE_RUST_ENABLE=y CFG_TEE_RAM_VA_SIZE=0x00300000
-          make check-only-rust
+          make CFG_TEE_CORE_LOG_LEVEL=0 OPTEE_RUST_ENABLE=y CFG_TEE_RAM_VA_SIZE=0x00300000 check-rust
   license:
     runs-on: ubuntu-20.04
     steps:
