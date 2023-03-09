@@ -25,7 +25,7 @@ extern "C" {
         propsetOrEnumerator: TEE_PropSetHandle,
         name: *const c_char,
         valueBuffer: *mut c_char,
-        valueBufferLen: *mut u32,
+        valueBufferLen: *mut usize,
     ) -> TEE_Result;
     pub fn TEE_GetPropertyAsBool(
         propsetOrEnumerator: TEE_PropSetHandle,
@@ -37,11 +37,16 @@ extern "C" {
         name: *const c_char,
         value: *mut u32,
     ) -> TEE_Result;
+    pub fn TEE_GetPropertyAsU64(
+        propsetOrEnumerator: TEE_PropSetHandle,
+        name: *const c_char,
+        value: *mut u64,
+    ) -> TEE_Result;
     pub fn TEE_GetPropertyAsBinaryBlock(
         propsetOrEnumerator: TEE_PropSetHandle,
         name: *const c_char,
         valueBuffer: *mut c_void,
-        valueBufferLen: *mut u32,
+        valueBufferLen: *mut usize,
     ) -> TEE_Result;
     pub fn TEE_GetPropertyAsUUID(
         propsetOrEnumerator: TEE_PropSetHandle,
@@ -60,7 +65,7 @@ extern "C" {
     pub fn TEE_GetPropertyName(
         enumerator: TEE_PropSetHandle,
         nameBuffer: *mut c_void,
-        nameBufferLen: *mut u32,
+        nameBufferLen: *mut usize,
     ) -> TEE_Result;
     pub fn TEE_GetNextProperty(enumerator: TEE_PropSetHandle) -> TEE_Result;
 
@@ -99,20 +104,20 @@ extern "C" {
     pub fn TEE_CheckMemoryAccessRights(
         accessFlags: u32,
         buffer: *mut c_void,
-        size: u32,
+        size: usize,
     ) -> TEE_Result;
     pub fn TEE_SetInstanceData(instanceData: *const c_void);
     pub fn TEE_GetInstanceData() -> *const c_void;
-    pub fn TEE_Malloc(size: u32, hint: u32) -> *mut c_void;
-    pub fn TEE_Realloc(buffer: *mut c_void, newSize: u32) -> *mut c_void;
+    pub fn TEE_Malloc(size: usize, hint: u32) -> *mut c_void;
+    pub fn TEE_Realloc(buffer: *mut c_void, newSize: usize) -> *mut c_void;
     pub fn TEE_Free(buffer: *mut c_void);
-    pub fn TEE_MemMove(dest: *mut c_void, src: *const c_void, size: u32) -> *mut c_void;
+    pub fn TEE_MemMove(dest: *mut c_void, src: *const c_void, size: usize) -> *mut c_void;
     pub fn TEE_MemCompare(
         buffer1: *const c_void,
         buffer2: *const c_void,
-        size: u32,
+        size: usize,
     ) -> i32;
-    pub fn TEE_MemFill(buff: *mut c_void, x: u32, size: u32) -> *mut c_void;
+    pub fn TEE_MemFill(buff: *mut c_void, x: u32, size: usize) -> *mut c_void;
 
     // Data and Key Storage API  - Generic Object Functions
 
@@ -127,7 +132,7 @@ extern "C" {
         object: TEE_ObjectHandle,
         attributeID: u32,
         buffer: *mut c_void,
-        size: *mut u32,
+        size: *mut usize,
     ) -> TEE_Result;
     pub fn TEE_GetObjectValueAttribute(
         object: TEE_ObjectHandle,
@@ -141,7 +146,7 @@ extern "C" {
 
     pub fn TEE_AllocateTransientObject(
         objectType: TEE_ObjectType,
-        maxKeySize: u32,
+        maxObjectSize: u32,
         object: *mut TEE_ObjectHandle,
     ) -> TEE_Result;
     pub fn TEE_FreeTransientObject(object: TEE_ObjectHandle) -> c_void;
@@ -155,7 +160,7 @@ extern "C" {
         attr: *mut TEE_Attribute,
         attributeID: u32,
         buffer: *const c_void,
-        length: u32,
+        length: usize,
     ) -> c_void;
     pub fn TEE_InitValueAttribute(
         attr: *mut TEE_Attribute,
@@ -183,18 +188,18 @@ extern "C" {
     pub fn TEE_OpenPersistentObject(
         storageID: u32,
         objectID: *const c_void,
-        objectIDLen: u32,
+        objectIDLen: usize,
         flags: u32,
         object: *mut TEE_ObjectHandle,
     ) -> TEE_Result;
     pub fn TEE_CreatePersistentObject(
         storageID: u32,
         objectID: *const c_void,
-        objectIDLen: u32,
+        objectIDLen: usize,
         flags: u32,
         attributes: TEE_ObjectHandle,
         initialData: *const c_void,
-        initialDataLen: u32,
+        initialDataLen: usize,
         object: *mut TEE_ObjectHandle,
     ) -> TEE_Result;
     pub fn TEE_CloseAndDeletePersistentObject(object: TEE_ObjectHandle);
@@ -202,7 +207,7 @@ extern "C" {
     pub fn TEE_RenamePersistentObject(
         object: TEE_ObjectHandle,
         newObjectID: *const c_void,
-        newObjectIDLen: u32,
+        newObjectIDLen: usize,
     ) -> TEE_Result;
     pub fn TEE_AllocatePersistentObjectEnumerator(
         objectEnumerator: *mut TEE_ObjectEnumHandle,
@@ -217,7 +222,7 @@ extern "C" {
         objectEnumerator: TEE_ObjectEnumHandle,
         objectInfo: *mut TEE_ObjectInfo,
         objectID: *mut c_void,
-        objectIDLen: *mut u32,
+        objectIDLen: *mut usize,
     ) -> TEE_Result;
 
     // Data and Key Storage API  - Data Stream Access Functions
@@ -225,18 +230,18 @@ extern "C" {
     pub fn TEE_ReadObjectData(
         object: TEE_ObjectHandle,
         buffer: *mut c_void,
-        fsize: u32,
-        count: *mut u32,
+        size: usize,
+        count: *mut usize,
     ) -> TEE_Result;
     pub fn TEE_WriteObjectData(
         object: TEE_ObjectHandle,
         buffer: *const c_void,
-        fsize: u32,
+        size: usize,
     ) -> TEE_Result;
-    pub fn TEE_TruncateObjectData(object: TEE_ObjectHandle, size: u32) -> TEE_Result;
+    pub fn TEE_TruncateObjectData(object: TEE_ObjectHandle, size: usize) -> TEE_Result;
     pub fn TEE_SeekObjectData(
         object: TEE_ObjectHandle,
-        offset: i32,
+        offset: i32, //intmax_t
         whence: TEE_Whence,
     ) -> TEE_Result;
 
@@ -256,7 +261,7 @@ extern "C" {
     pub fn TEE_GetOperationInfoMultiple(
         operation: TEE_OperationHandle,
         operationInfoMultiple: *mut TEE_OperationInfoMultiple,
-        operationSize: *mut u32,
+        operationSize: *mut usize,
     ) -> TEE_Result;
     pub fn TEE_ResetOperation(operation: TEE_OperationHandle) -> c_void;
     pub fn TEE_SetOperationKey(operation: TEE_OperationHandle, key: TEE_ObjectHandle)
@@ -280,14 +285,14 @@ extern "C" {
     pub fn TEE_DigestUpdate(
         operation: TEE_OperationHandle,
         chunk: *const c_void,
-        chunkSize: u32,
+        chunkSize: usize,
     ) -> c_void;
     pub fn TEE_DigestDoFinal(
         operation: TEE_OperationHandle,
         chunk: *const c_void,
-        chunkLen: u32,
+        chunkLen: usize,
         hash: *mut c_void,
-        hashLen: *mut u32,
+        hashLen: *mut usize,
     ) -> TEE_Result;
 
     // Cryptographic Operations API - Symmetric Cipher Functions
@@ -295,21 +300,21 @@ extern "C" {
     pub fn TEE_CipherInit(
         operation: TEE_OperationHandle,
         IV: *const c_void,
-        IVLen: u32,
+        IVLen: usize,
     ) -> c_void;
     pub fn TEE_CipherUpdate(
         operation: TEE_OperationHandle,
         srcData: *const c_void,
-        srcLen: u32,
+        srcLen: usize,
         destData: *mut c_void,
-        destLen: *mut u32,
+        destLen: *mut usize,
     ) -> TEE_Result;
     pub fn TEE_CipherDoFinal(
         operation: TEE_OperationHandle,
         srcData: *const c_void,
-        srcLen: u32,
+        srcLen: usize,
         destData: *mut c_void,
-        destLen: *mut u32,
+        destLen: *mut usize,
     ) -> TEE_Result;
 
     // Cryptographic Operations API - MAC Functions
@@ -317,26 +322,26 @@ extern "C" {
     pub fn TEE_MACInit(
         operation: TEE_OperationHandle,
         IV: *const c_void,
-        IVLen: u32,
+        IVLen: usize,
     ) -> c_void;
     pub fn TEE_MACUpdate(
         operation: TEE_OperationHandle,
         chunk: *const c_void,
-        chunkSize: u32,
+        chunkSize: usize,
     ) -> c_void;
     pub fn TEE_MACComputeFinal(
         operation: TEE_OperationHandle,
         message: *const c_void,
-        messageLen: u32,
+        messageLen: usize,
         mac: *mut c_void,
-        macLen: *mut u32,
+        macLen: *mut usize,
     ) -> TEE_Result;
     pub fn TEE_MACCompareFinal(
         operation: TEE_OperationHandle,
         message: *const c_void,
-        messageLen: u32,
+        messageLen: usize,
         mac: *const c_void,
-        macLen: u32,
+        macLen: usize,
     ) -> TEE_Result;
 
     // Cryptographic Operations API - Authenticated Encryption Functions
@@ -344,40 +349,40 @@ extern "C" {
     pub fn TEE_AEInit(
         operation: TEE_OperationHandle,
         nonce: *const c_void,
-        nonceLen: u32,
+        nonceLen: usize,
         tagLen: u32,
-        AADLen: u32,
-        payloadLen: u32,
+        AADLen: usize,
+        payloadLen: usize,
     ) -> TEE_Result;
     pub fn TEE_AEUpdateAAD(
         operation: TEE_OperationHandle,
         AADdata: *const c_void,
-        AADdataLen: u32,
+        AADdataLen: usize,
     ) -> c_void;
     pub fn TEE_AEUpdate(
         operation: TEE_OperationHandle,
         srcData: *const c_void,
-        srcLen: u32,
+        srcLen: usize,
         destData: *mut c_void,
-        destLen: *mut u32,
+        destLen: *mut usize,
     ) -> TEE_Result;
     pub fn TEE_AEEncryptFinal(
         operation: TEE_OperationHandle,
         srcData: *const c_void,
-        srcLen: u32,
+        srcLen: usize,
         destData: *mut c_void,
-        destLen: *mut u32,
+        destLen: *mut usize,
         tag: *mut c_void,
-        tagLen: *mut u32,
+        tagLen: *mut usize,
     ) -> TEE_Result;
     pub fn TEE_AEDecryptFinal(
         operation: TEE_OperationHandle,
         srcData: *const c_void,
-        srcLen: u32,
+        srcLen: usize,
         destData: *mut c_void,
-        destLen: *mut u32,
+        destLen: *mut usize,
         tag: *mut c_void,
-        tagLen: u32,
+        tagLen: usize,
     ) -> TEE_Result;
 
     // Cryptographic Operations API - Asymmetric Functions
@@ -387,36 +392,36 @@ extern "C" {
         params: *const TEE_Attribute,
         paramCount: u32,
         srcData: *const c_void,
-        srcLen: u32,
+        srcLen: usize,
         destData: *mut c_void,
-        destLen: *mut u32,
+        destLen: *mut usize,
     ) -> TEE_Result;
     pub fn TEE_AsymmetricDecrypt(
         operation: TEE_OperationHandle,
         params: *const TEE_Attribute,
         paramCount: u32,
         srcData: *const c_void,
-        srcLen: u32,
+        srcLen: usize,
         destData: *mut c_void,
-        destLen: *mut u32,
+        destLen: *mut usize,
     ) -> TEE_Result;
     pub fn TEE_AsymmetricSignDigest(
         operation: TEE_OperationHandle,
         params: *const TEE_Attribute,
         paramCount: u32,
         digest: *const c_void,
-        digestLen: u32,
+        digestLen: usize,
         signature: *mut c_void,
-        signatureLen: *mut u32,
+        signatureLen: *mut usize,
     ) -> TEE_Result;
     pub fn TEE_AsymmetricVerifyDigest(
         operation: TEE_OperationHandle,
         params: *const TEE_Attribute,
         paramCount: u32,
         digest: *const c_void,
-        digestLen: u32,
+        digestLen: usize,
         signature: *const c_void,
-        signatureLen: u32,
+        signatureLen: usize,
     ) -> TEE_Result;
 
     // Cryptographic Operations API - Key Derivation Functions
@@ -430,7 +435,7 @@ extern "C" {
 
     // Cryptographic Operations API - Random Number Generation Functions
 
-    pub fn TEE_GenerateRandom(randomBuffer: *mut c_void, randomBufferLen: u32) -> c_void;
+    pub fn TEE_GenerateRandom(randomBuffer: *mut c_void, randomBufferLen: usize) -> c_void;
 
     // Date & Time API
 
@@ -442,30 +447,30 @@ extern "C" {
 
     // TEE Arithmetical API - Memory allocation and size of objects
 
-    pub fn TEE_BigIntFMMSizeInU32(modulusSizeInBits: u32) -> u32;
-    pub fn TEE_BigIntFMMContextSizeInU32(modulusSizeInBits: u32) -> u32;
+    pub fn TEE_BigIntFMMSizeInU32(modulusSizeInBits: usize) -> usize;
+    pub fn TEE_BigIntFMMContextSizeInU32(modulusSizeInBits: usize) -> usize;
 
     // TEE Arithmetical API - Initialization functions
 
-    pub fn TEE_BigIntInit(bigInt: *mut TEE_BigInt, len: u32) -> c_void;
+    pub fn TEE_BigIntInit(bigInt: *mut TEE_BigInt, len: usize) -> c_void;
     pub fn TEE_BigIntInitFMMContext(
         context: *mut TEE_BigIntFMMContext,
-        len: u32,
+        len: usize,
         modulus: *const TEE_BigInt,
     ) -> c_void;
-    pub fn TEE_BigIntInitFMM(bigIntFMM: *mut TEE_BigIntFMM, len: u32) -> c_void;
+    pub fn TEE_BigIntInitFMM(bigIntFMM: *mut TEE_BigIntFMM, len: usize) -> c_void;
 
     // TEE Arithmetical API - Converter functions
 
     pub fn TEE_BigIntConvertFromOctetString(
         dest: *mut TEE_BigInt,
         buffer: *const u8,
-        bufferLen: u32,
+        bufferLen: usize,
         sign: i32,
     ) -> TEE_Result;
     pub fn TEE_BigIntConvertToOctetString(
         buffer: *mut u8,
-        bufferLen: *mut u32,
+        bufferLen: *mut usize,
         bigInt: *const TEE_BigInt,
     ) -> TEE_Result;
     pub fn TEE_BigIntConvertFromS32(dest: *mut TEE_BigInt, shortVal: i32) -> c_void;
@@ -482,6 +487,9 @@ extern "C" {
     ) -> c_void;
     pub fn TEE_BigIntGetBit(src: *const TEE_BigInt, bitIndex: u32) -> bool;
     pub fn TEE_BigIntGetBitCount(src: *const TEE_BigInt) -> u32;
+    pub fn TEE_BigIntSetBit(src: *const TEE_BigInt, bitIndex: u32, value: bool) -> TEE_Result;
+    pub fn TEE_BigIntAssign(dest: *mut TEE_BigInt, src: *const TEE_BigInt) -> TEE_Result;
+    pub fn TEE_BigIntAbs(dest: *mut TEE_BigInt, src: *const TEE_BigInt) -> TEE_Result;
     pub fn TEE_BigIntAdd(
         dest: *mut TEE_BigInt,
         op1: *const TEE_BigInt,
@@ -541,6 +549,13 @@ extern "C" {
         op: *const TEE_BigInt,
         n: *const TEE_BigInt,
     ) -> c_void;
+    pub fn TEE_BigIntExpMod(
+        dest: *mut TEE_BigInt,
+        op1: *const TEE_BigInt,
+        op2: *const TEE_BigInt,
+        n: *const TEE_BigInt,
+        context: *const TEE_BigIntFMMContext,
+    ) -> TEE_Result;
 
     // TEE Arithmetical API - Other arithmetic operations
 

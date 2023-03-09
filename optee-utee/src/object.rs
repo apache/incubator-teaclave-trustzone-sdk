@@ -95,7 +95,7 @@ impl<'attrref> AttributeMemref<'attrref> {
                 &mut res.raw,
                 id as u32,
                 buffer.as_ptr() as *mut _,
-                buffer.len() as u32,
+                buffer.len(),
             );
         }
         res
@@ -240,16 +240,16 @@ impl ObjectHandle {
     }
 
     fn ref_attribute(&self, id: AttributeId, buffer: &mut [u8]) -> Result<usize> {
-        let mut size = buffer.len() as u32;
+        let mut size = buffer.len();
         match unsafe {
             raw::TEE_GetObjectBufferAttribute(
                 self.handle(),
                 id as u32,
                 buffer as *mut _ as _,
-                &mut size as _,
+                &mut size,
             )
         } {
-            raw::TEE_SUCCESS => Ok(size as usize),
+            raw::TEE_SUCCESS => Ok(size),
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -908,7 +908,7 @@ impl PersistentObject {
             raw::TEE_OpenPersistentObject(
                 storage_id as u32,
                 object_id.as_ptr() as _,
-                object_id.len() as u32,
+                object_id.len(),
                 flags.bits(),
                 raw_handle as *mut _,
             )
@@ -993,11 +993,11 @@ impl PersistentObject {
             raw::TEE_CreatePersistentObject(
                 storage_id as u32,
                 object_id.as_ptr() as _,
-                object_id.len() as u32,
+                object_id.len(),
                 flags.bits(),
                 attributes,
                 initial_data.as_ptr() as _,
-                initial_data.len() as u32,
+                initial_data.len(),
                 raw_handle as *mut _,
             )
         } {
@@ -1099,7 +1099,7 @@ impl PersistentObject {
             raw::TEE_RenamePersistentObject(
                 self.0.handle(),
                 new_object_id.as_ptr() as _,
-                new_object_id.len() as u32,
+                new_object_id.len(),
             )
         } {
             raw::TEE_SUCCESS => Ok(()),
@@ -1190,16 +1190,16 @@ impl PersistentObject {
     /// 2) If the Implementation detects any other error associated with this function which is not
     ///    explicitly associated with a defined return code for this function.
     pub fn read(&self, buf: &mut [u8]) -> Result<u32> {
-        let mut count: u32 = 0;
+        let mut count: usize = 0;
         match unsafe {
             raw::TEE_ReadObjectData(
                 self.handle(),
                 buf.as_mut_ptr() as _,
-                buf.len() as u32,
+                buf.len(),
                 &mut count,
             )
         } {
-            raw::TEE_SUCCESS => Ok(count),
+            raw::TEE_SUCCESS => Ok(count as u32),
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -1245,7 +1245,7 @@ impl PersistentObject {
     ///    explicitly associated with a defined return code for this function.
     pub fn write(&mut self, buf: &[u8]) -> Result<()> {
         match unsafe {
-            raw::TEE_WriteObjectData(self.handle(), buf.as_ptr() as _, buf.len() as u32)
+            raw::TEE_WriteObjectData(self.handle(), buf.as_ptr() as _, buf.len())
         } {
             raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
@@ -1286,7 +1286,7 @@ impl PersistentObject {
     /// 2) If the Implementation detects any other error associated with this function which is not
     ///    explicitly associated with a defined return code for this function.
     pub fn truncate(&self, size: u32) -> Result<()> {
-        match unsafe { raw::TEE_TruncateObjectData(self.handle(), size) } {
+        match unsafe { raw::TEE_TruncateObjectData(self.handle(), size as usize) } {
             raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
         }
@@ -1407,7 +1407,7 @@ impl ObjectEnumHandle {
         object_info: &mut ObjectInfo,
         object_id: &mut [u8],
     ) -> Result<u32> {
-        let mut object_id_len: u32 = 0;
+        let mut object_id_len: usize = 0;
         match unsafe {
             raw::TEE_GetNextPersistentObject(
                 *self.raw,
@@ -1416,7 +1416,7 @@ impl ObjectEnumHandle {
                 &mut object_id_len,
             )
         } {
-            raw::TEE_SUCCESS => Ok(object_id_len),
+            raw::TEE_SUCCESS => Ok(object_id_len as u32),
             code => Err(Error::from_raw_error(code)),
         }
     }

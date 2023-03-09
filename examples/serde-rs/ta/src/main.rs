@@ -67,7 +67,7 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
             let len = buffer.write(serialized.as_bytes()).unwrap();
 
             // update size of output buffer
-            unsafe { (*p.raw()).size = len as u32 };
+            unsafe { (*p.raw()).size = len};
 
             // Prints serialized = {"x":1,"y":2}
             trace_println!("serialized = {}", serialized);
