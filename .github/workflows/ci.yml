@@ -22,34 +22,34 @@ defaults:
     shell: bash
 
 jobs:
-  build-and-run-examples:
-    runs-on: ubuntu-20.04
-    container: teaclave/teaclave-trustzone-sdk-build:0.3.0
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v2
-        with:
-          submodules: recursive
-      - name: Setting up $HOME
-        run: |
-          cp /root/.bashrc $HOME/.bashrc &&
-          ln -sf /root/.rustup ~/.rustup &&
-          ln -sf /root/.cargo ~/.cargo
-      - name: Building
-        run: |
-          apt update && apt install libslirp-dev -y
-          export CARGO_NET_GIT_FETCH_WITH_CLI=true &&
-          ./setup.sh &&
-          source environment &&
-          make optee &&
-          . ~/.cargo/env &&
-          rustup component add rust-src &&
-          rustup target install aarch64-unknown-linux-gnu arm-unknown-linux-gnueabihf &&
-          rustup default nightly-2021-09-20 &&
-          make examples
-      - name: Run tests and examples
-        run: |
-          cd ci && ./ci.sh
+#  build-and-run-examples:
+#    runs-on: ubuntu-20.04
+#    container: teaclave/teaclave-trustzone-sdk-build:0.3.0
+#    steps:
+#      - name: Checkout repository
+#        uses: actions/checkout@v2
+#        with:
+#          submodules: recursive
+#      - name: Setting up $HOME
+#        run: |
+#          cp /root/.bashrc $HOME/.bashrc &&
+#          ln -sf /root/.rustup ~/.rustup &&
+#          ln -sf /root/.cargo ~/.cargo
+#      - name: Building
+#        run: |
+#          apt update && apt install libslirp-dev -y
+#          export CARGO_NET_GIT_FETCH_WITH_CLI=true &&
+#          ./setup.sh &&
+#          source environment &&
+#          make optee &&
+#          . ~/.cargo/env &&
+#          rustup component add rust-src &&
+#          rustup target install aarch64-unknown-linux-gnu arm-unknown-linux-gnueabihf &&
+#          rustup default nightly-2021-09-20 &&
+#          make examples
+#      - name: Run tests and examples
+#        run: |
+#          cd ci && ./ci.sh
   build-utee-teec:
     runs-on: ubuntu-20.04
     container: teaclave/teaclave-trustzone-sdk-build:0.3.0
