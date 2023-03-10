@@ -32,8 +32,8 @@ extern "C" {
         cmd: u32,
         sub_cmd: u32,
         buf: *mut c_char,
-        len: u32,
-        outlen: *mut u32,
+        len: usize,
+        outlen: *mut usize,
     ) -> TEE_Result; 
 
 }
