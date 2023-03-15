@@ -194,13 +194,13 @@ impl OperationHandle {
     }
 
     fn info_multiple(&self, info_buf: &mut [u8]) -> Result<OperationInfoMultiple> {
-        let mut tmp_size: u32 = 0;
+        let mut tmp_size: usize = 0;
         match unsafe {
             raw::TEE_GetOperationInfoMultiple(self.handle(), info_buf.as_ptr() as _, &mut tmp_size)
         } {
             raw::TEE_SUCCESS => Ok(OperationInfoMultiple::from_raw(
                 info_buf.as_ptr() as _,
-                tmp_size as usize,
+                tmp_size,
             )),
             code => Err(Error::from_raw_error(code)),
         }
@@ -274,7 +274,7 @@ impl Digest {
     /// 4) If the Implementation detects any other error.
     pub fn update(&self, chunk: &[u8]) {
         unsafe {
-            raw::TEE_DigestUpdate(self.handle(), chunk.as_ptr() as _, chunk.len() as u32);
+            raw::TEE_DigestUpdate(self.handle(), chunk.as_ptr() as _, chunk.len());
         }
     }
 
@@ -320,17 +320,17 @@ impl Digest {
     /// 4) If the Implementation detects any other error.
     //hash size is dynamic changed so we returned it's updated size
     pub fn do_final(&self, chunk: &[u8], hash: &mut [u8]) -> Result<usize> {
-        let mut hash_size: u32 = hash.len() as u32;
+        let mut hash_size: usize = hash.len();
         match unsafe {
             raw::TEE_DigestDoFinal(
                 self.handle(),
                 chunk.as_ptr() as _,
-                chunk.len() as u32,
+                chunk.len(),
                 hash.as_mut_ptr() as _,
                 &mut hash_size,
             )
         } {
-            raw::TEE_SUCCESS => return Ok(hash_size as usize),
+            raw::TEE_SUCCESS => return Ok(hash_size),
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -535,7 +535,7 @@ impl Cipher {
     /// 4) Hardware or cryptographic algorithm failure.
     /// 5) If the Implementation detects any other error.
     pub fn init(&self, iv: &[u8]) {
-        unsafe { raw::TEE_CipherInit(self.handle(), iv.as_ptr() as _, iv.len() as u32) };
+        unsafe { raw::TEE_CipherInit(self.handle(), iv.as_ptr() as _, iv.len()) };
     }
 
     /// Encrypt or decrypt the source data.
@@ -589,12 +589,12 @@ impl Cipher {
     /// 3) Hardware or cryptographic algorithm failure.
     /// 4) If the Implementation detects any other error.
     pub fn update(&self, src: &[u8], dest: &mut [u8]) -> Result<usize> {
-        let mut dest_size: u32 = dest.len() as u32;
+        let mut dest_size: usize = dest.len();
         match unsafe {
             raw::TEE_CipherUpdate(
                 self.handle(),
                 src.as_ptr() as _,
-                src.len() as u32,
+                src.len(),
                 dest.as_mut_ptr() as _,
                 &mut dest_size,
             )
@@ -625,12 +625,12 @@ impl Cipher {
     /// 3) Hardware or cryptographic algorithm failure.
     /// 4) If the Implementation detects any other error.
     pub fn do_final(&self, src: &[u8], dest: &mut [u8]) -> Result<usize> {
-        let mut dest_size: u32 = dest.len() as u32;
+        let mut dest_size: usize = dest.len();
         match unsafe {
             raw::TEE_CipherDoFinal(
                 self.handle(),
                 src.as_ptr() as _,
-                src.len() as u32,
+                src.len(),
                 dest.as_mut_ptr() as _,
                 &mut dest_size,
             )
@@ -762,7 +762,7 @@ impl Mac {
     /// 4) Hardware or cryptographic algorithm failure.
     /// 5) If the Implementation detects any other error.
     pub fn init(&self, iv: &[u8]) {
-        unsafe { raw::TEE_MACInit(self.handle(), iv.as_ptr() as _, iv.len() as u32) };
+        unsafe { raw::TEE_MACInit(self.handle(), iv.as_ptr() as _, iv.len()) };
     }
 
     /// Accumulate data for a MAC calculation.
@@ -784,7 +784,7 @@ impl Mac {
     /// 4) Hardware or cryptographic algorithm failure.
     /// 5) If the Implementation detects any other error.
     pub fn update(&self, chunk: &[u8]) {
-        unsafe { raw::TEE_MACUpdate(self.handle(), chunk.as_ptr() as _, chunk.len() as u32) };
+        unsafe { raw::TEE_MACUpdate(self.handle(), chunk.as_ptr() as _, chunk.len()) };
     }
     /// Finalize the MAC operation with a last chunk of message, and computes the MAC.
     /// Afterwards the operation handle can be reused or re-initialized with a new key.
@@ -833,17 +833,17 @@ impl Mac {
     /// 4) Hardware or cryptographic algorithm failure.
     /// 5) If the Implementation detects any other error.
     pub fn compute_final(&self, message: &[u8], mac: &mut [u8]) -> Result<usize> {
-        let mut mac_size: u32 = mac.len() as u32;
+        let mut mac_size: usize = mac.len();
         match unsafe {
             raw::TEE_MACComputeFinal(
                 self.handle(),
                 message.as_ptr() as _,
-                message.len() as u32,
+                message.len(),
                 mac.as_mut_ptr() as _,
                 &mut mac_size,
             )
         } {
-            raw::TEE_SUCCESS => Ok(mac_size as usize),
+            raw::TEE_SUCCESS => Ok(mac_size),
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -873,9 +873,9 @@ impl Mac {
             raw::TEE_MACCompareFinal(
                 self.handle(),
                 message.as_ptr() as _,
-                message.len() as u32,
+                message.len(),
                 mac.as_ptr() as _,
-                mac.len() as u32,
+                mac.len(),
             )
         } {
             raw::TEE_SUCCESS => Ok(()),
@@ -967,10 +967,10 @@ impl AE {
             raw::TEE_AEInit(
                 self.handle(),
                 nonce.as_ptr() as _,
-                nonce.len() as u32,
+                nonce.len(),
                 tag_len as u32,
-                aad_len as u32,
-                pay_load_len as u32,
+                aad_len,
+                pay_load_len,
             )
         } {
             raw::TEE_SUCCESS => return Ok(()),
@@ -996,7 +996,7 @@ impl AE {
     /// 6) If the Implementation detects any other error.
     pub fn update_aad(&self, aad_data: &[u8]) {
         unsafe {
-            raw::TEE_AEUpdateAAD(self.handle(), aad_data.as_ptr() as _, aad_data.len() as u32)
+            raw::TEE_AEUpdateAAD(self.handle(), aad_data.as_ptr() as _, aad_data.len())
         };
     }
 
@@ -1024,18 +1024,18 @@ impl AE {
     /// 5) Hardware or cryptographic algorithm failure.
     /// 6) If the Implementation detects any other error.
     pub fn update(&self, src: &[u8], dest: &mut [u8]) -> Result<usize> {
-        let mut dest_size: u32 = dest.len() as u32;
+        let mut dest_size: usize = dest.len();
         match unsafe {
             raw::TEE_AEUpdate(
                 self.handle(),
                 src.as_ptr() as _,
-                src.len() as u32,
+                src.len(),
                 dest.as_mut_ptr() as _,
                 &mut dest_size,
             )
         } {
             raw::TEE_SUCCESS => {
-                return Ok(dest_size as usize);
+                return Ok(dest_size);
             }
             code => Err(Error::from_raw_error(code)),
         }
@@ -1103,13 +1103,13 @@ impl AE {
         dest: &mut [u8],
         tag: &mut [u8],
     ) -> Result<(usize, usize)> {
-        let mut dest_size: u32 = dest.len() as u32;
-        let mut tag_size: u32 = tag.len() as u32;
+        let mut dest_size: usize = dest.len();
+        let mut tag_size: usize = tag.len();
         match unsafe {
             raw::TEE_AEEncryptFinal(
                 self.handle(),
                 src.as_ptr() as _,
-                src.len() as u32,
+                src.len(),
                 dest.as_mut_ptr() as _,
                 &mut dest_size,
                 tag.as_mut_ptr() as _,
@@ -1117,7 +1117,7 @@ impl AE {
             )
         } {
             raw::TEE_SUCCESS => {
-                return Ok((dest_size as usize, tag_size as usize));
+                return Ok((dest_size, tag_size));
             }
             code => Err(Error::from_raw_error(code)),
         }
@@ -1147,20 +1147,20 @@ impl AE {
     /// 4) Hardware or cryptographic algorithm failure.
     /// 5) If the Implementation detects any other error.
     pub fn decrypt_final(&self, src: &[u8], dest: &mut [u8], tag: &[u8]) -> Result<usize> {
-        let mut dest_size: u32 = dest.len() as u32;
+        let mut dest_size: usize = dest.len();
         match unsafe {
             raw::TEE_AEDecryptFinal(
                 self.handle(),
                 src.as_ptr() as _,
-                src.len() as u32,
+                src.len(),
                 dest.as_mut_ptr() as _,
                 &mut dest_size,
                 tag.as_ptr() as _,
-                tag.len() as u32,
+                tag.len(),
             )
         } {
             raw::TEE_SUCCESS => {
-                return Ok(dest_size as usize);
+                return Ok(dest_size);
             }
             code => Err(Error::from_raw_error(code)),
         }
@@ -1270,7 +1270,7 @@ impl Asymmetric {
     // Define this function as unsafe because we need to return Ok for short buffer error.
     pub fn encrypt(&self, params: &[Attribute], src: &[u8]) -> Result<Vec<u8>> {
         let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
-        let mut res_size: u32 = self.info().key_size();
+        let mut res_size: usize = self.info().key_size() as usize;
         let mut res_vec: Vec<u8> = vec![0u8; res_size as usize];
         match unsafe {
             raw::TEE_AsymmetricEncrypt(
@@ -1278,13 +1278,13 @@ impl Asymmetric {
                 p.as_ptr() as _,
                 params.len() as u32,
                 src.as_ptr() as _,
-                src.len() as u32,
+                src.len(),
                 res_vec.as_mut_ptr() as _,
                 &mut res_size,
             )
         } {
             raw::TEE_SUCCESS => {
-                res_vec.truncate(res_size as usize);
+                res_vec.truncate(res_size);
                 return Ok(res_vec);
             }
             code => Err(Error::from_raw_error(code)),
@@ -1313,7 +1313,7 @@ impl Asymmetric {
     /// 4) If the Implementation detects any other error.
     pub fn decrypt(&self, params: &[Attribute], src: &[u8]) -> Result<Vec<u8>> {
         let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
-        let mut res_size: u32 = self.info().key_size();
+        let mut res_size: usize = self.info().key_size() as usize;
         let mut res_vec: Vec<u8> = vec![0u8; res_size as usize];
         match unsafe {
             raw::TEE_AsymmetricDecrypt(
@@ -1321,7 +1321,7 @@ impl Asymmetric {
                 p.as_ptr() as _,
                 params.len() as u32,
                 src.as_ptr() as _,
-                src.len() as u32,
+                src.len(),
                 res_vec.as_mut_ptr() as _,
                 &mut res_size,
             )
@@ -1362,20 +1362,20 @@ impl Asymmetric {
         signature: &mut [u8],
     ) -> Result<usize> {
         let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
-        let mut signature_size: u32 = signature.len() as u32;
+        let mut signature_size: usize = signature.len();
         match unsafe {
             raw::TEE_AsymmetricSignDigest(
                 self.handle(),
                 p.as_ptr() as _,
                 params.len() as u32,
                 digest.as_ptr() as _,
-                digest.len() as u32,
+                digest.len(),
                 signature.as_mut_ptr() as _,
                 &mut signature_size,
             )
         } {
             raw::TEE_SUCCESS => {
-                return Ok(signature_size as usize);
+                return Ok(signature_size);
             }
             code => Err(Error::from_raw_error(code)),
         }
@@ -1415,9 +1415,9 @@ impl Asymmetric {
                 p.as_ptr() as _,
                 params.len() as u32,
                 digest.as_ptr() as _,
-                digest.len() as u32,
+                digest.len(),
                 signature.as_ptr() as _,
-                signature.len() as u32,
+                signature.len(),
             )
         } {
             raw::TEE_SUCCESS => Ok(()),

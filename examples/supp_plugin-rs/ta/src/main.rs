@@ -50,6 +50,7 @@ fn destroy() {
 fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
     let mut p0 = unsafe { params.0.as_memref().unwrap() };
+    let mut inbuf = p0.buffer().to_vec();
     trace_println!("[+] TA received value {:?} then send to plugin", p0.buffer());
     let uuid = Uuid::parse_str(PLUGIN_UUID).unwrap();
 
@@ -59,7 +60,7 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
             let outbuf = plugin.invoke(
                 PluginCommand::Print as u32, 
                 PLUGIN_SUBCMD_NULL, 
-                p0.buffer()
+                &inbuf
             ).unwrap();
 
             trace_println!("[+] TA received out value {:?} outlen {:?}", outbuf, outbuf.len());

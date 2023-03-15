@@ -38,7 +38,7 @@ impl BigInt {
     pub fn new(bits: u32) -> Self {
         let size: usize = Self::size_in_u32(bits) as usize;
         let mut tmp_vec: Vec<BigIntUnit> = vec![0; size];
-        unsafe { raw::TEE_BigIntInit(tmp_vec.as_mut_ptr(), size as u32) };
+        unsafe { raw::TEE_BigIntInit(tmp_vec.as_mut_ptr(), size as usize) };
         Self(tmp_vec)
     }
 
@@ -47,7 +47,7 @@ impl BigInt {
             raw::TEE_BigIntConvertFromOctetString(
                 self.0.as_mut_ptr(),
                 buffer.as_ptr(),
-                buffer.len() as u32,
+                buffer.len() as usize,
                 sign,
             )
         } {
@@ -57,17 +57,17 @@ impl BigInt {
     }
 
     pub fn convert_to_octet_string(&self) -> Result<Vec<u8>> {
-        let mut buffer_size: u32 = (self.0.len() as u32 - 2) * 4;
-        let mut tmp_vec = vec![0u8; buffer_size as usize];
+        let mut buffer_size: usize = (self.0.len() - 2) * 4;
+        let mut tmp_vec = vec![0u8; buffer_size];
         match unsafe {
             raw::TEE_BigIntConvertToOctetString(
                 tmp_vec.as_mut_ptr(),
-                &mut buffer_size as _,
+                &mut buffer_size,
                 self.data_ptr(),
             )
         } {
             raw::TEE_SUCCESS => {
-                tmp_vec.truncate(buffer_size as usize);
+                tmp_vec.truncate(buffer_size);
                 return Ok(tmp_vec);
             }
             code => Err(Error::from_raw_error(code)),
@@ -264,16 +264,16 @@ impl BigIntFMMContext {
         self.0.as_ptr()
     }
 
-    fn size_in_u32(size: u32) -> u32 {
+    fn size_in_u32(size: usize) -> usize {
         unsafe { raw::TEE_BigIntFMMContextSizeInU32(size) }
     }
 
     // Globalplatform define FMMContext1 here while OP-TEE does not update yet
     pub fn new(bits: u32, modulus: BigInt) -> Result<Self> {
-        let size: usize = Self::size_in_u32(bits) as usize;
+        let size: usize = Self::size_in_u32(bits as usize) as usize;
         let mut tmp_vec: Vec<BigIntFMMContextUnit> = vec![0; size];
         unsafe {
-            raw::TEE_BigIntInitFMMContext(tmp_vec.as_mut_ptr(), size as u32, modulus.data_ptr())
+            raw::TEE_BigIntInitFMMContext(tmp_vec.as_mut_ptr(), size, modulus.data_ptr())
         };
         Ok(Self(tmp_vec))
     }
@@ -286,14 +286,14 @@ impl BigIntFMM {
         self.0.as_ptr()
     }
 
-    fn size_in_u32(size: u32) -> u32 {
+    fn size_in_u32(size: usize) -> usize {
         unsafe { raw::TEE_BigIntFMMSizeInU32(size) }
     }
 
     pub fn new(bits: u32) -> Self {
-        let size: usize = Self::size_in_u32(bits) as usize;
+        let size: usize = Self::size_in_u32(bits as usize) as usize;
         let mut tmp_vec: Vec<BigIntFMMUnit> = vec![0; size];
-        unsafe { raw::TEE_BigIntInitFMM(tmp_vec.as_mut_ptr(), size as u32) };
+        unsafe { raw::TEE_BigIntInitFMM(tmp_vec.as_mut_ptr(), size) };
         Self(tmp_vec)
     }
 
@@ -328,7 +328,7 @@ impl BigIntFMM {
         };
     }
 }
-//OP-TEE does not implement function:
+//OP-TEE in version GP 1.1.1 does not implement function:
 //TEE_BigIntSetBit
 //TEE_BigIntAssign
 //TEE_BigIntAbs

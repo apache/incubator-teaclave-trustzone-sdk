@@ -28,21 +28,21 @@ impl LoadablePlugin {
     }
     pub fn invoke(&mut self, command_id: u32, subcommand_id: u32, data: &[u8]) -> Result<Vec<u8>> {
         let raw_uuid: Uuid = self.uuid;
-        let mut outlen: u32 = 0;
+        let mut outlen: usize = 0;
         match unsafe {
             raw::tee_invoke_supp_plugin(
                 raw_uuid.as_raw_ptr(),
                 command_id as u32,
                 subcommand_id as u32,
                 data.as_ptr() as _,
-                data.len() as u32,
-                &mut outlen as *mut u32,
+                data.len(),
+                &mut outlen as *mut usize,
             )
         } {
             raw::TEE_SUCCESS => {
-                assert!(outlen <= (data.len() as u32));
-                let mut outbuf = vec![0; outlen as usize];
-                outbuf.copy_from_slice(&data[..(outlen as usize)]);
+                assert!(outlen <= (data.len()));
+                let mut outbuf = vec![0; outlen];
+                outbuf.copy_from_slice(&data[..outlen]);
                 
                 Ok(outbuf)
             },

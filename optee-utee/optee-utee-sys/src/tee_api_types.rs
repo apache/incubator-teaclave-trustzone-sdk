@@ -40,7 +40,7 @@ pub struct TEE_Identity {
 #[repr(C)]
 pub struct Memref {
     pub buffer: *mut c_void,
-    pub size: u32,
+    pub size: usize,
 }
 
 #[derive(Copy, Clone)]
@@ -94,15 +94,15 @@ pub type TEE_ObjectType = u32;
 #[repr(C)]
 pub struct TEE_ObjectInfo {
     pub objectType: u32,
-    // remove to 2 unions here, only keep 1.1.1 spec version
     pub objectSize: u32,
     pub maxObjectSize: u32,
     pub objectUsage: u32,
-    pub dataSize: u32,
-    pub dataPosition: u32,
+    pub dataSize: usize,
+    pub dataPosition: usize,
     pub handleFlags: u32,
 }
 
+// Reserve the GP 1.1.1 type
 #[repr(C)]
 pub enum TEE_Whence {
     TEE_DATA_SEEK_SET,
@@ -126,6 +126,7 @@ pub struct TEE_Attribute {
 
 // Cryptographic Operations API
 
+// Reserve the GP 1.1.1 type
 #[repr(C)]
 pub enum TEE_OperationMode {
     TEE_MODE_ENCRYPT,
