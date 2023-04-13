@@ -80,6 +80,7 @@ pub type TEEC_Result = u32;
 pub struct TEEC_Context {
     pub fd: c_int,
     pub reg_mem: bool,
+    pub memref_null: bool,
 }
 
 #[repr(C)]
@@ -97,6 +98,12 @@ pub struct TEEC_Session {
 }
 
 #[repr(C)]
+pub union SharedMemoryFlagsCompat {
+    dummy: bool,
+    flags: u8,
+}
+
+#[repr(C)]
 pub struct TEEC_SharedMemory {
     pub buffer: *mut c_void,
     pub size: size_t,
@@ -105,7 +112,7 @@ pub struct TEEC_SharedMemory {
     pub alloced_size: size_t,
     pub shadow_buffer: *mut c_void,
     pub registered_fd: c_int,
-    pub buffer_allocated: bool,
+    pub internal: SharedMemoryFlagsCompat,
 }
 
 #[derive(Copy, Clone)]
