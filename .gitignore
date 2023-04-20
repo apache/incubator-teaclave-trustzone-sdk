@@ -15,9 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
-examples/**/proto/Cargo.lock
-**/*.rs.bk
+/examples/**/proto/Cargo.lock
+*.rs.bk
 .user_ta_header.o.d
-**/target
-optee/toolchains
-out
+target/
+/optee/toolchains
+/out
