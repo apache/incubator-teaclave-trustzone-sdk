@@ -34,17 +34,17 @@ rustup default nightly-2021-09-20
 # initialize submodules: optee_os / optee_client / build
 OPTEE_RELEASE_VERSION=3.20.0
 
-if [[ -z $OPTEE_DIR ]] || [[ $OPTEE_DIR == $PWD/optee ]]
+if [[ -z "$OPTEE_DIR" ]] || [[ "$OPTEE_DIR" == "$(pwd)/optee" ]]
 then
-	OPTEE_DIR=$PWD/optee
-	echo optee dir: $OPTEE_DIR
-	OPTEE_SUBMODULES=("optee_os" "optee_client" "build")
+	OPTEE_DIR="$(pwd)/optee"
+	echo "optee dir: $OPTEE_DIR"
+	OPTEE_SUBMODULES=(optee_os optee_client build)
 
-	if [ ! -d $OPTEE_DIR ]
+	if [ ! -d "$OPTEE_DIR" ]
 	then
-		mkdir $OPTEE_DIR
+		mkdir "$OPTEE_DIR"
 	else
-		rm -r $OPTEE_DIR/*
+		rm -r "$OPTEE_DIR"/*
 	fi
 
 	# download optee release
@@ -53,26 +53,26 @@ then
 	do
 		echo "Downloading $submodule..."
 		curl --retry 5 -s -S \
-			-L https://github.com/OP-TEE/$submodule/archive/refs/tags/$OPTEE_RELEASE_VERSION.tar.gz \
-			-o $OPTEE_DIR/$OPTEE_RELEASE_VERSION.tar.gz
+			-L "https://github.com/OP-TEE/$submodule/archive/refs/tags/$OPTEE_RELEASE_VERSION.tar.gz" \
+			-o "$OPTEE_DIR/$OPTEE_RELEASE_VERSION.tar.gz"
 		if [ ! $? -eq 0 ]
 		then
-			rm $OPTEE_DIR/$OPTEE_RELEASE_VERSION.tar.gz && \
+			rm "$OPTEE_DIR/$OPTEE_RELEASE_VERSION.tar.gz" && \
 				echo "Download failed" && \
 				exit 1
 		fi
 		echo "Uncompressing $submodule..."
-		mkdir -p $OPTEE_DIR/$submodule && \
-			tar zxf $OPTEE_DIR/$OPTEE_RELEASE_VERSION.tar.gz \
-			-C $OPTEE_DIR/$submodule --strip-components 1
+		mkdir -p "$OPTEE_DIR/$submodule" && \
+			tar zxf "$OPTEE_DIR/$OPTEE_RELEASE_VERSION.tar.gz" \
+			-C "$OPTEE_DIR/$submodule" --strip-components 1
 		if [ ! $? -eq 0 ]
 		then
-			rm $OPTEE_DIR/$OPTEE_RELEASE_VERSION.tar.gz && \
-				rm -r $OPTEE_DIR/$submodule && \
+			rm "$OPTEE_DIR/$OPTEE_RELEASE_VERSION.tar.gz" && \
+				rm -r "$OPTEE_DIR/$submodule" && \
 				echo "Downloaded file is damaged" && \
 				exit 1
 		fi
-		rm $OPTEE_DIR/$OPTEE_RELEASE_VERSION.tar.gz
+		rm "$OPTEE_DIR/$OPTEE_RELEASE_VERSION.tar.gz"
 	done
 	echo "Download finished"
 else
@@ -95,17 +95,17 @@ mkdir rust && cd rust
 
 git clone https://github.com/mesalock-linux/rust.git && \
 	(cd rust && \
-	git checkout $RUST_COMMIT_ID && \
+	git checkout "$RUST_COMMIT_ID" && \
 	git submodule update --init library/stdarch && \
 	git submodule update --init library/backtrace)
 
 git clone https://github.com/mesalock-linux/compiler-builtins.git && \
 	(cd compiler-builtins && \
-	git checkout $COMPILER_BUILTINS_COMMIT_ID && \
+	git checkout "$COMPILER_BUILTINS_COMMIT_ID" && \
 	git submodule update --init libm)
 
 git clone https://github.com/mesalock-linux/libc.git && \
 	(cd libc && \
-	git checkout $LIBC_COMMIT_ID)
+	git checkout "$LIBC_COMMIT_ID")
 
 echo "Rust submodules initialized"
