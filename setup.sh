@@ -20,6 +20,10 @@
 set -xe
 
 ##########################################
+# move to project root
+cd "$(dirname "$0")"
+
+##########################################
 # install Rust and select a proper version
 curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2021-09-20
 source $HOME/.cargo/env
