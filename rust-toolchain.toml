@@ -15,22 +15,9 @@
 # specific language governing permissions and limitations
 # under the License.
 
-header:
-  license:
-    spdx-id: Apache-2.0
-    copyright-owner: Apache Software Foundation
+# Toolchain override for rustup
 
-  paths-ignore:
-    - 'dist'
-    - 'licenses'
-    - '**/*.md'
-    - 'LICENSE'
-    - 'NOTICE'
-    - '**/Cargo.lock'
-    - '**/*.lds'
-    - 'aarch64-unknown-optee-trustzone.json'
-    - 'arm-unknown-optee-trustzone.json'
-    - 'KEYS'
-    - 'DISCLAIMER-WIP'
-    - '.gitmodules'
-    - 'examples/tls_server-rs/ta/test-ca/**'
+[toolchain]
+channel = "nightly-2021-09-20"
+components = ["rust-src"]
+targets = ["aarch64-unknown-linux-gnu", "arm-unknown-linux-gnueabihf"]

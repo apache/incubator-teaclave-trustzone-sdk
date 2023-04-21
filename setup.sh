@@ -24,15 +24,23 @@ set -xe
 cd "$(dirname "$0")"
 
 ##########################################
-# install Rust and select a proper version
-curl https://sh.rustup.rs -sSf | sh -s -- -y --default-toolchain nightly-2021-09-20
-source $HOME/.cargo/env
-rustup component add rust-src && rustup target install aarch64-unknown-linux-gnu arm-unknown-linux-gnueabihf
+# install rustup and stable Rust if needed
+if command -v rustup &>/dev/null ; then
+	rustup install stable
+else
+	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+	source "$HOME/.cargo/env"
+fi
+
+# Ensure the toolchain, components, and targets we've specified in
+# rust-toolchain.toml are ready to go. Since that file sets rustup's default
+# toolchain for the entire directory, all we need to do is run any
+# rustup-wrapped command to trigger installation. We've arbitrarily chosen
+# "cargo --version" since it has no other effect.
+cargo --version >/dev/null
 
 # install Xargo
-rustup default 1.56.0 && cargo +1.56.0 install xargo
-# switch to nightly
-rustup default nightly-2021-09-20
+cargo +stable install xargo
 
 ########################################################
 # initialize submodules: optee_os / optee_client / build
