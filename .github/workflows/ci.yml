@@ -92,6 +92,11 @@ jobs:
           mkdir -p ~/optee-qemuv8 && cd ~/optee-qemuv8 &&
           repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml &&
           repo sync -j4 --no-clone-bundle
+      - name: Setting up $HOME
+        run: |
+          cp /root/.bashrc $HOME/.bashrc &&
+          ln -sf /root/.rustup ~/.rustup &&
+          ln -sf /root/.cargo ~/.cargo
       - name: Build images and run tests
         run: |
           apt update && apt install libslirp-dev -y
