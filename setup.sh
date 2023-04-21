@@ -65,13 +65,13 @@ then
 		mkdir -p $OPTEE_DIR/$submodule && \
 			tar zxf $OPTEE_DIR/$OPTEE_RELEASE_VERSION.tar.gz \
 			-C $OPTEE_DIR/$submodule --strip-components 1
-	        if [ ! $? -eq 0 ]
+		if [ ! $? -eq 0 ]
 		then
 			rm $OPTEE_DIR/$OPTEE_RELEASE_VERSION.tar.gz && \
 				rm -r $OPTEE_DIR/$submodule && \
 				echo "Downloaded file is damaged" && \
 				exit 1
-	        fi
+		fi
 		rm $OPTEE_DIR/$OPTEE_RELEASE_VERSION.tar.gz
 	done
 	echo "Download finished"
@@ -88,7 +88,7 @@ LIBC_COMMIT_ID=1ddfbbbc190bec0f5ec32b08e97585b34d0c6b09
 
 if [ -d rust/ ]
 then
-        rm -r rust/
+	rm -r rust/
 fi
 
 mkdir rust && cd rust
