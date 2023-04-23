@@ -36,7 +36,7 @@ impl Context {
     /// let ctx = Context::new().unwrap();
     /// ```
     pub fn new() -> Result<Context> {
-        Context::new_raw(0, true).map(|raw| Context { raw })
+        Context::new_raw(0, true, false).map(|raw| Context { raw })
     }
 
     /// Creates a raw TEE client context with implementation defined parameters.
@@ -46,8 +46,12 @@ impl Context {
     /// ```
     /// let raw_ctx: optee_teec_sys::TEEC_Context = Context::new_raw(0, true).unwrap();
     /// ```
-    pub fn new_raw(fd: libc::c_int, reg_mem: bool) -> Result<raw::TEEC_Context> {
-        let mut raw_ctx = raw::TEEC_Context { fd, reg_mem };
+    pub fn new_raw(fd: libc::c_int, reg_mem: bool, memref_null: bool) -> Result<raw::TEEC_Context> {
+        let mut raw_ctx = raw::TEEC_Context {
+            fd,
+            reg_mem,
+            memref_null,
+        };
         unsafe {
             match raw::TEEC_InitializeContext(ptr::null_mut() as *mut libc::c_char, &mut raw_ctx) {
                 raw::TEEC_SUCCESS => Ok(raw_ctx),
