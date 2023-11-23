@@ -247,7 +247,7 @@ impl Drop for OperationHandle {
             if self.raw != ptr::null_mut() {
                 raw::TEE_FreeOperation(self.handle());
             }
-            Box::from_raw(self.raw);
+            drop(Box::from_raw(self.raw));
         }
     }
 }
