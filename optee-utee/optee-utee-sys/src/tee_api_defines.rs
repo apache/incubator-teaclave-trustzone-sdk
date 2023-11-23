@@ -16,7 +16,7 @@
 // under the License.
 
 use super::tee_api_types::*;
-use std::ptr::null;
+use core::ptr::null;
 
 pub const TEE_CORE_API_MAJOR_VERSION: u32 = 0x00000001;
 pub const TEE_CORE_API_MINOR_VERSION: u32 = 0x00000003;

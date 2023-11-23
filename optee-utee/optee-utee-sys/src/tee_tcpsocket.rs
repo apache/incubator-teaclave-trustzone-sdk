@@ -15,8 +15,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
+#[cfg(feature = "std")]
+use std::os::raw::*;
+#[cfg(not(feature = "std"))]
+use core::ffi::*;
 use super::*;
-use libc::*;
 
 pub type TEE_tcpSocket_Setup = TEE_tcpSocket_Setup_s;
 #[repr(C)]

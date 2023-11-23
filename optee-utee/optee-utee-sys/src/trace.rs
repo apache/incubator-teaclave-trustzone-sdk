@@ -15,7 +15,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use libc::*;
+#[cfg(feature = "std")]
+use std::os::raw::*;
+#[cfg(not(feature = "std"))]
+use core::ffi::*;
 
 extern "C" {
     pub fn trace_ext_puts(str: *const c_char);
