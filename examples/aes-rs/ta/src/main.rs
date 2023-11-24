@@ -15,8 +15,14 @@
 // specific language governing permissions and limitations
 // under the License.
 
+#![no_std]
 #![no_main]
+#![feature(c_size_t)]
 
+extern crate alloc;
+
+use alloc::vec;
+use alloc::boxed::Box;
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
@@ -25,7 +31,6 @@ use optee_utee::{AlgorithmId, ElementId, Cipher, OperationMode};
 use optee_utee::{AttributeId, AttributeMemref, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::{Algo, Command, KeySize, Mode};
-use std::boxed::Box;
 
 pub struct AesCipher {
     pub key_size: usize,
