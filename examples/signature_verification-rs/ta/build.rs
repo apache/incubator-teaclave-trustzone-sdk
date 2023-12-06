@@ -47,7 +47,7 @@ fn main() -> std::io::Result<()> {
         Ok(ref v) if v == "arm" => {
             File::create(out.join("ta.lds"))?.write_all(include_bytes!("ta_arm.lds"))?;
             Path::new(&optee_os_dir).join("out/arm/export-ta_arm32/lib")
-        }
+        },
         _ => {
             File::create(out.join("ta.lds"))?.write_all(include_bytes!("ta_aarch64.lds"))?;
             Path::new(&optee_os_dir).join("out/arm/export-ta_arm64/lib")
