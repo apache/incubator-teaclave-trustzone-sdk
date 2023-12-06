@@ -18,8 +18,8 @@
 use optee_teec::{Context, Operation, ParamNone, ParamTmpRef, ParamType, Session, Uuid};
 use proto::{Command, UUID};
 
-const PUBLIC_KEY_SIZE: usize = 32;
-const SIGNATURE_SIZE: usize = 64;
+const PUBLIC_KEY_SIZE: usize = 259;
+const SIGNATURE_SIZE: usize = 256;
 
 fn sign(
     session: &mut Session,
