@@ -15,7 +15,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
+#![no_std]
 #![no_main]
+#![feature(c_size_t)]
+
+extern crate alloc;
 
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
@@ -50,7 +54,7 @@ fn destroy() {
 fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
     let mut p0 = unsafe { params.0.as_memref().unwrap() };
-    let mut inbuf = p0.buffer().to_vec();
+    let inbuf = p0.buffer().to_vec();
     trace_println!("[+] TA received value {:?} then send to plugin", p0.buffer());
     let uuid = Uuid::parse_str(PLUGIN_UUID).unwrap();
 
