@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use optee_teec::{Context, Operation, ParamNone, ParamTmpRef, ParamType, Session, Uuid};
+use optee_teec::{Context, Operation, ParamNone, ParamTmpRef, Session, Uuid};
 use proto::{Command, UUID};
 
 const PUBLIC_KEY_SIZE: usize = 259;
