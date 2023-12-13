@@ -58,5 +58,6 @@ fn main() -> std::io::Result<()> {
 
     println!("cargo:rustc-link-search={}", search_path.display());
     println!("cargo:rustc-link-lib=static=utee");
+    println!("cargo:rustc-link-lib=static=utils");
     Ok(())
 }
