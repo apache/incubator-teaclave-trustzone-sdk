@@ -18,7 +18,7 @@
 use proto;
 use std::env;
 use std::fs::File;
-use std::io::Write;
+use std::io::{BufRead, BufReader, Write};
 use std::path::{Path, PathBuf};
 use uuid::Uuid;
 
@@ -42,14 +42,38 @@ fn main() -> std::io::Result<()> {
 }};",
         time_low, time_mid, time_hi_and_version, clock_seq_and_node
     )?;
+
     let optee_os_dir = env::var("OPTEE_OS_DIR").unwrap_or("../../../optee/optee_os".to_string());
+    let optee_os_path = &PathBuf::from(optee_os_dir.clone());
     let search_path = match env::var("ARCH") {
         Ok(ref v) if v == "arm" => {
-            File::create(out.join("ta.lds"))?.write_all(include_bytes!("ta_arm.lds"))?;
+            let mut ta_lds = File::create(out.join("ta.lds"))?;
+            let f = File::open(optee_os_path.join("out/arm/export-ta_arm32/src/ta.ld.S"))?;
+            let f = BufReader::new(f);
+
+            write!(ta_lds, "OUTPUT_FORMAT(\"elf32-littlearm\")\n")?;
+            write!(ta_lds, "OUTPUT_ARCH(arm)\n")?;
+            for line in f.lines() {
+                write!(ta_lds, "{}\n", line?)?;
+            }
             Path::new(&optee_os_dir).join("out/arm/export-ta_arm32/lib")
         },
         _ => {
-            File::create(out.join("ta.lds"))?.write_all(include_bytes!("ta_aarch64.lds"))?;
+            let mut ta_lds = File::create(out.join("ta.lds"))?;
+            let f = File::open(optee_os_path.join("out/arm/export-ta_arm64/src/ta.ld.S"))?;
+            let f = BufReader::new(f);
+
+            write!(ta_lds, "OUTPUT_FORMAT(\"elf64-littleaarch64\")\n")?;
+            write!(ta_lds, "OUTPUT_ARCH(aarch64)\n")?;
+            for line in f.lines() {
+                let l = line?;
+
+                if l == "\t. = ALIGN(4096);" {
+                    write!(ta_lds, "\t. = ALIGN(65536);\n")?;
+                } else {
+                    write!(ta_lds, "{}\n", l)?;
+                }
+            }
             Path::new(&optee_os_dir).join("out/arm/export-ta_arm64/lib")
         }
     };
@@ -64,5 +88,9 @@ fn main() -> std::io::Result<()> {
     println!("cargo:rustc-link-arg=-pie");
     println!("cargo:rustc-link-arg=-Os");
     println!("cargo:rustc-link-arg=--sort-section=alignment");
+
+    let mut dyn_list = File::create(out.join("dyn_list"))?;
+    write!(dyn_list, "{{ __elf_phdr_info; trace_ext_prefix; trace_level; ta_head; }};\n")?;
+    println!("cargo:rustc-link-arg=--dynamic-list=dyn_list");
     Ok(())
 }
