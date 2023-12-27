@@ -22,6 +22,11 @@
 #[macro_use]
 extern crate alloc;
 
+use libc_alloc::LibcAlloc;
+
+#[global_allocator]
+static ALLOCATOR: LibcAlloc = LibcAlloc;
+
 pub use self::error::{Error, ErrorKind, Result};
 pub use self::object::*;
 pub use self::crypto_op::*;
