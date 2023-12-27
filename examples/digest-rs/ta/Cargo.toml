@@ -34,5 +34,6 @@ uuid = { version = "1.6.1", default-features = false }
 proto = { path = "../proto" }
 
 [profile.release]
+panic = "abort"
 lto = true
 opt-level = 1
