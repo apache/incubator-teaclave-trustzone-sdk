@@ -24,10 +24,12 @@ ifeq ($(ARCH), arm)
 	OPTEE_BIN := $(OPTEE_DIR)/toolchains/aarch32/bin
 	OBJCOPY := $(OPTEE_BIN)/arm-linux-gnueabihf-objcopy
 	TARGET := arm-unknown-linux-gnueabihf
+	LINKER_CFG := target.arm-unknown-linux-gnueabihf..linker=\"arm-linux-gnueabihf-gcc\"
 else
 	OPTEE_BIN := $(OPTEE_DIR)/toolchains/$(ARCH)/bin
 	OBJCOPY := $(OPTEE_BIN)/aarch64-linux-gnu-objcopy
 	TARGET := aarch64-unknown-linux-gnu
+	LINKER_CFG := target.aarch64-unknown-linux-gnu.linker=\"aarch64-linux-gnu-gcc\"
 endif
 
 OUT_DIR := $(CURDIR)/target/$(TARGET)/release
@@ -36,7 +38,7 @@ OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 all: host strip
 
 host:
-	@cargo build --target $(TARGET) --release
+	@cargo build --target $(TARGET) --release --config $(LINKER_CFG)
 
 strip:
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/$(NAME) $(OUT_DIR)/$(NAME)

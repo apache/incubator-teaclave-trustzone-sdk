@@ -59,5 +59,10 @@ fn main() -> std::io::Result<()> {
     println!("cargo:rustc-link-search={}", search_path.display());
     println!("cargo:rustc-link-lib=static=utee");
     println!("cargo:rustc-link-lib=static=utils");
+    println!("cargo:rustc-link-arg=-Tta.lds");
+    println!("cargo:rustc-link-arg=-e__ta_entry");
+    println!("cargo:rustc-link-arg=-pie");
+    println!("cargo:rustc-link-arg=-Os");
+    println!("cargo:rustc-link-arg=--sort-section=alignment");
     Ok(())
 }

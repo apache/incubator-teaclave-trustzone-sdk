@@ -25,7 +25,7 @@ rm -rf shared
 
 curl https://nightlies.apache.org/teaclave/teaclave-trustzone-sdk/optee-qemuv8-3.20.0-ubuntu-20.04.tar.gz | tar zxv
 mkdir shared
-cp ../examples/random-rs/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
+cp ../examples/random-rs/ta/target/aarch64-unknown-linux-gnu/release/*.ta shared
 cp ../examples/random-rs/host/target/aarch64-unknown-linux-gnu/release/random-rs shared
 
 screen -L -d -m -S qemu_screen ./optee-qemuv8.sh
