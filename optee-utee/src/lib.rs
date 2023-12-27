@@ -15,6 +15,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), feature(error_in_core))]
+
+// Requires `alloc`.
+#[macro_use]
+extern crate alloc;
+
 pub use self::error::{Error, ErrorKind, Result};
 pub use self::object::*;
 pub use self::crypto_op::*;
@@ -38,4 +45,6 @@ pub mod time;
 pub mod arithmetical;
 pub mod extension;
 pub mod uuid;
+
+#[cfg(feature = "std")]
 pub mod net;
