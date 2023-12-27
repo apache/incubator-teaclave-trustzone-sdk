@@ -67,7 +67,7 @@ jobs:
           source environment &&
           make optee &&
           . ~/.cargo/env &&
-          (cd optee-utee && xargo build --target aarch64-unknown-optee-trustzone -vv) &&
+          (cd optee-utee && cargo build --target aarch64-unknown-linux-gnu --no-default-features -vv) &&
           (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
   build-and-run-examples-in-OPTEE-repo:
     runs-on: ubuntu-20.04
