@@ -18,7 +18,11 @@
 use crate::{Error, Result};
 use bitflags::bitflags;
 use optee_utee_sys as raw;
-use std::{marker, mem, ptr};
+use core::{marker, mem, ptr};
+#[cfg(not(feature = "std"))]
+use alloc::boxed::Box;
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
 
 /// A general attribute (buffer or value) that can be used to populate an object or to specify
 /// opeation parameters.
