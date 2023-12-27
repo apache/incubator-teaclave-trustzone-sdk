@@ -42,7 +42,9 @@ OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 all: ta strip sign
 
 ta:
-	@xargo build --target $(TARGET) --release --verbose --config $(LINKER_CFG)
+	rustup override set nightly-2021-09-20
+	@xargo build --target $(TARGET) --release --verbose -Z unstable-options --config $(LINKER_CFG)
+	rustup override unset
 
 strip:
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/ta $(OUT_DIR)/stripped_ta
