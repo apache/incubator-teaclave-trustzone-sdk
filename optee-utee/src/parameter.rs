@@ -15,9 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
+use core::{marker, slice};
 use crate::{Error, ErrorKind, Result};
 use optee_utee_sys as raw;
-use std::marker;
 
 pub struct Parameters(pub Parameter, pub Parameter, pub Parameter, pub Parameter);
 
@@ -74,7 +74,7 @@ pub struct ParamMemref<'parameter> {
 impl<'parameter> ParamMemref<'parameter> {
     pub fn buffer(&mut self) -> &mut [u8] {
         unsafe {
-            std::slice::from_raw_parts_mut((*self.raw).buffer as *mut u8, (*self.raw).size as usize)
+            slice::from_raw_parts_mut((*self.raw).buffer as *mut u8, (*self.raw).size as usize)
         }
     }
 

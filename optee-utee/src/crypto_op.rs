@@ -17,7 +17,11 @@
 
 use crate::{Attribute, Error, ObjHandle, Result, TransientObject};
 use optee_utee_sys as raw;
-use std::{mem, ptr};
+use core::{mem, ptr};
+#[cfg(not(feature = "std"))]
+use alloc::boxed::Box;
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
 
 /// Specify one of the available cryptographic operations.
 #[repr(u32)]
