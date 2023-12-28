@@ -39,9 +39,6 @@ fi
 # "cargo --version" since it has no other effect.
 cargo --version >/dev/null
 
-# install Xargo
-cargo +stable install xargo
-
 ########################################################
 # initialize submodules: optee_os / optee_client / build
 OPTEE_RELEASE_VERSION=3.20.0
@@ -90,34 +87,3 @@ then
 else
 	echo "OPTEE_DIR has been set, omit to download optee submodules"
 fi
-
-
-########################################################
-# initialize submodules: rust / compiler-builtins / libc
-RUST_COMMIT_ID=cb8a61693c80ebc615c2b66f40f0789cd16e699a
-COMPILER_BUILTINS_COMMIT_ID=45a2e4996fe732172004b292b07397f9a02265ab
-LIBC_COMMIT_ID=1ddfbbbc190bec0f5ec32b08e97585b34d0c6b09
-
-if [ -d rust/ ]
-then
-	rm -r rust/
-fi
-
-mkdir rust && cd rust
-
-git clone https://github.com/mesalock-linux/rust.git && \
-	(cd rust && \
-	git checkout "$RUST_COMMIT_ID" && \
-	git submodule update --init library/stdarch && \
-	git submodule update --init library/backtrace)
-
-git clone https://github.com/mesalock-linux/compiler-builtins.git && \
-	(cd compiler-builtins && \
-	git checkout "$COMPILER_BUILTINS_COMMIT_ID" && \
-	git submodule update --init libm)
-
-git clone https://github.com/mesalock-linux/libc.git && \
-	(cd libc && \
-	git checkout "$LIBC_COMMIT_ID")
-
-echo "Rust submodules initialized"
