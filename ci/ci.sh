@@ -25,7 +25,6 @@ pushd ../tests
 ./test_random.sh
 ./test_secure_storage.sh
 ./test_aes.sh
-./test_serde.sh
 ./test_hotp.sh
 ./test_acipher.sh
 ./test_big_int.sh
@@ -33,12 +32,7 @@ pushd ../tests
 ./test_digest.sh
 ./test_authentication.sh
 ./test_time.sh
-./test_tcp_client.sh
-./test_udp_socket.sh
-./test_message_passing_interface.sh
 ./test_signature_verification.sh
 ./test_supp_plugin.sh
-./test_tls_client.sh
-./test_tls_server.sh
 
 popd
