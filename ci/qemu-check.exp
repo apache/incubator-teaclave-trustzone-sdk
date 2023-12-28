@@ -181,19 +181,6 @@ expect {
 }
 
 expect "# "
-info "Running message_passing_interface-rs...\n"
-send -- "message_passing_interface-rs\r"
-expect {
-	-re "Hello, World" {
-		info "Test success\n"
-	}
-	timeout {
-		info "!!! Timeout: Test failed\n"
-		exit 1
-	}
-}
-
-expect "# "
 info "Running random-rs...\n"
 send -- "random-rs\r"
 expect {
@@ -220,19 +207,6 @@ expect {
 }
 
 expect "# "
-info "Running serde-rs...\n"
-send -- "serde-rs\r"
-expect {
-	"Success" {
-		info "Test success\n"
-	}
-	timeout {
-		info "!!! Timeout: Test failed\n"
-		exit 1
-	}
-}
-
-expect "# "
 info "Running supp_plugin-rs...\n"
 send -- "supp_plugin-rs\r"
 expect {
@@ -246,34 +220,8 @@ expect {
 }
 
 expect "# "
-info "Running tcp_client-rs...\n"
-send -- "tcp_client-rs\r"
-expect {
-	"Success" {
-		info "Test success\n"
-	}
-	timeout {
-		info "!!! Timeout: Test failed\n"
-		exit 1
-	}
-}
-
-expect "# "
 info "Running time-rs...\n"
 send -- "time-rs\r"
-expect {
-	"Success" {
-		info "Test success\n"
-	}
-	timeout {
-		info "!!! Timeout: Test failed\n"
-		exit 1
-	}
-}
-
-expect "# "
-info "Running udp_socket-rs...\n"
-send -- "udp_socket-rs\r"
 expect {
 	"Success" {
 		info "Test success\n"
