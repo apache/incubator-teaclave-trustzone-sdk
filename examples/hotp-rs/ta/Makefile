@@ -15,26 +15,20 @@
 # specific language governing permissions and limitations
 # under the License.
 
-OPTEE_DIR ?= ../../../optee
-OPTEE_OS_DIR ?= $(OPTEE_DIR)/optee_os
 UUID ?= $(shell cat "../uuid.txt")
 
 ARCH ?= aarch64
 
+OBJCOPY := $(CROSS_COMPILE)objcopy
+TA_SIGN_KEY ?= $(TA_DEV_KIT_DIR)/keys/default_ta.pem
+SIGN := $(TA_DEV_KIT_DIR)/scripts/sign_encrypt.py
+
 ifeq ($(ARCH), arm)
-	TA_SIGN_KEY ?= $(OPTEE_OS_DIR)/out/arm/export-ta_arm32/keys/default_ta.pem
-	SIGN := $(OPTEE_OS_DIR)/out/arm/export-ta_arm32/scripts/sign_encrypt.py
-	OPTEE_BIN := $(OPTEE_DIR)/toolchains/aarch32/bin
-	OBJCOPY := $(OPTEE_BIN)/arm-linux-gnueabihf-objcopy
 	TARGET := arm-unknown-linux-gnueabihf
-	LINKER_CFG := target.arm-unknown-linux-gnueabihf.linker=\"arm-linux-gnueabihf-ld.bfd\"
+	LINKER_CFG := target.arm-unknown-linux-gnueabihf.linker=\"$(CROSS_COMPILE)ld.bfd\"
 else
-	TA_SIGN_KEY ?= $(OPTEE_OS_DIR)/out/arm/export-ta_arm64/keys/default_ta.pem
-	SIGN := $(OPTEE_OS_DIR)/out/arm/export-ta_arm64/scripts/sign_encrypt.py
-	OPTEE_BIN := $(OPTEE_DIR)/toolchains/$(ARCH)/bin
-	OBJCOPY := $(OPTEE_BIN)/aarch64-linux-gnu-objcopy
 	TARGET := aarch64-unknown-linux-gnu
-	LINKER_CFG := target.aarch64-unknown-linux-gnu.linker=\"aarch64-linux-gnu-ld.bfd\"
+	LINKER_CFG := target.aarch64-unknown-linux-gnu.linker=\"$(CROSS_COMPILE)ld.bfd\"
 endif
 
 OUT_DIR := $(CURDIR)/target/$(TARGET)/release
@@ -42,7 +36,7 @@ OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 all: ta strip sign
 
 ta:
-	@cargo build --target $(TARGET) --release --verbose --config $(LINKER_CFG)
+	@cargo build --target $(TARGET) --release --config $(LINKER_CFG)
 
 strip:
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/ta $(OUT_DIR)/stripped_ta

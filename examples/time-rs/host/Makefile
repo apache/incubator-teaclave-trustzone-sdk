@@ -18,18 +18,14 @@
 NAME := time-rs
 ARCH ?= aarch64
 
-OPTEE_DIR ?= ../../../optee
+OBJCOPY := $(CROSS_COMPILE)objcopy
 
 ifeq ($(ARCH), arm)
-	OPTEE_BIN := $(OPTEE_DIR)/toolchains/aarch32/bin
-	OBJCOPY := $(OPTEE_BIN)/arm-linux-gnueabihf-objcopy
 	TARGET := arm-unknown-linux-gnueabihf
-	LINKER_CFG := target.arm-unknown-linux-gnueabihf..linker=\"arm-linux-gnueabihf-gcc\"
+	LINKER_CFG := target.arm-unknown-linux-gnueabihf.linker=\"$(CROSS_COMPILE)gcc\"
 else
-	OPTEE_BIN := $(OPTEE_DIR)/toolchains/$(ARCH)/bin
-	OBJCOPY := $(OPTEE_BIN)/aarch64-linux-gnu-objcopy
 	TARGET := aarch64-unknown-linux-gnu
-	LINKER_CFG := target.aarch64-unknown-linux-gnu.linker=\"aarch64-linux-gnu-gcc\"
+	LINKER_CFG := target.aarch64-unknown-linux-gnu.linker=\"$(CROSS_COMPILE)gcc\"
 endif
 
 OUT_DIR := $(CURDIR)/target/$(TARGET)/release

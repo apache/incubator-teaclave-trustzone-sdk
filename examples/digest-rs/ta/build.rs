@@ -43,26 +43,23 @@ fn main() -> std::io::Result<()> {
         time_low, time_mid, time_hi_and_version, clock_seq_and_node
     )?;
 
-    let optee_os_dir = env::var("OPTEE_OS_DIR").unwrap_or("../../../optee/optee_os".to_string());
-    let optee_os_path = &PathBuf::from(optee_os_dir.clone());
-    let search_path = match env::var("ARCH") {
-        Ok(ref v) if v == "arm" => {
-            let mut ta_lds = File::create(out.join("ta.lds"))?;
-            let f = File::open(optee_os_path.join("out/arm/export-ta_arm32/src/ta.ld.S"))?;
-            let f = BufReader::new(f);
+    let optee_os_dir = env::var("TA_DEV_KIT_DIR").unwrap();
+    let search_path = Path::new(&optee_os_dir).join("lib");
 
+    let optee_os_path = &PathBuf::from(optee_os_dir.clone());
+    let mut ta_lds = File::create(out.join("ta.lds"))?;
+    let f = File::open(optee_os_path.join("src/ta.ld.S"))?;
+    let f = BufReader::new(f);
+
+    match env::var("ARCH") {
+        Ok(ref v) if v == "arm" => {
             write!(ta_lds, "OUTPUT_FORMAT(\"elf32-littlearm\")\n")?;
             write!(ta_lds, "OUTPUT_ARCH(arm)\n")?;
             for line in f.lines() {
                 write!(ta_lds, "{}\n", line?)?;
             }
-            Path::new(&optee_os_dir).join("out/arm/export-ta_arm32/lib")
         },
         _ => {
-            let mut ta_lds = File::create(out.join("ta.lds"))?;
-            let f = File::open(optee_os_path.join("out/arm/export-ta_arm64/src/ta.ld.S"))?;
-            let f = BufReader::new(f);
-
             write!(ta_lds, "OUTPUT_FORMAT(\"elf64-littleaarch64\")\n")?;
             write!(ta_lds, "OUTPUT_ARCH(aarch64)\n")?;
             for line in f.lines() {
@@ -74,7 +71,6 @@ fn main() -> std::io::Result<()> {
                     write!(ta_lds, "{}\n", l)?;
                 }
             }
-            Path::new(&optee_os_dir).join("out/arm/export-ta_arm64/lib")
         }
     };
     println!("cargo:rustc-link-search={}", out.display());
