@@ -19,11 +19,9 @@ use std::env;
 use std::path::Path;
 
 fn main() {
-    let optee_os_dir = env::var("OPTEE_OS_DIR").unwrap_or("../../optee/optee_os".to_string());
-    let search_path = match env::var("ARCH") {
-        Ok(ref v) if v == "arm" => Path::new(&optee_os_dir).join("out/arm/export-ta_arm32/lib"),
-        _ => Path::new(&optee_os_dir).join("out/arm/export-ta_arm64/lib"),
-    };
+    let optee_os_dir = env::var("TA_DEV_KIT_DIR").unwrap();
+    let search_path = Path::new(&optee_os_dir).join("lib");
+
     println!("cargo:rustc-link-search={}", search_path.display());
     println!("cargo:rustc-link-lib=static=utee");
     println!("cargo:rustc-link-lib=static=utils");
