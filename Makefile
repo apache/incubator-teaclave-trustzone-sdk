@@ -15,71 +15,56 @@
 # specific language governing permissions and limitations
 # under the License.
 
-OPTEE_PATH        ?= $(OPTEE_DIR)
-OPTEE_BUILD_PATH  ?= $(OPTEE_PATH)/build
-OPTEE_OS_PATH     ?= $(OPTEE_PATH)/optee_os
-OPTEE_CLIENT_PATH ?= $(OPTEE_PATH)/optee_client
-
-CCACHE ?= $(shell which ccache)
+ifneq ($V,1)
+	q := @
+	echo := @echo
+else
+	q :=
+	echo := @:
+endif
 
 EXAMPLES = $(wildcard examples/*)
 EXAMPLES_INSTALL = $(EXAMPLES:%=%-install)
 EXAMPLES_CLEAN  = $(EXAMPLES:%=%-clean)
 
 ifneq ($(ARCH), arm)
-	VENDOR := qemu_v8.mk
-	AARCH_CROSS_COMPILE := $(OPTEE_PATH)/toolchains/aarch64/bin/aarch64-linux-gnu-
-	HOST_TARGET := aarch64-unknown-linux-gnu
-	TA_TARGET := aarch64-unknown-linux-gnu
+	CROSS_COMPILE ?= aarch64-linux-gnu-
+	TARGET := aarch64-unknown-linux-gnu
 else
-	VENDOR := qemu.mk
-	ARCH_CROSS_COMPILE := $(OPTEE_PATH)/toolchains/aarch32/bin/arm-linux-gnueabihf-
-	HOST_TARGET := arm-unknown-linux-gnueabihf
-	TA_TARGET := arm-unknown-linux-gnueabihf
+	CROSS_COMPILE ?= arm-linux-gnueabihf-
+	TARGET := arm-unknown-linux-gnueabihf
 endif
 
-all: toolchains optee-os optee-client examples
-optee: toolchains optee-os optee-client
+export ARCH
 
-toolchains:
-	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) toolchains
+.PHONY: all
+ifneq ($(wildcard $(TA_DEV_KIT_DIR)/host_include/conf.mk),)
+all: examples examples-install
+else
+all:
+	$(q)echo "TA_DEV_KIT_DIR is not correctly defined" && false
+endif
 
-optee-os:
-	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) optee-os
-
-OPTEE_CLIENT_FLAGS ?= CROSS_COMPILE="$(CCACHE) $(AARCH_CROSS_COMPILE)" \
-	CFG_TEE_BENCHMARK=n \
-	CFG_TA_TEST_PATH=y \
-	WITH_TEEACL=0
-
-optee-client:
-	make -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_FLAGS)
-
-examples: $(EXAMPLES) toolchains optee-os optee-client
+examples: $(EXAMPLES)
 $(EXAMPLES):
-	make -C $@
+	$(q)make -C $@ CROSS_COMPILE=$(CROSS_COMPILE) TA_DEV_KIT_DIR=$(TA_DEV_KIT_DIR) \
+		OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT)
 
 examples-install: $(EXAMPLES_INSTALL)
-$(EXAMPLES_INSTALL):
-	install -D $(@:%-install=%)/host/target/$(HOST_TARGET)/release/$(@:examples/%-install=%) -t out/host/
-	install -D $(@:%-install=%)/ta/target/$(TA_TARGET)/release/*.ta -t out/ta/
-	if [ -d "$(@:%-install=%)/plugin/target/" ]; then \
-		install -D $(@:%-install=%)/plugin/target/$(HOST_TARGET)/release/*.plugin.so -t out/plugin/; \
+$(EXAMPLES_INSTALL): examples
+	install -D $(@:%-install=%)/host/target/$(TARGET)/release/$(@:examples/%-install=%) -t out/host/
+	install -D $(@:%-install=%)/ta/target/$(TARGET)/release/*.ta -t out/ta/
+	$(q)if [ -d "$(@:%-install=%)/plugin/target/" ]; then \
+		install -D $(@:%-install=%)/plugin/target/$(TARGET)/release/*.plugin.so -t out/plugin/; \
 	fi
-
-optee-os-clean:
-	make -C $(OPTEE_OS_PATH) O=out/arm clean
-
-optee-client-clean:
-	make -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_CLEAN_FLAGS) clean
 
 examples-clean: $(EXAMPLES_CLEAN) out-clean
 $(EXAMPLES_CLEAN):
-	make -C $(@:-clean=) clean
+	$(q)make -C $(@:-clean=) clean
 
 out-clean:
 	rm -rf out
 
-.PHONY: clean optee-os-clean optee-client-clean $(EXAMPLES) $(EXAMPLES_CLEAN)
+.PHONY: clean $(EXAMPLES) $(EXAMPLES_CLEAN)
 
-clean: optee-os-clean optee-client-clean $(EXAMPLES_CLEAN)
+clean: $(EXAMPLES_CLEAN) out-clean
