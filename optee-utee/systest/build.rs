@@ -30,7 +30,7 @@ fn main() {
         .header("user_ta_header.h")
         .header("tee_api.h")
         .header("utee_syscalls.h")
-        .include(env::var("OPTEE_OS_INCLUDE").unwrap())
+        .include(env::var("TA_DEV_KIT_DIR").unwrap())
         .type_name(|s, _is_struct, _is_union| {
             if s == "utee_params"
                 || s == "ta_head"
