@@ -53,6 +53,7 @@ fn main() -> std::io::Result<()> {
 
     match env::var("ARCH") {
         Ok(ref v) if v == "arm" => {
+            println!("cargo:rustc-link-arg=--no-warn-mismatch");
             for line in f.lines() {
                 let l = line?;
 
