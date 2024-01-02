@@ -22,39 +22,12 @@ defaults:
     shell: bash
 
 jobs:
-#  build-and-run-examples:
-#    runs-on: ubuntu-20.04
-#    container: teaclave/teaclave-trustzone-sdk-build:0.3.0
-#    steps:
-#      - name: Checkout repository
-#        uses: actions/checkout@v2
-#        with:
-#          submodules: recursive
-#      - name: Setting up $HOME
-#        run: |
-#          cp /root/.bashrc $HOME/.bashrc &&
-#          ln -sf /root/.rustup ~/.rustup &&
-#          ln -sf /root/.cargo ~/.cargo
-#      - name: Building
-#        run: |
-#          apt update && apt install libslirp-dev -y
-#          export CARGO_NET_GIT_FETCH_WITH_CLI=true &&
-#          ./setup.sh &&
-#          source environment &&
-#          make optee &&
-#          . ~/.cargo/env &&
-#          make examples
-#      - name: Run tests and examples
-#        run: |
-#          cd ci && ./ci.sh
   build-utee-teec:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     container: teaclave/teaclave-trustzone-sdk-build:0.3.0
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-        with:
-          submodules: recursive
       - name: Setting up $HOME
         run: |
           cp /root/.bashrc $HOME/.bashrc &&
@@ -62,15 +35,66 @@ jobs:
           ln -sf /root/.cargo ~/.cargo
       - name: Building
         run: |
-          export CARGO_NET_GIT_FETCH_WITH_CLI=true &&
-          ./setup.sh &&
-          source environment &&
-          make optee &&
-          . ~/.cargo/env &&
-          (cd optee-utee && cargo build --target aarch64-unknown-linux-gnu --no-default-features -vv) &&
+          export CARGO_NET_GIT_FETCH_WITH_CLI=true
+          apt update && apt -y install gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
+          export CROSS_COMPILE="aarch64-linux-gnu-"
+          export CROSS_COMPILE32="arm-linux-gnueabihf-"
+          export CROSS_COMPILE64="aarch64-linux-gnu-"
+
+          # Build optee_os and optee_client for qemu_v8
+          git clone https://github.com/OP-TEE/optee_os.git -b 4.0.0 ~/optee_os
+          git clone https://github.com/OP-TEE/optee_client.git -b 4.0.0 ~/optee_client
+          (cd ~/optee_os && make PLATFORM=vexpress-qemu_armv8a)
+          (cd ~/optee_client && make WITH_TEEACL=0)
+
+          # Build rust optee-utee and optee-teec
+          ./setup.sh
+          . ~/.cargo/env
+          export TA_DEV_KIT_DIR=~/optee_os/out/arm-plat-vexpress/export-ta_arm64/
+          export OPTEE_CLIENT_EXPORT=~/optee_client/out/export/
+          (cd optee-utee && cargo build --target aarch64-unknown-linux-gnu --no-default-features -vv)
           (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
+
+  build-examples:
+    runs-on: ubuntu-latest
+    container: teaclave/teaclave-trustzone-sdk-build:0.3.0
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Setting up $HOME
+        run: |
+          cp /root/.bashrc $HOME/.bashrc &&
+          ln -sf /root/.rustup ~/.rustup &&
+          ln -sf /root/.cargo ~/.cargo
+      - name: Building
+        run: |
+          export CARGO_NET_GIT_FETCH_WITH_CLI=true
+          apt update && apt -y install gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
+          export CROSS_COMPILE="aarch64-linux-gnu-"
+          export CROSS_COMPILE32="arm-linux-gnueabihf-"
+          export CROSS_COMPILE64="aarch64-linux-gnu-"
+          ./setup.sh
+          . ~/.cargo/env
+
+          # Build optee_os and optee_client for qemu_v8
+          git clone https://github.com/OP-TEE/optee_os.git -b 4.0.0 ~/optee_os
+          git clone https://github.com/OP-TEE/optee_client.git -b 4.0.0 ~/optee_client
+          (cd ~/optee_os && make PLATFORM=vexpress-qemu_armv8a)
+          (cd ~/optee_client && make WITH_TEEACL=0)
+
+          # Build Arm 64-bit OP-TEE rust examples
+          export TA_DEV_KIT_DIR=~/optee_os/out/arm-plat-vexpress/export-ta_arm64/
+          export OPTEE_CLIENT_EXPORT=~/optee_client/out/export/
+          make
+
+          # Build Arm 32-bit OP-TEE rust examples
+          (cd ~/optee_client && make clean && make CROSS_COMPILE=$CROSS_COMPILE32 WITH_TEEACL=0)
+          export TA_DEV_KIT_DIR=~/optee_os/out/arm-plat-vexpress/export-ta_arm32/
+          export OPTEE_CLIENT_EXPORT=~/optee_client/out/export/
+          make clean && make ARCH=arm CROSS_COMPILE=$CROSS_COMPILE32
+
   build-and-run-examples-in-OPTEE-repo:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     container: teaclave/teaclave-trustzone-sdk-build:0.3.0
     steps:
       - name: Checkout repository
@@ -100,9 +124,10 @@ jobs:
           export OPTEE_DIR=$(pwd)
           cd build &&
           make -j2 toolchains &&
-          make CFG_TEE_CORE_LOG_LEVEL=0 OPTEE_RUST_ENABLE=y CFG_TEE_RAM_VA_SIZE=0x00300000 check-rust
+          make CFG_TEE_CORE_LOG_LEVEL=0 OPTEE_RUST_ENABLE=y check-rust
+
   license:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Check License Header

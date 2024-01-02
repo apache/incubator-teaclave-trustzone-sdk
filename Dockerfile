@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 MAINTAINER Teaclave Contributors <dev@teaclave.apache.org>
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -37,6 +37,8 @@ RUN apt-get update && \
     expect \
     flex \
     ftp-upload \
+    gcc-aarch64-linux-gnu \
+    gcc-arm-linux-gnueabihf \
     gdisk \
     iasl \
     libattr1-dev \
