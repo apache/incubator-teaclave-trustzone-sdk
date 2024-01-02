@@ -53,17 +53,27 @@ fn main() -> std::io::Result<()> {
 
     match env::var("ARCH") {
         Ok(ref v) if v == "arm" => {
-            write!(ta_lds, "OUTPUT_FORMAT(\"elf32-littlearm\")\n")?;
-            write!(ta_lds, "OUTPUT_ARCH(arm)\n")?;
             for line in f.lines() {
-                write!(ta_lds, "{}\n", line?)?;
+                let l = line?;
+
+                if l.starts_with('#') ||
+                   l == "OUTPUT_FORMAT(\"elf64-littleaarch64\")" ||
+                   l == "OUTPUT_ARCH(aarch64)" {
+                    continue;
+                }
+
+                write!(ta_lds, "{}\n", l)?;
             }
         },
         _ => {
-            write!(ta_lds, "OUTPUT_FORMAT(\"elf64-littleaarch64\")\n")?;
-            write!(ta_lds, "OUTPUT_ARCH(aarch64)\n")?;
             for line in f.lines() {
                 let l = line?;
+
+                if l.starts_with('#') ||
+                   l == "OUTPUT_FORMAT(\"elf32-littlearm\")" ||
+                   l == "OUTPUT_ARCH(arm)" {
+                    continue;
+                }
 
                 if l == "\t. = ALIGN(4096);" {
                     write!(ta_lds, "\t. = ALIGN(65536);\n")?;
