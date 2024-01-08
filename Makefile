@@ -15,6 +15,15 @@
 # specific language governing permissions and limitations
 # under the License.
 
+ifeq ($(O),)
+out-dir := $(CURDIR)/out
+else
+out-dir := $(O)
+endif
+
+bindir ?= /usr/bin
+libdir ?= /usr/lib
+
 ifneq ($V,1)
 	q := @
 	echo := @echo
@@ -26,7 +35,6 @@ endif
 export q
 
 EXAMPLES = $(wildcard examples/*)
-EXAMPLES_INSTALL = $(EXAMPLES:%=%-install)
 EXAMPLES_CLEAN  = $(EXAMPLES:%=%-clean)
 
 TARGET ?= aarch64-unknown-linux-gnu
@@ -39,9 +47,9 @@ CROSS_COMPILE_TA ?= $(CROSS_COMPILE)
 TARGET_HOST ?= $(TARGET)
 TARGET_TA ?= $(TARGET)
 
-.PHONY: all
+.PHONY: all examples $(EXAMPLES) install clean
 ifneq ($(wildcard $(TA_DEV_KIT_DIR)/host_include/conf.mk),)
-all: examples examples-install
+all: examples
 else
 all:
 	$(q)echo "TA_DEV_KIT_DIR is not correctly defined" && false
@@ -56,13 +64,16 @@ $(EXAMPLES):
 		TA_DEV_KIT_DIR=$(TA_DEV_KIT_DIR) \
 		OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT)
 
-examples-install: $(EXAMPLES_INSTALL)
-$(EXAMPLES_INSTALL): examples
-	install -D $(@:%-install=%)/host/target/$(TARGET_HOST)/release/$(@:examples/%-install=%) -t out/host/
-	install -D $(@:%-install=%)/ta/target/$(TARGET_TA)/release/*.ta -t out/ta/
-	$(q)if [ -d "$(@:%-install=%)/plugin/target/" ]; then \
-		install -D $(@:%-install=%)/plugin/target/$(TARGET_HOST)/release/*.plugin.so -t out/plugin/; \
-	fi
+install: examples
+	$(echo) '  INSTALL ${out-dir}/lib/optee_armtz'
+	$(q)mkdir -p ${out-dir}/lib/optee_armtz
+	$(q)find examples/*/ta/target/$(TARGET_TA)/ -name *.ta -exec cp {} ${out-dir}/lib/optee_armtz \;
+	$(echo) '  INSTALL ${out-dir}${bindir}'
+	$(q)mkdir -p ${out-dir}${bindir}
+	$(q)cp examples/*/host/target/$(TARGET_HOST)/release/*-rs ${out-dir}${bindir}
+	$(echo) '  INSTALL ${out-dir}${libdir}/tee-supplicant/plugins/'
+	$(q)mkdir -p ${out-dir}${libdir}/tee-supplicant/plugins/
+	$(q)find examples/*/plugin/target/$(TARGET_HOST)/ -name *.plugin.so -exec cp {} ${out-dir}${libdir}/tee-supplicant/plugins/ \;
 
 examples-clean: $(EXAMPLES_CLEAN) out-clean
 $(EXAMPLES_CLEAN):
@@ -70,7 +81,5 @@ $(EXAMPLES_CLEAN):
 
 out-clean:
 	rm -rf out
-
-.PHONY: clean $(EXAMPLES) $(EXAMPLES_CLEAN)
 
 clean: $(EXAMPLES_CLEAN) out-clean
