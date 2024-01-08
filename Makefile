@@ -22,20 +22,22 @@ else
 	q :=
 	echo := @:
 endif
+# export 'q', used by sub-makefiles.
+export q
 
 EXAMPLES = $(wildcard examples/*)
 EXAMPLES_INSTALL = $(EXAMPLES:%=%-install)
 EXAMPLES_CLEAN  = $(EXAMPLES:%=%-clean)
 
-ifneq ($(ARCH), arm)
-	CROSS_COMPILE ?= aarch64-linux-gnu-
-	TARGET := aarch64-unknown-linux-gnu
-else
-	CROSS_COMPILE ?= arm-linux-gnueabihf-
-	TARGET := arm-unknown-linux-gnueabihf
-endif
+TARGET ?= aarch64-unknown-linux-gnu
+CROSS_COMPILE ?= aarch64-linux-gnu-
 
-export ARCH
+# If _HOST or _TA specific compiler/target are not specified, then use common
+# compiler/target for both
+CROSS_COMPILE_HOST ?= $(CROSS_COMPILE)
+CROSS_COMPILE_TA ?= $(CROSS_COMPILE)
+TARGET_HOST ?= $(TARGET)
+TARGET_TA ?= $(TARGET)
 
 .PHONY: all
 ifneq ($(wildcard $(TA_DEV_KIT_DIR)/host_include/conf.mk),)
@@ -47,15 +49,19 @@ endif
 
 examples: $(EXAMPLES)
 $(EXAMPLES):
-	$(q)make -C $@ CROSS_COMPILE=$(CROSS_COMPILE) TA_DEV_KIT_DIR=$(TA_DEV_KIT_DIR) \
+	$(q)make -C $@ TARGET_HOST=$(TARGET_HOST) \
+		TARGET_TA=$(TARGET_TA) \
+		CROSS_COMPILE_HOST=$(CROSS_COMPILE_HOST) \
+		CROSS_COMPILE_TA=$(CROSS_COMPILE_TA) \
+		TA_DEV_KIT_DIR=$(TA_DEV_KIT_DIR) \
 		OPTEE_CLIENT_EXPORT=$(OPTEE_CLIENT_EXPORT)
 
 examples-install: $(EXAMPLES_INSTALL)
 $(EXAMPLES_INSTALL): examples
-	install -D $(@:%-install=%)/host/target/$(TARGET)/release/$(@:examples/%-install=%) -t out/host/
-	install -D $(@:%-install=%)/ta/target/$(TARGET)/release/*.ta -t out/ta/
+	install -D $(@:%-install=%)/host/target/$(TARGET_HOST)/release/$(@:examples/%-install=%) -t out/host/
+	install -D $(@:%-install=%)/ta/target/$(TARGET_TA)/release/*.ta -t out/ta/
 	$(q)if [ -d "$(@:%-install=%)/plugin/target/" ]; then \
-		install -D $(@:%-install=%)/plugin/target/$(TARGET)/release/*.plugin.so -t out/plugin/; \
+		install -D $(@:%-install=%)/plugin/target/$(TARGET_HOST)/release/*.plugin.so -t out/plugin/; \
 	fi
 
 examples-clean: $(EXAMPLES_CLEAN) out-clean
