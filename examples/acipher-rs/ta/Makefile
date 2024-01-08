@@ -17,20 +17,13 @@
 
 UUID ?= $(shell cat "../uuid.txt")
 
-ARCH ?= aarch64
-
+TARGET ?= aarch64-unknown-linux-gnu
+CROSS_COMPILE ?= aarch64-linux-gnu-
 OBJCOPY := $(CROSS_COMPILE)objcopy
+LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)ld.bfd\"
+
 TA_SIGN_KEY ?= $(TA_DEV_KIT_DIR)/keys/default_ta.pem
 SIGN := $(TA_DEV_KIT_DIR)/scripts/sign_encrypt.py
-
-ifeq ($(ARCH), arm)
-	TARGET := arm-unknown-linux-gnueabihf
-	LINKER_CFG := target.arm-unknown-linux-gnueabihf.linker=\"$(CROSS_COMPILE)ld.bfd\"
-else
-	TARGET := aarch64-unknown-linux-gnu
-	LINKER_CFG := target.aarch64-unknown-linux-gnu.linker=\"$(CROSS_COMPILE)ld.bfd\"
-endif
-
 OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 
 all: ta strip sign

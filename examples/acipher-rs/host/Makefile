@@ -16,17 +16,11 @@
 # under the License.
 
 NAME := acipher-rs
-ARCH ?= aarch64
 
+TARGET ?= aarch64-unknown-linux-gnu
+CROSS_COMPILE ?= aarch64-linux-gnu-
 OBJCOPY := $(CROSS_COMPILE)objcopy
-
-ifeq ($(ARCH), arm)
-	TARGET := arm-unknown-linux-gnueabihf
-	LINKER_CFG := target.arm-unknown-linux-gnueabihf.linker=\"$(CROSS_COMPILE)gcc\"
-else
-	TARGET := aarch64-unknown-linux-gnu
-	LINKER_CFG := target.aarch64-unknown-linux-gnu.linker=\"$(CROSS_COMPILE)gcc\"
-endif
+LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)gcc\"
 
 OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 
