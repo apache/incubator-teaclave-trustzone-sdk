@@ -51,8 +51,8 @@ fn main() -> std::io::Result<()> {
     let f = File::open(optee_os_path.join("src/ta.ld.S"))?;
     let f = BufReader::new(f);
 
-    match env::var("ARCH") {
-        Ok(ref v) if v == "arm" => {
+    match env::var("TARGET") {
+        Ok(ref v) if v == "arm-unknown-linux-gnueabihf" => {
             println!("cargo:rustc-link-arg=--no-warn-mismatch");
             for line in f.lines() {
                 let l = line?;
