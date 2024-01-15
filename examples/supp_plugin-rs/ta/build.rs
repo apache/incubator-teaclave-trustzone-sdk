@@ -43,6 +43,15 @@ fn main() -> std::io::Result<()> {
         time_low, time_mid, time_hi_and_version, clock_seq_and_node
     )?;
 
+    let mut aarch64_flag = true;
+    match env::var("TARGET") {
+        Ok(ref v) if v == "arm-unknown-linux-gnueabihf" => {
+            println!("cargo:rustc-link-arg=--no-warn-mismatch");
+            aarch64_flag = false;
+        },
+        _ => {}
+    };
+
     let optee_os_dir = env::var("TA_DEV_KIT_DIR").unwrap();
     let search_path = Path::new(&optee_os_dir).join("lib");
 
@@ -51,39 +60,30 @@ fn main() -> std::io::Result<()> {
     let f = File::open(optee_os_path.join("src/ta.ld.S"))?;
     let f = BufReader::new(f);
 
-    match env::var("TARGET") {
-        Ok(ref v) if v == "arm-unknown-linux-gnueabihf" => {
-            println!("cargo:rustc-link-arg=--no-warn-mismatch");
-            for line in f.lines() {
-                let l = line?;
+    for line in f.lines() {
+        let l = line?;
 
-                if l.starts_with('#') ||
-                   l == "OUTPUT_FORMAT(\"elf64-littleaarch64\")" ||
-                   l == "OUTPUT_ARCH(aarch64)" {
-                    continue;
-                }
-
-                write!(ta_lds, "{}\n", l)?;
+        if aarch64_flag {
+            if l.starts_with('#') ||
+                l == "OUTPUT_FORMAT(\"elf32-littlearm\")" ||
+                l == "OUTPUT_ARCH(arm)" {
+                continue;
             }
-        },
-        _ => {
-            for line in f.lines() {
-                let l = line?;
-
-                if l.starts_with('#') ||
-                   l == "OUTPUT_FORMAT(\"elf32-littlearm\")" ||
-                   l == "OUTPUT_ARCH(arm)" {
-                    continue;
-                }
-
-                if l == "\t. = ALIGN(4096);" {
-                    write!(ta_lds, "\t. = ALIGN(65536);\n")?;
-                } else {
-                    write!(ta_lds, "{}\n", l)?;
-                }
+        } else {
+            if l.starts_with('#') ||
+                l == "OUTPUT_FORMAT(\"elf64-littleaarch64\")" ||
+                l == "OUTPUT_ARCH(aarch64)" {
+                continue;
             }
         }
-    };
+
+        if l == "\t. = ALIGN(4096);" {
+            write!(ta_lds, "\t. = ALIGN(65536);\n")?;
+        } else {
+            write!(ta_lds, "{}\n", l)?;
+        }
+    }
+
     println!("cargo:rustc-link-search={}", out.display());
     println!("cargo:rerun-if-changed=ta.lds");
 
