@@ -43,13 +43,13 @@ pub enum ConnectionMethods {
 /// Represents a connection between a client application and a trusted application.
 pub struct Session<'ctx> {
     raw: raw::TEEC_Session,
-    _marker: marker::PhantomData<&'ctx mut Context>,
+    _marker: marker::PhantomData<&'ctx Context>,
 }
 
 impl<'ctx> Session<'ctx> {
     /// Initializes a TEE session object with specified context and uuid.
     pub fn new<A: Param, B: Param, C: Param, D: Param>(
-        context: &'ctx mut Context,
+        context: &'ctx Context,
         uuid: Uuid,
         operation: Option<&mut Operation<A, B, C, D>>,
     ) -> Result<Self> {

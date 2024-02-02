@@ -68,8 +68,8 @@ impl Context {
     /// let mut ctx = Context::new().unwrap();
     /// let mut raw_ptr: *mut optee_teec_sys::TEEC_Context = ctx.as_mut_raw_ptr();
     /// ```
-    pub fn as_mut_raw_ptr(&mut self) -> *mut raw::TEEC_Context {
-        &mut self.raw
+    pub(crate) fn as_mut_raw_ptr(&self) -> *mut raw::TEEC_Context {
+        &self.raw as *const _ as *mut _
     }
 
     /// Opens a new session with the specified trusted application.
@@ -83,7 +83,7 @@ impl Context {
     /// let uuid = Uuid::parse_str("8abcf200-2450-11e4-abe2-0002a5d5c51b").unwrap();
     /// let session = ctx.open_session(uuid).unwrap();
     /// ```
-    pub fn open_session(&mut self, uuid: Uuid) -> Result<Session> {
+    pub fn open_session(&self, uuid: Uuid) -> Result<Session> {
         Session::new(
             self,
             uuid,
@@ -106,7 +106,7 @@ impl Context {
     /// let session = ctx.open_session_with_operation(uuid, operation).unwrap();
     /// ```
     pub fn open_session_with_operation<A: Param, B: Param, C: Param, D: Param>(
-        &mut self,
+        &self,
         uuid: Uuid,
         operation: &mut Operation<A, B, C, D>,
     ) -> Result<Session> {
