@@ -30,6 +30,10 @@ optee-teec-macros = { path = "macros" }
 libc = "0.2"
 uuid = "0.7"
 hex = "0.3"
+self_cell = { version = "1.0", optional = true }
+
+[features]
+owned = ["self_cell"]
 
 [workspace]
 members = ['systest']

@@ -21,6 +21,11 @@ use libc;
 use optee_teec_sys as raw;
 use std::ptr;
 
+#[cfg(feature = "owned")]
+use crate::OwnedSession;
+#[cfg(feature = "owned")]
+use std::sync::Arc;
+
 /// An abstraction of the logical connection between a client application and a
 /// TEE.
 pub struct Context {
@@ -91,6 +96,27 @@ impl Context {
         )
     }
 
+    #[cfg(feature = "owned")]
+    /// Opens a new owned session with the specified trusted application.
+    ///
+    /// The target trusted application is specified by `uuid`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// let mut ctx = Arc::new(Context::new().unwrap());
+    /// let uuid = Uuid::parse_str("8abcf200-2450-11e4-abe2-0002a5d5c51b").unwrap();
+    /// let session = ctx.open_owned_session(uuid).unwrap();
+    /// ```
+    pub fn open_owned_session(self: Arc<Self>, uuid: Uuid) -> Result<OwnedSession> {
+        OwnedSession::new(
+            self,
+            uuid,
+            None::<&mut Operation<ParamNone, ParamNone, ParamNone, ParamNone>>,
+        )
+    }
+
     /// Opens a new session with the specified trusted application, pass some
     /// parameters to TA by an operation.
     ///
@@ -112,6 +138,31 @@ impl Context {
     ) -> Result<Session> {
         Session::new(self, uuid, Some(operation))
     }
+
+    #[cfg(feature = "owned")]
+    /// Opens a new owned session with the specified trusted application, pass some
+    /// parameters to TA by an operation.
+    ///
+    /// The target trusted application is specified by `uuid`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// let mut ctx = Arc::new(Context::new().unwrap());
+    /// let uuid = Uuid::parse_str("8abcf200-2450-11e4-abe2-0002a5d5c51b").unwrap();
+    /// let p0 = ParamValue(42, 0, ParamType::ValueInout);
+    /// let mut operation = Operation::new(0, p0, ParamNone, ParamNone, ParamNone);
+    /// let session = ctx.open_session_with_operation(uuid, operation).unwrap();
+    /// ```
+    pub fn open_owned_session_with_operation<A: Param, B: Param, C: Param, D: Param>(
+        self: Arc<Self>,
+        uuid: Uuid,
+        operation: &mut Operation<A, B, C, D>,
+    ) -> Result<OwnedSession> {
+        OwnedSession::new(self, uuid, Some(operation))
+    }
+
 }
 
 impl Drop for Context {

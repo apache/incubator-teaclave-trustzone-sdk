@@ -20,6 +20,8 @@ pub use self::error::{Error, ErrorKind, Result};
 pub use self::operation::Operation;
 pub use self::parameter::{Param, ParamNone, ParamTmpRef, ParamType, ParamTypes, ParamValue};
 pub use self::session::{ConnectionMethods, Session};
+#[cfg(feature = "owned")]
+pub use self::session::OwnedSession;
 pub use self::uuid::Uuid;
 pub use self::extension::*;
 pub use optee_teec_macros::{plugin_init, plugin_invoke};

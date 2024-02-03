@@ -17,6 +17,10 @@
 
 use libc;
 use optee_teec_sys as raw;
+#[cfg(feature = "owned")]
+use self_cell::self_cell;
+#[cfg(feature = "owned")]
+use std::sync::Arc;
 use std::ptr;
 use std::marker;
 
@@ -40,10 +44,52 @@ pub enum ConnectionMethods {
     LoginGroupApplication,
 }
 
+// Sessions are documented as threadsafe in GP. Sessions with non-static lifetimes
+// cannot be send because we cannot ensure that their context lives long enough, but
+// sessions with 'static lifetime should be Send.
+//
+// A few ways to construct a session with static lifetime:
+// 1. With the "owned" feature, use an `OwnedSession`
+// 2. Use `once_cell::sync::Lazy` or `lazy_static` or anything similar to produce a global context
+// 3. Use `Box::leak` or similar to permanently consume heap resources by creating a &'static
+//    Context
+unsafe impl Send for Session<'static> {}
+
 /// Represents a connection between a client application and a trusted application.
 pub struct Session<'ctx> {
     raw: raw::TEEC_Session,
     _marker: marker::PhantomData<&'ctx Context>,
+}
+
+#[cfg(feature = "owned")]
+self_cell! {
+    struct SessionPair {
+        owner: Arc<Context>,
+        #[covariant]
+        dependent: Session,
+    }
+}
+
+/// Represents an owned variant of `Session`, whose Context is reference counted.
+#[cfg(feature = "owned")]
+pub struct OwnedSession(SessionPair);
+
+#[cfg(feature = "owned")]
+impl OwnedSession {
+    /// Initializes an owned TEE session object with specified context and uuid.
+    pub fn new<A: Param, B: Param, C: Param, D: Param>(
+        context: Arc<Context>,
+        uuid: Uuid,
+        operation: Option<&mut Operation<A, B, C, D>>,
+    ) -> Result<Self> {
+        Ok(Self(SessionPair::try_new(context, |context| Session::new(context, uuid, operation))?))
+    }
+
+    /// Provides access to an unowned session, borrowed from the owned version
+    pub fn session(&self) -> &Session<'_> {
+        self.0.borrow_dependent()
+    }
+
 }
 
 impl<'ctx> Session<'ctx> {
