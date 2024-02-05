@@ -15,6 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
+#![no_std]
+
 pub enum Command {
     Sign,
     Verify,

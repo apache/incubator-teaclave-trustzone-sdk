@@ -15,10 +15,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
+#[cfg(feature = "std")]
+use std::os::raw::*;
+#[cfg(not(feature = "std"))]
+use core::ffi::*;
 use super::tee_api_types::*;
 use super::utee_syscalls::*;
 use super::utee_types::*;
-use libc::*;
 
 pub const TA_FLAG_SINGLE_INSTANCE: u32 = 1 << 2;
 pub const TA_FLAG_MULTI_SESSION: u32 = 1 << 3;
@@ -50,16 +53,16 @@ pub fn __ta_entry(func: c_ulong, session_id: c_ulong, up: *mut utee_params, cmd_
 
 unsafe impl Sync for ta_head {}
 
-pub const TA_PROP_STR_SINGLE_INSTANCE: *const c_char = "gpd.ta.singleInstance\0".as_ptr();
-pub const TA_PROP_STR_MULTI_SESSION: *const c_char = "gpd.ta.multiSession\0".as_ptr();
-pub const TA_PROP_STR_KEEP_ALIVE: *const c_char = "gpd.ta.instanceKeepAlive\0".as_ptr();
-pub const TA_PROP_STR_DATA_SIZE: *const c_char = "gpd.ta.dataSize\0".as_ptr();
-pub const TA_PROP_STR_STACK_SIZE: *const c_char = "gpd.ta.stackSize\0".as_ptr();
-pub const TA_PROP_STR_VERSION: *const c_char = "gpd.ta.version\0".as_ptr();
-pub const TA_PROP_STR_DESCRIPTION: *const c_char = "gpd.ta.description\0".as_ptr();
-pub const TA_PROP_STR_UNSAFE_PARAM: *const c_char = "op-tee.unsafe_param\0".as_ptr();
-pub const TA_PROP_STR_REMAP: *const c_char = "op-tee.remap\0".as_ptr();
-pub const TA_PROP_STR_CACHE_SYNC: *const c_char = "op-tee.cache_sync\0".as_ptr();
+pub const TA_PROP_STR_SINGLE_INSTANCE: *const c_uchar = "gpd.ta.singleInstance\0".as_ptr();
+pub const TA_PROP_STR_MULTI_SESSION: *const c_uchar = "gpd.ta.multiSession\0".as_ptr();
+pub const TA_PROP_STR_KEEP_ALIVE: *const c_uchar = "gpd.ta.instanceKeepAlive\0".as_ptr();
+pub const TA_PROP_STR_DATA_SIZE: *const c_uchar = "gpd.ta.dataSize\0".as_ptr();
+pub const TA_PROP_STR_STACK_SIZE: *const c_uchar = "gpd.ta.stackSize\0".as_ptr();
+pub const TA_PROP_STR_VERSION: *const c_uchar = "gpd.ta.version\0".as_ptr();
+pub const TA_PROP_STR_DESCRIPTION: *const c_uchar = "gpd.ta.description\0".as_ptr();
+pub const TA_PROP_STR_UNSAFE_PARAM: *const c_uchar = "op-tee.unsafe_param\0".as_ptr();
+pub const TA_PROP_STR_REMAP: *const c_uchar = "op-tee.remap\0".as_ptr();
+pub const TA_PROP_STR_CACHE_SYNC: *const c_uchar = "op-tee.cache_sync\0".as_ptr();
 
 #[repr(C)]
 pub enum user_ta_prop_type {
@@ -73,7 +76,7 @@ pub enum user_ta_prop_type {
 
 #[repr(C)]
 pub struct user_ta_property {
-    pub name: *const c_char,
+    pub name: *const c_uchar,
     pub prop_type: user_ta_prop_type,
     pub value: *mut c_void,
 }

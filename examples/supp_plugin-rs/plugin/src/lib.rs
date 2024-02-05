@@ -16,7 +16,7 @@
 // under the License.
 
 use libc::{c_char};
-use optee_teec::{Error, ErrorKind, PluginMethod, PluginParameters};
+use optee_teec::{PluginMethod, PluginParameters};
 use optee_teec::{plugin_init, plugin_invoke};
 use proto::{PluginCommand};
 

@@ -15,7 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//for ta
+#![no_std]
+
 pub enum Command {
     Ping,
     Unknown,

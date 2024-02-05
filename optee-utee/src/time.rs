@@ -17,7 +17,7 @@
 
 use crate::{Error, Result};
 use optee_utee_sys as raw;
-use std::fmt;
+use core::fmt;
 
 /// A millisecond resolution structure for saving the time.
 pub struct Time {

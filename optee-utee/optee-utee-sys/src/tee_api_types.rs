@@ -15,9 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use libc::*;
-
 // Common Definitions
+
+#[cfg(feature = "std")]
+use std::os::raw::*;
+#[cfg(not(feature = "std"))]
+use core::ffi::*;
 
 pub type TEE_Result = u32;
 
@@ -216,7 +219,7 @@ pub struct TEE_SEReaderProperties {
 #[repr(C)]
 pub struct TEE_SEAID {
     pub buffer: *mut u8,
-    pub bufferLen: size_t,
+    pub bufferLen: c_size_t,
 }
 
 // Other definitions

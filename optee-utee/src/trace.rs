@@ -15,11 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use libc;
 use optee_utee_sys as raw;
-use std::fmt;
-use std::io;
-use std::io::Write;
+use core::ffi::*;
+use core::fmt::{Arguments, Write, Result};
 
 pub struct Trace;
 
@@ -28,7 +26,7 @@ impl Trace {
         Trace {}
     }
 
-    pub fn _print(fmt: fmt::Arguments) {
+    pub fn _print(fmt: Arguments) {
         let mut writer = Trace::new();
         let result = writer.write_fmt(fmt);
 
@@ -48,15 +46,11 @@ impl Trace {
     }
 }
 
-impl io::Write for Trace {
-    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+impl Write for Trace {
+    fn write_str(&mut self, buf: &str) -> Result<> {
         unsafe {
-            raw::_utee_log(buf.as_ptr() as *const libc::c_void, buf.len());
+            raw::_utee_log(buf.as_ptr() as *const c_void, buf.len());
         }
-        Ok(buf.len())
-    }
-
-    fn flush(&mut self) -> io::Result<()> {
         Ok(())
     }
 }

@@ -16,7 +16,11 @@
 // under the License.
 
 use super::*;
-use libc::*;
+
+#[cfg(feature = "std")]
+use std::os::raw::*;
+#[cfg(not(feature = "std"))]
+use core::ffi::*;
 
 extern "C" {
     // Property access functions
@@ -483,7 +487,7 @@ extern "C" {
     pub fn TEE_BigIntShiftRight(
         dest: *mut TEE_BigInt,
         op: *const TEE_BigInt,
-        bits: size_t,
+        bits: c_size_t,
     ) -> c_void;
     pub fn TEE_BigIntGetBit(src: *const TEE_BigInt, bitIndex: u32) -> bool;
     pub fn TEE_BigIntGetBitCount(src: *const TEE_BigInt) -> u32;

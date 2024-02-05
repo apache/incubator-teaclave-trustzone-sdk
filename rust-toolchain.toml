@@ -18,6 +18,6 @@
 # Toolchain override for rustup
 
 [toolchain]
-channel = "nightly-2021-09-20"
+channel = "nightly-2023-12-18"
 components = ["rust-src"]
 targets = ["aarch64-unknown-linux-gnu", "arm-unknown-linux-gnueabihf"]
