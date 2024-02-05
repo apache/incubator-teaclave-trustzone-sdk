@@ -30,6 +30,3 @@ optee-teec-macros = { path = "macros" }
 libc = "0.2"
 uuid = "0.7"
 hex = "0.3"
-
-[workspace]
-members = ['systest']
