@@ -85,7 +85,7 @@ jobs:
 
           # Build OP-TEE rust examples for Arm 64-bit both host and TA
           export TA_DEV_KIT_DIR=~/optee_os/out/arm-plat-vexpress/export-ta_arm64/
-          make
+          make -j`nproc`
 
           # Build OP-TEE rust examples for Arm 64-bit host and 32-bit TA
           export TA_DEV_KIT_DIR=~/optee_os/out/arm-plat-vexpress/export-ta_arm32/
@@ -93,7 +93,7 @@ jobs:
           export CROSS_COMPILE_TA=$CROSS_COMPILE32
           export TARGET_HOST="aarch64-unknown-linux-gnu"
           export TARGET_TA="arm-unknown-linux-gnueabihf"
-          make clean && make
+          make clean && make -j`nproc`
 
           # Build OP-TEE rust examples for Arm 32-bit both host and TA
           export TA_DEV_KIT_DIR=~/optee_os/out/arm-plat-vexpress/export-ta_arm32/
@@ -102,7 +102,7 @@ jobs:
           export TARGET_HOST="arm-unknown-linux-gnueabihf"
           export TARGET_TA="arm-unknown-linux-gnueabihf"
           (cd ~/optee_client && make clean && make CROSS_COMPILE=$CROSS_COMPILE32 WITH_TEEACL=0)
-          make clean && make
+          make clean && make -j`nproc`
 
           # Build OP-TEE rust examples for Arm 32-bit host and 64-bit TA
           export TA_DEV_KIT_DIR=~/optee_os/out/arm-plat-vexpress/export-ta_arm64/
@@ -110,12 +110,14 @@ jobs:
           export CROSS_COMPILE_TA=$CROSS_COMPILE64
           export TARGET_HOST="arm-unknown-linux-gnueabihf"
           export TARGET_TA="aarch64-unknown-linux-gnu"
-          make clean && make
+          make clean && make -j`nproc`
 
-  build-and-run-examples-in-OPTEE-repo:
+  OPTEE-repo-build-and-run-examples-64bit-TAs:
     runs-on: ubuntu-latest
     container: teaclave/teaclave-trustzone-sdk-build:0.3.0
     steps:
+      - name: Remove /__t/*
+        run: rm -rf /__t/*
       - name: Checkout repository
         uses: actions/checkout@v2
         with:
@@ -129,21 +131,44 @@ jobs:
           mkdir -p ~/optee-qemuv8 && cd ~/optee-qemuv8 &&
           repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml &&
           repo sync -j4 --no-clone-bundle
-      - name: Setting up $HOME
-        run: |
-          cp /root/.bashrc $HOME/.bashrc &&
-          ln -sf /root/.rustup ~/.rustup &&
-          ln -sf /root/.cargo ~/.cargo
       - name: Build images and run tests
         run: |
           apt update && apt install libslirp-dev -y
           cd ~/optee-qemuv8
           rm -rf optee_rust/ &&
           mv $GITHUB_WORKSPACE/incubator-teaclave-trustzone-sdk optee_rust/
-          export OPTEE_DIR=$(pwd)
           cd build &&
-          make -j2 toolchains &&
-          make CFG_TEE_CORE_LOG_LEVEL=0 OPTEE_RUST_ENABLE=y check-rust
+          make -j3 toolchains &&
+          make -j`nproc` RUST_ENABLE=y check
+
+  OPTEE-repo-build-and-run-examples-32bit-TAs:
+    runs-on: ubuntu-latest
+    container: teaclave/teaclave-trustzone-sdk-build:0.3.0
+    steps:
+      - name: Remove /__t/*
+        run: rm -rf /__t/*
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          submodules: recursive
+          path: 'incubator-teaclave-trustzone-sdk'
+      - name: Checkout OP-TEE repository
+        run: |
+          mkdir -p ~/bin
+          curl https://storage.googleapis.com/git-repo-downloads/repo-1 > ~/bin/repo && chmod a+x ~/bin/repo
+          export PATH=~/bin:$PATH
+          mkdir -p ~/optee-qemuv8 && cd ~/optee-qemuv8 &&
+          repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml &&
+          repo sync -j4 --no-clone-bundle
+      - name: Build images and run tests
+        run: |
+          apt update && apt install libslirp-dev -y
+          cd ~/optee-qemuv8
+          rm -rf optee_rust/ &&
+          mv $GITHUB_WORKSPACE/incubator-teaclave-trustzone-sdk optee_rust/
+          cd build &&
+          make -j3 toolchains &&
+          make -j`nproc` RUST_ENABLE=y COMPILE_S_USER=32 check
 
   license:
     runs-on: ubuntu-latest
