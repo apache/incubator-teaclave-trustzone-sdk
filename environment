@@ -24,6 +24,7 @@ fi
 export OPTEE_OS_DIR="$OPTEE_DIR/optee_os"
 export OPTEE_CLIENT_DIR="$OPTEE_DIR/optee_client/out"
 export OPTEE_CLIENT_INCLUDE="$OPTEE_DIR/optee_client/out/export/usr/include"
+export OPTEE_CLIENT_EXPORT="$OPTEE_DIR/optee_client/out/export"
 if [ "$ARCH" = "arm" ]
 then
   export ARCH="arm"
@@ -31,6 +32,7 @@ then
   export VENDOR="qemu.mk"
   export OPTEE_OS_INCLUDE="$OPTEE_DIR/optee_os/out/arm/export-ta_arm32/include"
   export CC=$OPTEE_DIR/toolchains/aarch32/bin/arm-linux-gnueabihf-gcc
+  export TA_DEV_KIT_DIR="$OPTEE_OS_DIR/out/arm/export-ta_arm32"
 else
   # export ARCH="aarch64" # comment this because currently optee_os cannot be compiled in the aarch64 target
   unset ARCH
@@ -38,4 +40,5 @@ else
   export VENDOR="qemu_v8.mk"
   export OPTEE_OS_INCLUDE="$OPTEE_DIR/optee_os/out/arm/export-ta_arm64/include"
   export CC=$OPTEE_DIR/toolchains/aarch64/bin/aarch64-linux-gnu-gcc
+  export TA_DEV_KIT_DIR="$OPTEE_OS_DIR/out/arm/export-ta_arm64"
 fi
