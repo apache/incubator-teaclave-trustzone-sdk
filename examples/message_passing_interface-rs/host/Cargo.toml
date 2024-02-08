@@ -28,4 +28,4 @@ edition = "2018"
 libc = "0.2.48"
 url = "1.7.2"
 proto = { path = "../proto" }
-optee-teec = { path = "../../../optee-teec" }
+optee-teec = { git = "https://github.com/b49020/optee-teec/" }
