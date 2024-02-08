@@ -27,8 +27,8 @@ edition = "2018"
 [dependencies]
 libc = { path = "../../../rust/libc" }
 proto = { path = "../proto" }
-optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys" }
-optee-utee = { path = "../../../optee-utee" }
+optee-utee-sys = { git = "https://github.com/b49020/optee-utee/" }
+optee-utee = { git = "https://github.com/b49020/optee-utee/" }
 
 rustls = { git = "https://github.com/DemesneGH/rustls.git", branch = "veracruz" }
 webpki = { git = "https://github.com/veracruz-project/webpki.git", branch = "veracruz", features = ["default"] }
@@ -44,8 +44,8 @@ lto = true
 
 # Patch optee-utee for webpki
 [patch."https://github.com/veracruz-project/rust-optee-trustzone-sdk.git"]
-optee-utee = { path = "../../../optee-utee" }
+optee-utee = { git = "https://github.com/b49020/optee-utee/" }
 
 # Patch optee-utee for rustls
 [patch."https://github.com/apache/incubator-teaclave-trustzone-sdk.git"]
-optee-utee = { path = "../../../optee-utee" }
+optee-utee = { git = "https://github.com/b49020/optee-utee/" }

@@ -27,8 +27,8 @@ edition = "2018"
 [dependencies]
 libc = { path = "../../../rust/libc" }
 proto = { path = "../proto" }
-optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys" }
-optee-utee = { path = "../../../optee-utee" }
+optee-utee-sys = { git = "https://github.com/b49020/optee-utee/" }
+optee-utee = { git = "https://github.com/b49020/optee-utee/" }
 ring = { git = "https://github.com/veracruz-project/ring.git", branch = "veracruz", version = "=0.16.11", features = ["std"] }
 
 [build_dependencies]
@@ -40,7 +40,7 @@ lto = true
 opt-level = 1
 
 [patch."https://github.com/veracruz-project/rust-optee-trustzone-sdk.git"]
-optee-utee = { path = "../../../optee-utee" }
+optee-utee = { git = "https://github.com/b49020/optee-utee/" }
 libc = { path = "../../../rust/libc" }
 [patch."https://github.com/veracruz-project/ring.git"]
-optee-utee = { path = "../../../optee-utee" }
+optee-utee = { git = "https://github.com/b49020/optee-utee/" }
