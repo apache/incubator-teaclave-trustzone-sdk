@@ -17,6 +17,7 @@
 
 #![no_main]
 
+use std::os::raw::c_void;
 use ring::signature::KeyPair;
 use ring::{rand, signature};
 
