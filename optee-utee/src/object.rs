@@ -402,11 +402,22 @@ pub enum AttributeId {
     /// Diffie-Hellman public value: `x`
     DhPrivateValue = 0xC0000232,
     RsaOaepLabel = 0xD0000930,
+    RsaOaepMgf1Hash = 0xD0000931,
     RsaPssSaltLength = 0xF0000A30,
+    /// ECC public value: `x`
     EccPublicValueX = 0xD0000141,
+    /// ECC public value: `y`
     EccPublicValueY = 0xD0000241,
     /// ECC private value: `d`
     EccPrivateValue = 0xC0000341,
+    /// Ed25519 public value
+    Ed25519PublicValue = 0xD0000743,
+    /// Ed25519 private value
+    Ed25519PrivateValue = 0xC0000843,
+    /// X25519 public value
+    X25519PublicValue = 0xD0000944,
+    /// X25519 private value
+    X25519PrivateValue = 0xC0000A44,
     /// ECC Curve algorithm
     EccCurve = 0xF0000441,
     BitProtected = (1 << 28),
@@ -466,6 +477,18 @@ pub enum TransientObjectType {
     /// one of the ECC curves defined in Table 6-14 with "generic" equal to
     /// "Y" is supported. SHALL be same value as for ECDH public key size
     EcdhKeypair = 0xA1000042,
+    /// 256 bits. Conditional: Available only if TEE_ECC_CURVE_25519
+    /// defined in Table 6-14 is supported.
+    Ed25519PublicKey = 0xA0000043,
+    /// 256 bits. Conditional: Available only if TEE_ECC_CURVE_25519
+    /// defined in Table 6-14 is supported.
+    Ed25519Keypair = 0xA1000043,
+    /// 256 bits. Conditional: Available only if TEE_ECC_CURVE_25519
+    /// defined in Table 6-14 is supported.
+    X25519PublicKey = 0xA0000044,
+    /// 256 bits. Conditional: Available only if TEE_ECC_CURVE_25519
+    /// defined in Table 6-14 is supported.
+    X25519Keypair = 0xA1000044,
     /// Multiple of 8 bits, up to 4096 bits. This type is intended for secret
     /// data that has been derived from a key derivation scheme.
     GenericSecret = 0xA0000000,

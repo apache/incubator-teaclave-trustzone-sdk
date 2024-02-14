@@ -1654,6 +1654,9 @@ pub enum AlgorithmId {
     Des3CbcMacPkcs5 = 0x30000513,
     /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
     /// [Sign](OperationMode::Sign) or [Verify](OperationMode::Verify) mode.
+    RsassaPkcs1V15 = 0xF0000830,
+    /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
+    /// [Sign](OperationMode::Sign) or [Verify](OperationMode::Verify) mode.
     RsassaPkcs1V15MD5 = 0x70001830,
     /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
     /// [Sign](OperationMode::Sign) or [Verify](OperationMode::Verify) mode.
@@ -1675,6 +1678,9 @@ pub enum AlgorithmId {
     RsassaPkcs1V15MD5Sha1 = 0x7000F830,
     /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
     /// [Sign](OperationMode::Sign) or [Verify](OperationMode::Verify) mode.
+    RsassaPkcs1PssMgf1MD5 = 0xF0111930,
+    /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
+    /// [Sign](OperationMode::Sign) or [Verify](OperationMode::Verify) mode.
     RsassaPkcs1PssMgf1Sha1 = 0x70212930,
     /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
     /// [Sign](OperationMode::Sign) or [Verify](OperationMode::Verify) mode.
@@ -1691,6 +1697,9 @@ pub enum AlgorithmId {
     /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
     /// [Encrypt](OperationMode::Encrypt) or [Decrypt](OperationMode::Decrypt) mode.
     RsaesPkcs1V15 = 0x60000130,
+    /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
+    /// [Encrypt](OperationMode::Encrypt) or [Decrypt](OperationMode::Decrypt) mode.
+    RsaesPkcs1OAepMgf1MD5 = 0xF0110230,
     /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
     /// [Encrypt](OperationMode::Encrypt) or [Decrypt](OperationMode::Decrypt) mode.
     RsaesPkcs1OAepMgf1Sha1 = 0x60210230,
@@ -1720,6 +1729,28 @@ pub enum AlgorithmId {
     DSASha256 = 0x70004131,
     /// [DeriveKey](DeriveKey) supported algorithm.
     DhDeriveSharedSecret = 0x80000032,
+    /// [DeriveKey](DeriveKey) supported algorithm.
+    EcDhDeriveSharedSecret = 0x80000042,
+    /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
+    /// [Sign](OperationMode::Sign) or [Verify](OperationMode::Verify) mode.
+    EcDsaSha1 = 0x70001042,
+    /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
+    /// [Sign](OperationMode::Sign) or [Verify](OperationMode::Verify) mode.
+    EcDsaSha224 = 0x70002042,
+    /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
+    /// [Sign](OperationMode::Sign) or [Verify](OperationMode::Verify) mode.
+    EcDsaSha256 = 0x70003042,
+    /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
+    /// [Sign](OperationMode::Sign) or [Verify](OperationMode::Verify) mode.
+    EcDsaSha384 = 0x70004042,
+    /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
+    /// [Sign](OperationMode::Sign) or [Verify](OperationMode::Verify) mode.
+    EcDsaSha512 = 0x70005042,
+    /// [Asymmetric](Asymmetric) supported algorithm, can be applied with
+    /// [Sign](OperationMode::Sign) or [Verify](OperationMode::Verify) mode.
+    Ed25519 = 0x70006043,
+    /// [DeriveKey](DeriveKey) supported algorithm.
+    X25519 = 0x80000044,
     /// [Digest](Digest) supported algorithm.
     Md5 = 0x50000001,
     /// [Digest](Digest) supported algorithm.
@@ -1766,4 +1797,6 @@ pub enum ElementId {
     EccCurveNistP384 = 0x00000004,
     /// Source: `NIST`, Generic: `Y`, Size: 521 bits
     EccCurveNistP521 = 0x00000005,
+    /// Source: `IETF`, Generic: `N`, Size: 256 bits
+    EccCurve25519 = 0x00000300,
 }
