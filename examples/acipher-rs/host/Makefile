@@ -30,7 +30,7 @@ all: host strip
 host:
 	@cargo build --target $(TARGET) --release --config $(LINKER_CFG)
 
-strip:
+strip: host
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/$(NAME) $(OUT_DIR)/$(NAME)
 
 clean:

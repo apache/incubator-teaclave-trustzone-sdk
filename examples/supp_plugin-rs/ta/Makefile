@@ -31,10 +31,10 @@ all: ta strip sign
 ta:
 	@cargo build --target $(TARGET) --release --config $(LINKER_CFG)
 
-strip:
+strip: ta
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/ta $(OUT_DIR)/stripped_ta
 
-sign:
+sign: strip
 	@$(SIGN) --uuid $(UUID) --key $(TA_SIGN_KEY) --in $(OUT_DIR)/stripped_ta --out $(OUT_DIR)/$(UUID).ta
 	@echo "SIGN =>  ${UUID}"
 
