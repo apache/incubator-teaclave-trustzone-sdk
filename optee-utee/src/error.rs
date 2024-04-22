@@ -16,8 +16,11 @@
 // under the License.
 
 use optee_utee_sys as raw;
-use std::convert::From;
-use std::fmt;
+use core::{fmt, result};
+#[cfg(feature = "std")]
+use std::error;
+#[cfg(not(feature = "std"))]
+use core::error;
 
 /// A specialized [`Result`](https://doc.rust-lang.org/std/result/enum.Result.html)
 /// type for TEE operations.
@@ -29,7 +32,7 @@ use std::fmt;
 ///     Ok(())
 /// }
 /// ````
-pub type Result<T> = std::result::Result<T, Error>;
+pub type Result<T> = result::Result<T, Error>;
 
 pub struct Error {
     code: u32,
@@ -231,7 +234,7 @@ impl fmt::Display for Error {
     }
 }
 
-impl std::error::Error for Error {
+impl error::Error for Error {
     fn description(&self) -> &str {
         self.message()
     }

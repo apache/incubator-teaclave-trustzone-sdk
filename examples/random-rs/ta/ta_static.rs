@@ -15,8 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
+use core::ffi::*;
+use core::mem;
+use core::primitive::u64;
+
 #[no_mangle]
-pub static mut trace_level: libc::c_int = TRACE_LEVEL;
+pub static mut trace_level: c_int = TRACE_LEVEL;
 
 #[no_mangle]
 pub static trace_ext_prefix: &[u8] = TRACE_EXT_PREFIX;
@@ -27,7 +31,7 @@ pub static ta_head: optee_utee_sys::ta_head = optee_utee_sys::ta_head {
     uuid: TA_UUID,
     stack_size: TA_STACK_SIZE + TA_FRAMEWORK_STACK_SIZE,
     flags: TA_FLAGS,
-    depr_entry: std::u64::MAX,
+    depr_entry: u64::MAX,
 };
 
 #[no_mangle]
@@ -35,13 +39,13 @@ pub static ta_head: optee_utee_sys::ta_head = optee_utee_sys::ta_head {
 pub static ta_heap: [u8; TA_DATA_SIZE as usize] = [0; TA_DATA_SIZE as usize];
 
 #[no_mangle]
-pub static ta_heap_size: libc::size_t = std::mem::size_of::<u8>() * TA_DATA_SIZE as usize;
+pub static ta_heap_size: c_size_t = mem::size_of::<u8>() * TA_DATA_SIZE as usize;
 static FLAG_BOOL: bool = (TA_FLAGS & optee_utee_sys::TA_FLAG_SINGLE_INSTANCE) != 0;
 static FLAG_MULTI: bool = (TA_FLAGS & optee_utee_sys::TA_FLAG_MULTI_SESSION) != 0;
 static FLAG_INSTANCE: bool = (TA_FLAGS & optee_utee_sys::TA_FLAG_INSTANCE_KEEP_ALIVE) != 0;
 
 #[no_mangle]
-pub static ta_num_props: libc::size_t = 9;
+pub static ta_num_props: c_size_t = 9;
 
 #[no_mangle]
 pub static ta_props: [optee_utee_sys::user_ta_property; 9] = [
@@ -93,6 +97,6 @@ pub static ta_props: [optee_utee_sys::user_ta_property; 9] = [
 ];
 
 #[no_mangle]
-pub unsafe extern "C" fn tahead_get_trace_level() -> libc::c_int {
+pub unsafe extern "C" fn tahead_get_trace_level() -> c_int {
     return trace_level;
 }

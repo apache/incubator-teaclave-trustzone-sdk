@@ -15,8 +15,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
+#[cfg(feature = "std")]
+use std::os::raw::*;
+#[cfg(not(feature = "std"))]
+use core::ffi::*;
 use super::*;
-use libc::*;
 
 extern "C" {
     /// tee_invoke_supp_plugin() - invoke a tee-supplicant's plugin

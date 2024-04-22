@@ -15,8 +15,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
+extern crate alloc;
 extern crate proc_macro;
 
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::parse_macro_input;
@@ -162,7 +165,7 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
             pub extern "C" fn TA_OpenSessionEntryPoint(
                 param_types: u32,
                 params: &mut [optee_utee_sys::TEE_Param; 4],
-                sess_ctx: *mut *mut libc::c_void,
+                sess_ctx: *mut *mut c_void,
             ) -> optee_utee_sys::TEE_Result {
                 let mut parameters = Parameters::from_raw(params, param_types);
                 match #ident(&mut parameters) {
@@ -195,7 +198,7 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
                 pub extern "C" fn TA_OpenSessionEntryPoint(
                     param_types: u32,
                     params: &mut [optee_utee_sys::TEE_Param; 4],
-                    sess_ctx: *mut *mut libc::c_void,
+                    sess_ctx: *mut *mut c_void,
                 ) -> optee_utee_sys::TEE_Result {
                     let mut parameters = Parameters::from_raw(params, param_types);
                     let mut ctx: #ctx_type = Default::default();
@@ -261,7 +264,7 @@ pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
     match f.decl.inputs.len() {
         0 => quote!(
             #[no_mangle]
-            pub extern "C" fn TA_CloseSessionEntryPoint(sess_ctx: *mut libc::c_void) {
+            pub extern "C" fn TA_CloseSessionEntryPoint(sess_ctx: *mut c_void) {
                 #ident();
             }
 
@@ -285,7 +288,7 @@ pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
 
             quote!(
                 #[no_mangle]
-                pub extern "C" fn TA_CloseSessionEntryPoint(sess_ctx: *mut libc::c_void) {
+                pub extern "C" fn TA_CloseSessionEntryPoint(sess_ctx: *mut c_void) {
                     if sess_ctx.is_null() {
                         panic!("sess_ctx is null");
                     }
@@ -343,7 +346,7 @@ pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream 
         2 => quote!(
             #[no_mangle]
             pub extern "C" fn TA_InvokeCommandEntryPoint(
-                sess_ctx: *mut libc::c_void,
+                sess_ctx: *mut c_void,
                 cmd_id: u32,
                 param_types: u32,
                 params: &mut [optee_utee_sys::TEE_Param; 4],
@@ -378,7 +381,7 @@ pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream 
             quote!(
                 #[no_mangle]
                 pub extern "C" fn TA_InvokeCommandEntryPoint(
-                    sess_ctx: *mut libc::c_void,
+                    sess_ctx: *mut c_void,
                     cmd_id: u32,
                     param_types: u32,
                     params: &mut [optee_utee_sys::TEE_Param; 4],
@@ -390,7 +393,7 @@ pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream 
                     let mut b = unsafe {Box::from_raw(sess_ctx as *mut #t)};
                     match #ident(&mut b, cmd_id, &mut parameters) {
                         Ok(_) => {
-                            std::mem::forget(b);
+                            core::mem::forget(b);
                             optee_utee_sys::TEE_SUCCESS
                         },
                         Err(e) => e.raw_code()

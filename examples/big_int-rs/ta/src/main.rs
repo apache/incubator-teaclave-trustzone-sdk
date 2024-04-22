@@ -15,7 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
+#![no_std]
 #![no_main]
+#![feature(c_size_t)]
 
 use optee_utee::BigInt;
 use optee_utee::{

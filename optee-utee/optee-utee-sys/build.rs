@@ -26,5 +26,6 @@ fn main() {
     };
     println!("cargo:rustc-link-search={}", search_path.display());
     println!("cargo:rustc-link-lib=static=utee");
+    println!("cargo:rustc-link-lib=static=utils");
     println!("cargo:rustc-link-lib=static=mbedtls");
 }

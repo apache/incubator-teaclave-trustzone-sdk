@@ -16,11 +16,14 @@
 // under the License.
 
 use super::*;
-use libc::*;
+#[cfg(feature = "std")]
+use std::os::raw::*;
+#[cfg(not(feature = "std"))]
+use core::ffi::*;
 
 extern "C" {
     pub fn _utee_return(ret: c_ulong) -> !;
-    pub fn _utee_log(buf: *const c_void, len: size_t);
+    pub fn _utee_log(buf: *const c_void, len: c_size_t);
     pub fn _utee_panic(code: c_ulong);
     pub fn _utee_get_property(
         prop_set: c_ulong,
@@ -52,7 +55,7 @@ extern "C" {
         params: *mut utee_params,
         ret_orig: *mut u32,
     ) -> TEE_Result;
-    pub fn _utee_check_access_rights(flags: u32, buf: *const c_void, len: size_t)
+    pub fn _utee_check_access_rights(flags: u32, buf: *const c_void, len: c_size_t)
         -> TEE_Result;
     pub fn _utee_get_cancellation_flag(cancel: *mut u32) -> TEE_Result;
     pub fn _utee_unmask_cancellation(old_mask: *mut u32) -> TEE_Result;
@@ -69,28 +72,28 @@ extern "C" {
     ) -> TEE_Result;
     pub fn _utee_cryp_state_copy(dst: c_ulong, src: c_ulong) -> TEE_Result;
     pub fn _utee_cryp_state_free(state: c_ulong) -> TEE_Result;
-    pub fn _utee_hash_init(state: c_ulong, iv: *const c_void, iv_len: size_t) -> TEE_Result;
-    pub fn _utee_hash_update(state: c_ulong, chunk: *const c_void, chunk_size: size_t)
+    pub fn _utee_hash_init(state: c_ulong, iv: *const c_void, iv_len: c_size_t) -> TEE_Result;
+    pub fn _utee_hash_update(state: c_ulong, chunk: *const c_void, chunk_size: c_size_t)
         -> TEE_Result;
     pub fn _utee_hash_final(
         state: c_ulong,
         chunk: *const c_void,
-        chunk_size: size_t,
+        chunk_size: c_size_t,
         hash: *mut c_void,
         hash_len: *mut u64,
     ) -> TEE_Result;
-    pub fn _utee_cipher_init(state: c_ulong, iv: *const c_void, iv_len: size_t) -> TEE_Result;
+    pub fn _utee_cipher_init(state: c_ulong, iv: *const c_void, iv_len: c_size_t) -> TEE_Result;
     pub fn _utee_cipher_update(
         state: c_ulong,
         src: *const c_void,
-        src_len: size_t,
+        src_len: c_size_t,
         dest: *mut c_void,
         dest_len: *mut u64,
     ) -> TEE_Result;
     pub fn _utee_cipher_final(
         state: c_ulong,
         src: *const c_void,
-        src_len: size_t,
+        src_len: c_size_t,
         dest: *mut c_void,
         dest_len: *mut u64,
     ) -> TEE_Result;
@@ -124,31 +127,31 @@ extern "C" {
         param_count: c_ulong,
         derived_key: c_ulong,
     ) -> TEE_Result;
-    pub fn _utee_cryp_random_number_generate(buf: *mut c_void, blen: size_t) -> TEE_Result;
+    pub fn _utee_cryp_random_number_generate(buf: *mut c_void, blen: c_size_t) -> TEE_Result;
     pub fn _utee_authenc_init(
         state: c_ulong,
         nonce: *const c_void,
-        nonce_len: size_t,
-        tag_len: size_t,
-        aad_len: size_t,
-        payload_len: size_t,
+        nonce_len: c_size_t,
+        tag_len: c_size_t,
+        aad_len: c_size_t,
+        payload_len: c_size_t,
     ) -> TEE_Result;
     pub fn _utee_authenc_update_aad(
         state: c_ulong,
         aad_data: *const c_void,
-        aad_data_len: size_t,
+        aad_data_len: c_size_t,
     ) -> TEE_Result;
     pub fn _utee_authenc_update_payload(
         state: c_ulong,
         src_data: *const c_void,
-        src_len: size_t,
+        src_len: c_size_t,
         dest_data: *mut c_void,
         dest_len: *mut u64,
     ) -> TEE_Result;
     pub fn _utee_authenc_enc_final(
         state: c_ulong,
         src_data: *const c_void,
-        src_len: size_t,
+        src_len: c_size_t,
         dest_data: *mut c_void,
         dest_len: *mut u64,
         tag: *mut c_void,
@@ -157,18 +160,18 @@ extern "C" {
     pub fn _utee_authenc_dec_final(
         state: c_ulong,
         src_data: *const c_void,
-        src_len: size_t,
+        src_len: c_size_t,
         dest_data: *mut c_void,
         dest_len: *mut u64,
         tag: *const c_void,
-        tag_len: size_t,
+        tag_len: c_size_t,
     ) -> TEE_Result;
     pub fn _utee_asymm_operate(
         state: c_ulong,
         params: *const utee_attribute,
         num_params: c_ulong,
         src_data: *const c_void,
-        src_len: size_t,
+        src_len: c_size_t,
         dest_data: *mut c_void,
         dest_len: *mut u64,
     ) -> TEE_Result;
@@ -177,32 +180,32 @@ extern "C" {
         params: *const utee_attribute,
         num_params: c_ulong,
         data: *const c_void,
-        data_len: size_t,
+        data_len: c_size_t,
         sig: *const c_void,
-        sig_len: size_t,
+        sig_len: c_size_t,
     ) -> TEE_Result;
     pub fn _utee_storage_obj_open(
         storage_id: c_ulong,
         object_id: *const c_void,
-        object_id_len: size_t,
+        object_id_len: c_size_t,
         flags: c_ulong,
         obj: *mut u32,
     ) -> TEE_Result;
     pub fn _utee_storage_obj_create(
         storage_id: c_ulong,
         object_id: *const c_void,
-        object_id_len: size_t,
+        object_id_len: c_size_t,
         flags: c_ulong,
         attr: c_ulong,
         data: *const c_void,
-        len: size_t,
+        len: c_size_t,
         obj: *mut u32,
     ) -> TEE_Result;
     pub fn _utee_storage_obj_del(obj: c_ulong) -> TEE_Result;
     pub fn _utee_storage_obj_rename(
         obj: c_ulong,
         new_obj_id: *const c_void,
-        new_obj_id_len: size_t,
+        new_obj_id_len: c_size_t,
     ) -> TEE_Result;
     pub fn _utee_storage_alloc_enum(obj_enum: *mut u32) -> TEE_Result;
     pub fn _utee_storage_free_enum(obj_enum: c_ulong) -> TEE_Result;
@@ -217,13 +220,13 @@ extern "C" {
     pub fn _utee_storage_obj_read(
         obj: c_ulong,
         data: *mut c_void,
-        len: size_t,
+        len: c_size_t,
         count: *mut u64,
     ) -> TEE_Result;
-    pub fn _utee_storage_obj_write(obj: c_ulong, data: *const c_void, len: size_t) -> TEE_Result;
-    pub fn _utee_storage_obj_trunc(obj: c_ulong, len: size_t) -> TEE_Result;
+    pub fn _utee_storage_obj_write(obj: c_ulong, data: *const c_void, len: c_size_t) -> TEE_Result;
+    pub fn _utee_storage_obj_trunc(obj: c_ulong, len: c_size_t) -> TEE_Result;
     pub fn _utee_storage_obj_seek(obj: c_ulong, offset: i32, whence: c_ulong) -> TEE_Result;
-    pub fn _utee_cache_operation(va: *mut c_void, l: size_t, op: c_ulong) -> TEE_Result;
+    pub fn _utee_cache_operation(va: *mut c_void, l: c_size_t, op: c_ulong) -> TEE_Result;
 // unimplemented syscall
-// pub fn utee_gprof_send(buf: *mut c_void, size: size_t, id: *mut u32) -> TEE_Result;
+// pub fn utee_gprof_send(buf: *mut c_void, size: c_size_t, id: *mut u32) -> TEE_Result;
 }

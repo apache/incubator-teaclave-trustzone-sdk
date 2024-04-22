@@ -17,7 +17,11 @@
 
 use crate::{Attribute, Error, ObjHandle, Result, TransientObject};
 use optee_utee_sys as raw;
-use std::{mem, ptr};
+use core::{mem, ptr};
+#[cfg(not(feature = "std"))]
+use alloc::boxed::Box;
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
 
 /// Specify one of the available cryptographic operations.
 #[repr(u32)]
@@ -243,7 +247,7 @@ impl Drop for OperationHandle {
             if self.raw != ptr::null_mut() {
                 raw::TEE_FreeOperation(self.handle());
             }
-            Box::from_raw(self.raw);
+            drop(Box::from_raw(self.raw));
         }
     }
 }

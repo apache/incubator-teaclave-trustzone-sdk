@@ -1,0 +1,6 @@
+{
+__elf_phdr_info;
+trace_ext_prefix;
+trace_level;
+ta_head;
+};

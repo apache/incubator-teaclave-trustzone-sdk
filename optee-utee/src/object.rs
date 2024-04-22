@@ -18,7 +18,11 @@
 use crate::{Error, Result};
 use bitflags::bitflags;
 use optee_utee_sys as raw;
-use std::{marker, mem, ptr};
+use core::{marker, mem, ptr};
+#[cfg(not(feature = "std"))]
+use alloc::boxed::Box;
+#[cfg(not(feature = "std"))]
+use alloc::vec::Vec;
 
 /// A general attribute (buffer or value) that can be used to populate an object or to specify
 /// opeation parameters.
@@ -868,7 +872,7 @@ impl Drop for TransientObject {
             if self.0.raw != ptr::null_mut() {
                 raw::TEE_FreeTransientObject(self.0.handle());
             }
-            Box::from_raw(self.0.raw);
+            drop(Box::from_raw(self.0.raw));
         }
     }
 }
@@ -942,7 +946,7 @@ impl PersistentObject {
             }
             code => {
                 unsafe {
-                    Box::from_raw(raw_handle);
+                    drop(Box::from_raw(raw_handle));
                 }
                 Err(Error::from_raw_error(code))
             }
@@ -1030,7 +1034,7 @@ impl PersistentObject {
             }
             code => {
                 unsafe {
-                    Box::from_raw(raw_handle);
+                    drop(Box::from_raw(raw_handle));
                 }
                 Err(Error::from_raw_error(code))
             }
@@ -1073,7 +1077,7 @@ impl PersistentObject {
         match unsafe { raw::TEE_CloseAndDeletePersistentObject1(self.0.handle()) } {
             raw::TEE_SUCCESS => {
                 unsafe {
-                    Box::from_raw(self.0.raw);
+                    drop(Box::from_raw(self.0.raw));
                 }
                 return Ok(());
             }
@@ -1378,7 +1382,7 @@ impl Drop for PersistentObject {
             if self.0.raw != Box::into_raw(Box::new(ptr::null_mut())) {
                 raw::TEE_CloseObject(self.0.handle());
             }
-            Box::from_raw(self.0.raw);
+            drop(Box::from_raw(self.0.raw));
         }
     }
 }
@@ -1399,7 +1403,7 @@ impl ObjectEnumHandle {
             raw::TEE_SUCCESS => Ok(Self { raw: raw_handle }),
             code => {
                 unsafe {
-                    Box::from_raw(raw_handle);
+                    drop(Box::from_raw(raw_handle));
                 }
                 Err(Error::from_raw_error(code))
             }
@@ -1455,7 +1459,7 @@ impl Drop for ObjectEnumHandle {
     fn drop(&mut self) {
         unsafe {
             raw::TEE_FreePersistentObjectEnumerator(*self.raw);
-            Box::from_raw(self.raw);
+            drop(Box::from_raw(self.raw));
         }
     }
 }

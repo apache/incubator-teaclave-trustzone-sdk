@@ -15,6 +15,30 @@
 // specific language governing permissions and limitations
 // under the License.
 
+#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(feature = "std"), feature(error_in_core))]
+
+// Requires `alloc`.
+#[macro_use]
+extern crate alloc;
+
+use libc_alloc::LibcAlloc;
+
+#[global_allocator]
+static ALLOCATOR: LibcAlloc = LibcAlloc;
+
+#[cfg(not(feature = "std"))]
+use core::panic::PanicInfo;
+#[cfg(not(feature = "std"))]
+use optee_utee_sys as raw;
+
+#[cfg(not(feature = "std"))]
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
+    unsafe { raw::TEE_Panic(0); }
+    loop {}
+}
+
 pub use self::error::{Error, ErrorKind, Result};
 pub use self::object::*;
 pub use self::crypto_op::*;
@@ -38,4 +62,6 @@ pub mod time;
 pub mod arithmetical;
 pub mod extension;
 pub mod uuid;
+
+#[cfg(feature = "std")]
 pub mod net;

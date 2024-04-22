@@ -15,8 +15,13 @@
 // specific language governing permissions and limitations
 // under the License.
 
+#![no_std]
 #![no_main]
+#![feature(c_size_t)]
 
+extern crate alloc;
+
+use alloc::vec;
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
@@ -82,7 +87,7 @@ pub fn delete_object(params: &mut Parameters) -> Result<()> {
 
         Ok(mut object) => {
             object.close_and_delete()?;
-            std::mem::forget(object);
+            mem::forget(object);
             return Ok(());
         }
     }
@@ -121,7 +126,7 @@ pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
             }
             Err(e_write) => {
                 object.close_and_delete()?;
-                std::mem::forget(object);
+                mem::forget(object);
                 return Err(e_write);
             }
         },
