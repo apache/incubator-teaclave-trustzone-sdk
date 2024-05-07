@@ -23,7 +23,7 @@ defaults:
 
 jobs:
    build-and-run-examples:
-     runs-on: ubuntu-24.04
+     runs-on: ubuntu-latest
      container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
      steps:
        - name: Checkout repository
@@ -47,7 +47,7 @@ jobs:
          run: |
            cd ci && ./ci.sh
    build-utee-teec:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
     steps:
       - name: Checkout repository
@@ -69,7 +69,7 @@ jobs:
           (cd optee-utee && xargo build --target aarch64-unknown-optee-trustzone -vv) &&
           (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
    license:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - name: Check License Header
