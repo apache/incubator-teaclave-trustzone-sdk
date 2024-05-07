@@ -32,16 +32,13 @@ jobs:
            submodules: recursive
        - name: Setting up $HOME
          run: |
-           cp /root/.bashrc $HOME/.bashrc &&
-           ln -sf /root/.rustup ~/.rustup &&
-           ln -sf /root/.cargo ~/.cargo
+           cp /root/.bashrc $HOME/.bashrc
        - name: Building
          run: |
            export CARGO_NET_GIT_FETCH_WITH_CLI=true &&
            ./setup.sh &&
            source environment &&
            make optee &&
-           . ~/.cargo/env &&
            make examples
        - name: Run tests and examples
          run: |
@@ -56,16 +53,13 @@ jobs:
           submodules: recursive
       - name: Setting up $HOME
         run: |
-          cp /root/.bashrc $HOME/.bashrc &&
-          ln -sf /root/.rustup ~/.rustup &&
-          ln -sf /root/.cargo ~/.cargo
+          cp /root/.bashrc $HOME/.bashrc
       - name: Building
         run: |
           export CARGO_NET_GIT_FETCH_WITH_CLI=true &&
           ./setup.sh &&
           source environment &&
           make optee &&
-          . ~/.cargo/env &&
           (cd optee-utee && xargo build --target aarch64-unknown-optee-trustzone -vv) &&
           (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
    license:
