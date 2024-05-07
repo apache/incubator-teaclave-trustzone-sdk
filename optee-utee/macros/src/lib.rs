@@ -396,7 +396,10 @@ pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream 
                             core::mem::forget(b);
                             optee_utee_sys::TEE_SUCCESS
                         },
-                        Err(e) => e.raw_code()
+                        Err(e) => {
+                            core::mem::forget(b);
+                            e.raw_code()
+                        }
                     }
                 }
 
