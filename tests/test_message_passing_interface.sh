@@ -19,28 +19,19 @@
 
 set -xe
 
-rm -rf screenlog.0
-rm -rf optee-qemuv8-3.20.0-ubuntu-20.04
-rm -rf shared
+# Include base script
+source setup.sh
 
-curl https://nightlies.apache.org/teaclave/teaclave-trustzone-sdk/optee-qemuv8-3.20.0-ubuntu-20.04.tar.gz | tar zxv
-mkdir shared
+# Copy TA and host binary
 cp ../examples/message_passing_interface-rs/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
 cp ../examples/message_passing_interface-rs/host/target/aarch64-unknown-linux-gnu/release/message_passing_interface-rs shared
 
-screen -L -d -m -S qemu_screen ./optee-qemuv8.sh
-sleep 30
-screen -S qemu_screen -p 0 -X stuff "root\n"
-sleep 5
-screen -S qemu_screen -p 0 -X stuff "mkdir shared && mount -t 9p -o trans=virtio host shared && cd shared\n"
-sleep 5
-screen -S qemu_screen -p 0 -X stuff "cp *.ta /lib/optee_armtz/\n"
-sleep 5
-screen -S qemu_screen -p 0 -X stuff "./message_passing_interface-rs\n"
-sleep 5
-screen -S qemu_screen -p 0 -X stuff "^C"
-sleep 5
+# Run script specific commands in QEMU
+run_in_qemu "cp *.ta /lib/optee_armtz/\n"
+run_in_qemu "./message_passing_interface-rs\n"
+run_in_qemu "^C"
 
+# Script specific checks
 {
 	grep -q "Hello, World" screenlog.0
 } || {
@@ -49,6 +40,4 @@ sleep 5
 	false
 }
 
-rm -rf screenlog.0
-rm -rf optee-qemuv8-3.20.0-ubuntu-20.04
-rm -rf shared
+rm screenlog.0

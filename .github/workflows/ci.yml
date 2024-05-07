@@ -23,8 +23,8 @@ defaults:
 
 jobs:
    build-and-run-examples:
-     runs-on: ubuntu-20.04
-     container: teaclave/teaclave-trustzone-sdk-build:0.3.0
+     runs-on: ubuntu-24.04
+     container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
      steps:
        - name: Checkout repository
          uses: actions/checkout@v2
@@ -37,7 +37,6 @@ jobs:
            ln -sf /root/.cargo ~/.cargo
        - name: Building
          run: |
-           apt update && apt install libslirp-dev -y
            export CARGO_NET_GIT_FETCH_WITH_CLI=true &&
            ./setup.sh &&
            source environment &&
@@ -48,8 +47,8 @@ jobs:
          run: |
            cd ci && ./ci.sh
    build-utee-teec:
-    runs-on: ubuntu-20.04
-    container: teaclave/teaclave-trustzone-sdk-build:0.3.0
+    runs-on: ubuntu-24.04
+    container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -70,7 +69,7 @@ jobs:
           (cd optee-utee && xargo build --target aarch64-unknown-optee-trustzone -vv) &&
           (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
    license:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v2
       - name: Check License Header

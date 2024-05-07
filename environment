@@ -15,6 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
+export PATH=$PATH:$HOME/.cargo/bin
 export RUST_TARGET_PATH="$(pwd)"
 export RUST_COMPILER_RT_ROOT=$RUST_TARGET_PATH/rust/rust/src/llvm-project/compiler-rt
 if [ -z "$OPTEE_DIR" ]
