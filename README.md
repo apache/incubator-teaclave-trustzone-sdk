@@ -14,9 +14,17 @@ TrustZone applications with Rust's standard library (std) and many third-party
 libraries (i.e., crates). Teaclave TrustZone SDK is a sub-project of [Apache
 Teaclave (incubating)](https://teaclave.apache.org/).
 
+Teaclave TrustZone SDK provides two development modes for Rust TAs: `no-std` 
+(check out the `no-std` branch) and `std` (check out the `master` branch). 
+We recommend using `no-std` by default. For a detailed comparison, please refer
+to [Comparison](#comparison).
+
 ## Table of Contents
 
-- [Quick start with the OP-TEE Repo for QEMUv8](#quick-start-with-the-op-tee-repo-for-qemuv8)
+- [TA Development Modes](#ta-development-modes)
+  - [Comparison](#comparison)
+  - [Supported Examples](#supported-examples)
+- [Quick Start with the OP-TEE Repo for QEMUv8](#quick-start-with-the-op-tee-repo-for-qemuv8)
 - [Getting started](#getting-started)
   - [Environment](#environment)
     - [Develop with QEMUv8](#develop-with-qemuv8)
@@ -25,10 +33,47 @@ Teaclave (incubating)](https://teaclave.apache.org/).
   - [Run Rust Applications](#run-rust-applications)
     - [Run Rust Applications in QEMUv8](#run-rust-applications-in-qemuv8)
     - [Run Rust Applications on other platforms](#run-rust-applications-on-other-platforms)
+  - [Test](#test)
 - [Documentation](#documentation)
 - [Publication](#publication)
 - [Contributing](#contributing)
 - [Community](#community)
+
+
+## TA Development Modes
+
+### Comparison
+
+#### `no-std`
+
+- **Pros**:
+  - Reuses standard Rust tier-1 toolchain targets (`aarch64-unknown-linux-gnu`, 
+    `arm-unknown-linux-gnueabihf`).
+  - Significant performance improvements.
+  - Substantial reduction in binary size.
+  
+- **Cons**:
+  - Limited support for third-party crates. In the no-std mode, Trusted Applications
+   (TAs) are unable to utilize crates dependent on the standard library (std).
+
+#### `std`
+
+- **Pros**:
+  - Enables the utilization of more third-party crates, including those requiring
+    `std`, such as `serde_json` and `rustls`, which are essential for functionality.
+  
+- **Cons**:
+  - Manual porting of `std` with infrequent updates. Currently using `std` version
+   `1.56.1` and `Rust` version `nightly-2021-09-20`. (Planned to update)
+
+### Supported Examples
+
+- **Common**: See
+  [Overview of OP-TEE Rust Examples](https://teaclave.apache.org/trustzone-sdk-docs/overview-of-optee-rust-examples/).
+
+- **`no-std`**: Excludes `test_serde`, `test_tcp_client`, `test_udp_socket`,
+  `test_message_passing_interface`, `test_tls_client`, `test_tls_server`.
+
 
 ## Quick start with the OP-TEE Repo for QEMUv8
 
@@ -37,6 +82,9 @@ Release 3.15.0 (18/Oct/21). The aarch64 Rust examples are built and installed
 into OP-TEE's default filesystem for QEMUv8. Follow [this
 documentation](https://optee.readthedocs.io/en/latest/building/optee_with_rust.html)
 to set up the OP-TEE repo and try the Rust examples!
+
+UPDATES: The `no-std` TA has replaced the original `std` TAs since OP-TEE 
+Release 4.1.0 (19/Jan/24).
 
 ## Getting started
 
@@ -214,6 +262,12 @@ describes.
 #### Run Rust Applications on other platforms
 
 Copy the applications to your platform and run.
+
+### Test
+
+In the `tests/` directory, we offer comprehensive tests for examples. The 
+applications can run on a pre-built QEMU image, independently of cloning the 
+OP-TEE repo. You can compose a simple test here to validate your application.
 
 ## Documentation
 
