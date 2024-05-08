@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 MAINTAINER Teaclave Contributors <dev@teaclave.apache.org>
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -53,15 +53,12 @@ RUN apt-get update && \
     libtool \
     make \
     mtools \
-    netcat \
     ninja-build \
-    python \
-    python-crypto \
-    python3-crypto \
-    python-pyelftools \
+    python3 \
     python3-pycryptodome \
     python3-pyelftools \
     python3-serial \
+    python3-cryptography \
     rsync \
     unzip \
     uuid-dev \
@@ -72,26 +69,9 @@ RUN apt-get update && \
     wget \
     cpio \
     libcap-ng-dev \
+    libslirp-dev \
     screen \
     libvdeplug-dev \
     libsdl2-dev \
     pip \
     ca-certificates
-
-RUN pip install cryptography
-
-RUN apt-get install -y software-properties-common && \
-    add-apt-repository ppa:linuxuprising/libpng12 && \
-    apt-get update && \
-    apt-get install libpng12-0
-
-# Install Rust
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
-  . $HOME/.cargo/env && \
-  rustup default nightly-2021-09-20 && \
-  rustup component add rust-src && \
-  rustup target install aarch64-unknown-linux-gnu && \
-  rustup default 1.44.0 && cargo +1.44.0 install xargo && \
-  rustup default nightly-2021-09-20
-
-ENV PATH="/root/.cargo/bin:$PATH"

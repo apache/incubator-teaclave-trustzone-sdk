@@ -40,5 +40,7 @@ pushd ../tests
 ./test_supp_plugin.sh
 ./test_tls_client.sh
 ./test_tls_server.sh
+echo "All tests passed!"
+./cleanup_all.sh
 
 popd

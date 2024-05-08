@@ -44,7 +44,7 @@ cargo +stable install xargo
 
 ########################################################
 # initialize submodules: optee_os / optee_client / build
-OPTEE_RELEASE_VERSION=3.20.0
+OPTEE_RELEASE_VERSION=4.2.0
 
 if [[ -z "$OPTEE_DIR" ]] || [[ "$OPTEE_DIR" == "$(pwd)/optee" ]]
 then
