@@ -17,7 +17,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-cd optee-qemuv8-3.20.0-ubuntu-20.04 && ./qemu-system-aarch64 \
+cd $1 && ./qemu-system-aarch64 \
     -nodefaults \
     -nographic \
     -serial stdio -serial file:/tmp/serial.log \
@@ -30,6 +30,4 @@ cd optee-qemuv8-3.20.0-ubuntu-20.04 && ./qemu-system-aarch64 \
     -append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2' \
     -kernel Image -no-acpi \
     -fsdev local,id=fsdev0,path=$(pwd)/../shared,security_model=none \
-    -device virtio-9p-device,fsdev=fsdev0,mount_tag=host \
-    -netdev user,id=vmnic,hostfwd=:127.0.0.1:54433-:4433 \
-    -device virtio-net-device,netdev=vmnic
+    -device virtio-9p-device,fsdev=fsdev0,mount_tag=host 

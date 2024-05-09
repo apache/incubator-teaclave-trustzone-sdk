@@ -34,5 +34,6 @@ pushd ../tests
 ./test_time.sh
 ./test_signature_verification.sh
 ./test_supp_plugin.sh
+./test_error_handling.sh
 
 popd

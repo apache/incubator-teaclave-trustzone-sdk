@@ -245,4 +245,17 @@ expect {
 	}
 }
 
+expect "# "
+info "Running error_handling-rs...\n"
+send -- "error_handling-rs\r"
+expect {
+	"Test passed" {
+		info "Test success\n"
+	}
+	timeout {
+		info "!!! Timeout: Test failed\n"
+		exit 1
+	}
+}
+
 info "Test Rust application finished\n"

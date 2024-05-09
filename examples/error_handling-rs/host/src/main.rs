@@ -40,4 +40,6 @@ fn test_error_handling() {
     // Test repeated error invocation also returns the requested error.
     let e = session.invoke_command(Command::ReturnGenericError as u32, &mut operation).expect_err("generic error");
     assert_eq!(e.kind(), ErrorKind::Generic);
+
+    println!("Test passed");
 }

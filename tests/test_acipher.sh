@@ -19,37 +19,26 @@
 
 set -xe
 
-rm -rf screenlog.0
-rm -rf optee-qemuv8-3.20.0-ubuntu-20.04
-rm -rf shared
+# Include base script
+source setup.sh
 
-curl https://nightlies.apache.org/teaclave/teaclave-trustzone-sdk/optee-qemuv8-3.20.0-ubuntu-20.04.tar.gz | tar zxv
-mkdir shared
+# Copy TA and host binary
 cp ../examples/acipher-rs/ta/target/aarch64-unknown-linux-gnu/release/*.ta shared
 cp ../examples/acipher-rs/host/target/aarch64-unknown-linux-gnu/release/acipher-rs shared
 
-screen -L -d -m -S qemu_screen ./optee-qemuv8.sh
-sleep 30
-screen -S qemu_screen -p 0 -X stuff "root\n"
-sleep 5
-screen -S qemu_screen -p 0 -X stuff "mkdir shared && mount -t 9p -o trans=virtio host shared && cd shared\n"
-sleep 5
-screen -S qemu_screen -p 0 -X stuff "cp *.ta /lib/optee_armtz/\n"
-sleep 5
-screen -S qemu_screen -p 0 -X stuff "./acipher-rs 256 teststring\n"
-sleep 5
-screen -S qemu_screen -p 0 -X stuff "^C"
-sleep 5
+# Run script specific commands in QEMU
+run_in_qemu "cp *.ta /lib/optee_armtz/\n"
+run_in_qemu "./acipher-rs 256 teststring\n"
+run_in_qemu "^C"
 
+# Script specific checks
 {
-	grep -q "Success encrypt input text \".*\" as [0-9]* bytes cipher text:" screenlog.0 &&
-	grep -q "Success decrypt the above ciphertext as [0-9]* bytes plain text:" screenlog.0	
+    grep -q "Success encrypt input text \".*\" as [0-9]* bytes cipher text:" screenlog.0 &&
+    grep -q "Success decrypt the above ciphertext as [0-9]* bytes plain text:" screenlog.0
 } || {
-	cat -v screenlog.0
-	cat -v /tmp/serial.log
-        false
+    cat -v screenlog.0
+    cat -v /tmp/serial.log
+    false
 }
 
-rm -rf screenlog.0
-rm -rf optee-qemuv8-3.20.0-ubuntu-20.04
-rm -rf shared
+rm screenlog.0
