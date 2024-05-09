@@ -19,37 +19,26 @@
 
 set -xe
 
-rm -rf screenlog.0
-rm -rf optee-qemuv8-3.20.0-ubuntu-20.04
-rm -rf shared
+# Include base script
+source setup.sh
 
-curl https://nightlies.apache.org/teaclave/teaclave-trustzone-sdk/optee-qemuv8-3.20.0-ubuntu-20.04.tar.gz | tar zxv
-mkdir shared
+# Copy TA and host binary
 cp ../examples/hotp-rs/ta/target/aarch64-unknown-linux-gnu/release/*.ta shared
 cp ../examples/hotp-rs/host/target/aarch64-unknown-linux-gnu/release/hotp-rs shared
 
-screen -L -d -m -S qemu_screen ./optee-qemuv8.sh
-sleep 30
-screen -S qemu_screen -p 0 -X stuff "root\n"
-sleep 5
-screen -S qemu_screen -p 0 -X stuff "mkdir shared && mount -t 9p -o trans=virtio host shared && cd shared\n"
-sleep 5
-screen -S qemu_screen -p 0 -X stuff "cp *.ta /lib/optee_armtz/\n"
-sleep 5
-screen -S qemu_screen -p 0 -X stuff "./hotp-rs\n"
-sleep 5
-screen -S qemu_screen -p 0 -X stuff "^C"
-sleep 5
+# Run script specific commands in QEMU
+run_in_qemu "cp *.ta /lib/optee_armtz/\n"
+run_in_qemu "./hotp-rs\n"
+run_in_qemu "^C"
 
+# Script specific checks
 {
-	grep -q "Get HOTP" screenlog.0 &&
-	grep -q "Success" screenlog.0
+    grep -q "Get HOTP" screenlog.0 &&
+    grep -q "Success" screenlog.0
 } || {
         cat -v screenlog.0
         cat -v /tmp/serial.log
         false
 }
 
-rm -rf screenlog.0
-rm -rf optee-qemuv8-3.20.0-ubuntu-20.04
-rm -rf shared
+rm screenlog.0

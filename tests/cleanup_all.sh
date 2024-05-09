@@ -19,28 +19,5 @@
 
 set -xe
 
-# Include base script
-source setup.sh
-
-# Copy TA and host binary
-cp ../examples/hello_world-rs/ta/target/aarch64-unknown-linux-gnu/release/*.ta shared
-cp ../examples/hello_world-rs/host/target/aarch64-unknown-linux-gnu/release/hello_world-rs shared
-
-# Run script specific commands in QEMU
-run_in_qemu "cp *.ta /lib/optee_armtz/\n"
-run_in_qemu "./hello_world-rs\n"
-run_in_qemu "^C"
-
-# Script specific checks
-{
-    grep -q "original value is 29" screenlog.0 &&
-    grep -q "inc value is 129" screenlog.0 &&
-    grep -q "dec value is 29" screenlog.0 &&
-    grep -q "Success" screenlog.0
-} || {
-    cat -v screenlog.0
-    cat -v /tmp/serial.log
-    false
-}
-
-rm screenlog.0
+rm -rf screenlog.0 shared
+rm -rf optee-qemuv8-*
