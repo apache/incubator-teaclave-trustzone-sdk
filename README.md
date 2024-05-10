@@ -154,29 +154,25 @@ cd incubator-teaclave-trustzone-sdk
 To build the project, the Rust environment and several related submodules are
 required.
 
-1. By default, the `OPTEE_DIR` is `incubator-teaclave-trustzone-sdk/optee/`.
-  OP-TEE submodules (`optee_os`, `optee_client` and `build`) will be initialized
-automatically in `setup.sh`.
-
-If you are building within QEMUv8 or already have the [OP-TEE
-repository](https://github.com/OP-TEE)  cloned somewhere, you can set the OP-TEE
-root directory with:
-
-```sh
-export OPTEE_DIR=[YOUR_OPTEE_DIR]
-```
-
-Note: your OPTEE root directory should have `build/`, `optee_os/` and
-`optee_client/` as sub-directory.
-
-2. Run the script as follows to install the Rust environment and initialize
-   submodules:
+1. Run the script as follows to install the Rust environment and toolchains:
 
 ```sh
 ./setup.sh
 ```
 
-3. Before building examples, the environment should be properly set up with:
+2. Build OP-TEE libraries
+
+- for QEMUv8:
+
+By default, the `OPTEE_DIR` is `incubator-teaclave-trustzone-sdk/optee/`.
+  OP-TEE submodules (`optee_os` and `optee_client`) will be initialized
+automatically by executing:
+
+```
+./build_optee_libraries.sh optee/
+```
+
+Then the environment should be properly set up before building applications:
 
 ``` sh
 source environment
@@ -190,14 +186,22 @@ export ARCH=arm
 source environment
 ```
 
-4. Before building rust examples and applications, you need to build OP-TEE
-   libraries using:
+- for other platforms:
 
-``` sh
-make optee
+You should set these environment variables for building, e.g:
+
+```
+export CROSS_COMPILE_HOST="aarch64-linux-gnu-"
+export CROSS_COMPILE_TA="arm-linux-gnueabihf-"
+
+export TARGET_HOST="aarch64-unknown-linux-gnu"
+export TARGET_TA="arm-unknown-linux-gnueabihf"
+
+export TA_DEV_KIT_DIR=~/optee_os/out/arm-plat-vexpress/export-ta_arm32/
+export OPTEE_CLIENT_EXPORT=~/optee_client/out/export/
 ```
 
-5. Run this command to build all Rust examples:
+3. Run this command to build all Rust examples:
 
 ``` sh
 make examples
