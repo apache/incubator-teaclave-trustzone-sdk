@@ -24,9 +24,12 @@ set -xe
 cd "$(dirname "$0")"
 
 ##########################################
+export CARGO_NET_GIT_FETCH_WITH_CLI=true
+
 # install rustup and stable Rust if needed
 if command -v rustup &>/dev/null ; then
-	rustup install stable
+    # uninstall to avoid file corruption
+    rustup uninstall stable && rustup install stable
 else
 	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 	source "$HOME/.cargo/env"
@@ -38,3 +41,7 @@ fi
 # rustup-wrapped command to trigger installation. We've arbitrarily chosen
 # "cargo --version" since it has no other effect.
 cargo --version >/dev/null
+
+##########################################
+# install toolchain
+apt update && apt -y install gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf

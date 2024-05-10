@@ -1,0 +1,62 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+export PATH=$PATH:$HOME/.cargo/bin
+
+if [ -z "$OPTEE_DIR" ]
+then
+  echo -e "OPTEE_DIR has not set, use $PWD/optee/ as default\n"
+  export OPTEE_DIR=$PWD/optee
+fi
+
+export OPTEE_OS_DIR="$OPTEE_DIR/optee_os"
+export OPTEE_CLIENT_DIR="$OPTEE_DIR/optee_client"
+
+export CROSS_COMPILE="aarch64-linux-gnu-"
+export CROSS_COMPILE32="arm-linux-gnueabihf-"
+export CROSS_COMPILE64="aarch64-linux-gnu-"
+
+if [ "$ARCH" = "arm" ]
+then
+  # build host and TA as 32-bit
+  export TA_DEV_KIT_DIR="$OPTEE_OS_DIR/out/arm-plat-vexpress/export-ta_arm32"
+  export OPTEE_CLIENT_EXPORT="$OPTEE_CLIENT_DIR/out/export"
+  export TARGET="arm-unknown-linux-gnueabihf"
+else
+  # build host and TA as 64-bit by default
+  unset ARCH
+  export TA_DEV_KIT_DIR="$OPTEE_OS_DIR/out/arm-plat-vexpress/export-ta_arm64"
+  export OPTEE_CLIENT_EXPORT="$OPTEE_CLIENT_DIR/out/export"
+  export TARGET="aarch64-unknown-linux-gnu"
+fi
+
+# check if libraries exist
+if [ -d "$TA_DEV_KIT_DIR" ]
+then
+  echo "set TA_DEV_KIT_DIR=$TA_DEV_KIT_DIR"
+else
+  echo -e "Error: TA_DEV_KIT_DIR=$TA_DEV_KIT_DIR does not exist, please set the correct TA_DEV_KIT_DIR or run \"$ ./build_optee_libraries.sh optee/\" then try again\n"
+  unset OPTEE_DIR
+fi
+
+if [ -d "$OPTEE_CLIENT_EXPORT" ]
+then 
+  echo "set OPTEE_CLIENT_EXPORT=$OPTEE_CLIENT_EXPORT"
+else
+  echo -e "Error: OPTEE_CLIENT_EXPORT=$OPTEE_CLIENT_EXPORT does not exist, please set the correct OPTEE_CLIENT_EXPORT or run \"$ ./build_optee_libraries.sh optee/\" then try again\n"
+  unset OPTEE_DIR
+fi
