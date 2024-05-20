@@ -21,6 +21,11 @@ use libc;
 use optee_teec_sys as raw;
 use std::ptr;
 
+#[cfg(feature = "owned")]
+use crate::OwnedSession;
+#[cfg(feature = "owned")]
+use std::sync::Arc;
+
 /// An abstraction of the logical connection between a client application and a
 /// TEE.
 pub struct Context {
@@ -68,8 +73,8 @@ impl Context {
     /// let mut ctx = Context::new().unwrap();
     /// let mut raw_ptr: *mut optee_teec_sys::TEEC_Context = ctx.as_mut_raw_ptr();
     /// ```
-    pub fn as_mut_raw_ptr(&mut self) -> *mut raw::TEEC_Context {
-        &mut self.raw
+    pub(crate) fn as_mut_raw_ptr(&self) -> *mut raw::TEEC_Context {
+        &self.raw as *const _ as *mut _
     }
 
     /// Opens a new session with the specified trusted application.
@@ -83,8 +88,29 @@ impl Context {
     /// let uuid = Uuid::parse_str("8abcf200-2450-11e4-abe2-0002a5d5c51b").unwrap();
     /// let session = ctx.open_session(uuid).unwrap();
     /// ```
-    pub fn open_session(&mut self, uuid: Uuid) -> Result<Session> {
+    pub fn open_session(&self, uuid: Uuid) -> Result<Session> {
         Session::new(
+            self,
+            uuid,
+            None::<&mut Operation<ParamNone, ParamNone, ParamNone, ParamNone>>,
+        )
+    }
+
+    #[cfg(feature = "owned")]
+    /// Opens a new owned session with the specified trusted application.
+    ///
+    /// The target trusted application is specified by `uuid`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// let mut ctx = Arc::new(Context::new().unwrap());
+    /// let uuid = Uuid::parse_str("8abcf200-2450-11e4-abe2-0002a5d5c51b").unwrap();
+    /// let session = ctx.open_owned_session(uuid).unwrap();
+    /// ```
+    pub fn open_owned_session(self: Arc<Self>, uuid: Uuid) -> Result<OwnedSession> {
+        OwnedSession::new(
             self,
             uuid,
             None::<&mut Operation<ParamNone, ParamNone, ParamNone, ParamNone>>,
@@ -106,12 +132,37 @@ impl Context {
     /// let session = ctx.open_session_with_operation(uuid, operation).unwrap();
     /// ```
     pub fn open_session_with_operation<A: Param, B: Param, C: Param, D: Param>(
-        &mut self,
+        &self,
         uuid: Uuid,
         operation: &mut Operation<A, B, C, D>,
     ) -> Result<Session> {
         Session::new(self, uuid, Some(operation))
     }
+
+    #[cfg(feature = "owned")]
+    /// Opens a new owned session with the specified trusted application, pass some
+    /// parameters to TA by an operation.
+    ///
+    /// The target trusted application is specified by `uuid`.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use std::sync::Arc;
+    /// let mut ctx = Arc::new(Context::new().unwrap());
+    /// let uuid = Uuid::parse_str("8abcf200-2450-11e4-abe2-0002a5d5c51b").unwrap();
+    /// let p0 = ParamValue(42, 0, ParamType::ValueInout);
+    /// let mut operation = Operation::new(0, p0, ParamNone, ParamNone, ParamNone);
+    /// let session = ctx.open_session_with_operation(uuid, operation).unwrap();
+    /// ```
+    pub fn open_owned_session_with_operation<A: Param, B: Param, C: Param, D: Param>(
+        self: Arc<Self>,
+        uuid: Uuid,
+        operation: &mut Operation<A, B, C, D>,
+    ) -> Result<OwnedSession> {
+        OwnedSession::new(self, uuid, Some(operation))
+    }
+
 }
 
 impl Drop for Context {
