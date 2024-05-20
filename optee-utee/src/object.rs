@@ -21,7 +21,7 @@ use optee_utee_sys as raw;
 use std::{marker, mem, ptr};
 
 /// A general attribute (buffer or value) that can be used to populate an object or to specify
-/// opeation parameters.
+/// operation parameters.
 pub struct Attribute {
     raw: raw::TEE_Attribute,
 }
@@ -128,7 +128,7 @@ impl AttributeValue {
     /// # Parameters
     ///
     /// 1) `id`: The AttributeId[AttributeId] is an identifier of the attribute to populate.
-    /// 2) `a`, `b`: u32 values to assign to the members of the a value attribute.
+    /// 2) `a`, `b`: u32 values to assign to the members of the value attribute.
     ///
     /// # Example
     ///
@@ -155,7 +155,7 @@ pub struct ObjectInfo {
 
 // Since raw struct is not implemented Copy attribute yet, every item in raw struct needs a function to extract.
 impl ObjectInfo {
-    /// Return an [ObjectInfo](ObjectInfo) struct based on the raw structrure `TEE_ObjectInfo`.
+    /// Return an [ObjectInfo](ObjectInfo) struct based on the raw structure `TEE_ObjectInfo`.
     /// The raw structure contains following fields:
     ///
     /// 1) `objectType`: The parameter represents one of the
@@ -179,12 +179,12 @@ impl ObjectInfo {
         Self { raw }
     }
 
-    /// Return the `dataSize` field of the raw structrure `TEE_ObjectInfo`.
+    /// Return the `dataSize` field of the raw structure `TEE_ObjectInfo`.
     pub fn data_size(&self) -> usize {
         self.raw.dataSize as usize
     }
 
-    /// Return the `objectSize` field of the raw structrure `TEE_ObjectInfo`.
+    /// Return the `objectSize` field of the raw structure `TEE_ObjectInfo`.
     pub fn object_size(&self) -> usize {
         self.raw.objectSize as usize
     }
@@ -312,13 +312,13 @@ bitflags! {
     pub struct UsageFlag: u32 {
         /// The object [Attribute](Attribute) can be extracted.
         const EXTRACTABLE = 0x00000001;
-        /// The object can be used for encrytpion.
+        /// The object can be used for encryption.
         const ENCRYPT = 0x00000002;
-        /// The object can be used for decrption.
+        /// The object can be used for decryption.
         const DECRYPT = 0x00000004;
         /// The object can be used for mac operation.
         const MAC = 0x00000008;
-        /// The ojbect can be used for signature.
+        /// The object can be used for signature.
         const SIGN = 0x00000010;
         /// The object can be used for verification of a signature.
         const VERIFY = 0x00000020;
@@ -387,7 +387,7 @@ pub enum AttributeId {
     DsaPrivateValue = 0xC0000231,
     /// Diffie-Hellman prime number: `p`
     DhPrime = 0xD0001032,
-    /// Diffie-Hellman sub prime number: `q`
+    /// Diffie-Hellman subprime number: `q`
     DhSubprime = 0xD0001132,
     /// Diffie-Hellman base: `g`
     DhBase = 0xD0001232,
@@ -430,7 +430,7 @@ pub enum TransientObjectType {
     HmacSha384 = 0xA0000005,
     /// Between 256 and 1024 bits, multiple of 8 bits
     HmacSha512 = 0xA0000006,
-    /// The number of bits in the modulus. 256, 512, 768, 1024, 1536 and 2048 bit keys SHALL be supported.
+    /// The number of bits in the modulus. 256, 512, 768, 1024, 1536 and 2048-bit keys SHALL be supported.
     /// Support for other key sizes including bigger key sizes is
     /// implementation-dependent. Minimum key size is 256 bits
     RsaPublicKey = 0xA0000030,
@@ -471,7 +471,7 @@ pub enum TransientObjectType {
     Data = 0xA00000BF,
 }
 
-/// A trait for an object (trasient or persistent) to return its handle.
+/// A trait for an object (transient or persistent) to return its handle.
 pub trait ObjHandle {
     /// Return the handle of an object.
     fn handle(&self) -> raw::TEE_ObjectHandle;
@@ -626,7 +626,7 @@ impl TransientObject {
     ///
     /// # Parameters
     ///
-    /// 1) `obj_usage`: New object usage, an OR comination of one or more of the [UsageFlag](UsageFlag).
+    /// 1) `obj_usage`: New object usage, an OR combination of one or more of the [UsageFlag](UsageFlag).
     ///
     /// # Example
     ///
@@ -756,7 +756,7 @@ impl TransientObject {
     ///
     /// # Errors
     ///
-    /// 1) `CorruptObject`: If the persistentd` object is corrupt. The object handle is closed.
+    /// 1) `CorruptObject`: If the persistent` object is corrupt. The object handle is closed.
     /// 2) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
     ///    currently inaccessible.
     ///
@@ -860,7 +860,7 @@ impl PersistentObject {
     ///
     /// # Parameters
     ///
-    /// 1) `storage_id`: The storaget to use which is defined in
+    /// 1) `storage_id`: The storage to use which is defined in
     ///    [ObjectStorageConstants](ObjectStorageConstants).
     /// 2) `object_id`: The object identifier. Note that this buffer cannot reside in shared memory.
     /// 3) `flags`: The [DataFlag](DataFlag) which determine the settings under which the object is opened.
@@ -930,7 +930,7 @@ impl PersistentObject {
     ///
     /// # Parameters
     ///
-    /// 1) `storage_id`: The storaget to use which is defined in
+    /// 1) `storage_id`: The storage to use which is defined in
     ///    [ObjectStorageConstants](ObjectStorageConstants).
     /// 2) `object_id`: The object identifier. Note that this buffer cannot reside in shared memory.
     /// 3) `flags`: The [DataFlag](DataFlag) which determine the settings under which the object is opened.
@@ -1154,7 +1154,7 @@ impl PersistentObject {
         self.0.value_attribute(id)
     }
 
-    /// Read requested size from the data stream assoicate with the object into the buffer.
+    /// Read requested size from the data stream associate with the object into the buffer.
     ///
     /// # Parameters
     ///
@@ -1204,7 +1204,7 @@ impl PersistentObject {
         }
     }
 
-    /// Write the passed in buffer data into from the data stream assoicate with the object.
+    /// Write the passed in buffer data into from the data stream associate with the object.
     ///
     /// # Parameters
     ///
