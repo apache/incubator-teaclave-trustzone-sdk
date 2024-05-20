@@ -16,7 +16,7 @@
 # under the License.
 
 [package]
-name = "systest"
+name = "optee-teec-systest"
 version = "0.2.0"
 authors = ["Teaclave Contributors <dev@teaclave.apache.org>"]
 license = "Apache-2.0"

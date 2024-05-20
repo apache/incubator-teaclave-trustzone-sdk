@@ -15,19 +15,30 @@
 # specific language governing permissions and limitations
 # under the License.
 
-[package]
-name = "optee-utee"
-version = "0.2.0"
-authors = ["Teaclave Contributors <dev@teaclave.apache.org>"]
-license = "Apache-2.0"
-repository = "https://github.com/apache/incubator-teaclave-trustzone-sdk.git"
-description = "TEE internal core API."
-edition = "2018"
+[workspace]
+# The -sys and macros crates would included in the workspace transitively even
+# if not listed, but list them anyway for completeness.
+members = [
+    "optee-teec",
+    "optee-teec/macros",
+    "optee-teec/optee-teec-sys",
+    "optee-teec/systest",
+    "optee-utee",
+    "optee-utee/macros",
+    "optee-utee/optee-utee-sys",
+    "optee-utee/systest",
+]
 
-[dependencies]
-optee-utee-sys = { path = "optee-utee-sys" }
-optee-utee-macros = { path = "macros" }
-libc = { path = "../rust/libc", version = "=0.2.99" }
-bitflags = "=1.0.4"
-uuid = { version = "0.8", default-features = false }
-hex = "0.3"
+# Don't try to build crates requiring Xargo on a workspace-level "cargo build",
+# since they'll just fail.
+default-members = [
+    "optee-teec",
+    "optee-teec/systest",
+]
+
+exclude = [
+    # OP-TEE contains no Rust code, but exclude it in case future versions do.
+    "optee",
+    "rust",
+    "examples",
+]
