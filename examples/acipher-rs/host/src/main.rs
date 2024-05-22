@@ -67,16 +67,16 @@ fn main() -> optee_teec::Result<()> {
     if args.len() != 3 {
         println!(
             "Receive {} arguments while 2 arguments are expected!",
-            args.len()
+            args.len() - 1
         );
-        println!("Correct usage: passed 2 arguments as <key_size> and <string to encrypt>");
+        println!("Correct usage: {} <key_size> <string to encrypt>", args[0]);
         return Err(Error::new(ErrorKind::BadParameters));
     }
 
     let mut key_size = args[1].parse::<u32>().unwrap();
     if key_size < 256 {
         println!(
-            "Wrong key size {} is received. Use default minimal key size 256 instead.",
+            "Key size of {} is too small. Using default minimal key size 256 instead.",
             key_size
         );
         key_size = 256;
