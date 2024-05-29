@@ -30,9 +30,17 @@ if [ -z "$TARGET_PATH" ]; then
 fi
 
 # set toolchain
-export CROSS_COMPILE="aarch64-linux-gnu-"
+
+HOST_ARCH=$(uname -m)
+
+if [ "$HOST_ARCH" == "aarch64" ]; then
+    export CROSS_COMPILE=""
+    export CROSS_COMPILE64=""
+else
+    export CROSS_COMPILE="aarch64-linux-gnu-"
+    export CROSS_COMPILE64="aarch64-linux-gnu-"
+fi
 export CROSS_COMPILE32="arm-linux-gnueabihf-"
-export CROSS_COMPILE64="aarch64-linux-gnu-"
 
 # build optee_os and optee_client for qemu_v8
 git clone https://github.com/OP-TEE/optee_os.git -b $OPTEE_VERSION $TARGET_PATH/optee_os
