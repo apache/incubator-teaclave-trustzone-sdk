@@ -94,10 +94,11 @@ fn main() -> std::io::Result<()> {
     println!("cargo:rustc-link-arg=-e__ta_entry");
     println!("cargo:rustc-link-arg=-pie");
     println!("cargo:rustc-link-arg=-Os");
-    println!("cargo:rustc-link-arg=--sort-section=alignment");
+    //println!("cargo:rustc-link-arg=--sort-section=alignment");
+
 
     let mut dyn_list = File::create(out.join("dyn_list"))?;
     write!(dyn_list, "{{ __elf_phdr_info; trace_ext_prefix; trace_level; ta_head; }};\n")?;
-    println!("cargo:rustc-link-arg=--dynamic-list=dyn_list");
+    //println!("cargo:rustc-link-arg=--dynamic-list=dyn_list");
     Ok(())
 }
