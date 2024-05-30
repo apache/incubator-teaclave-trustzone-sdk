@@ -26,9 +26,16 @@ fi
 export OPTEE_OS_DIR="$OPTEE_DIR/optee_os"
 export OPTEE_CLIENT_DIR="$OPTEE_DIR/optee_client"
 
-export CROSS_COMPILE="aarch64-linux-gnu-"
+HOST_ARCH=$(uname -m)
+
+if [ "$HOST_ARCH" == "aarch64" ]; then
+    export CROSS_COMPILE=""
+    export CROSS_COMPILE64=""
+else
+    export CROSS_COMPILE="aarch64-linux-gnu-"
+    export CROSS_COMPILE64="aarch64-linux-gnu-"
+fi
 export CROSS_COMPILE32="arm-linux-gnueabihf-"
-export CROSS_COMPILE64="aarch64-linux-gnu-"
 
 if [ "$ARCH" = "arm" ]
 then
