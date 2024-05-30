@@ -20,7 +20,7 @@ UUID ?= $(shell cat "../uuid.txt")
 TARGET ?= aarch64-unknown-linux-gnu
 CROSS_COMPILE ?= aarch64-linux-gnu-
 OBJCOPY := $(CROSS_COMPILE)objcopy
-LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)ld.bfd\"
+LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)ld\"
 
 TA_SIGN_KEY ?= $(TA_DEV_KIT_DIR)/keys/default_ta.pem
 SIGN := $(TA_DEV_KIT_DIR)/scripts/sign_encrypt.py
@@ -29,6 +29,7 @@ OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 all: ta strip sign
 
 ta:
+	@echo ${LINKER_CFG}
 	@cargo build --target $(TARGET) --release --config $(LINKER_CFG)
 
 strip: ta
