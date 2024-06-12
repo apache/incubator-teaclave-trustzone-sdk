@@ -46,7 +46,7 @@ D/LD:  ldelf:168 ELF (133af0ca-bdab-11eb-9130-43bf7873bf67) at 0x40014000
 
 Then, you can load symbols from TA file (in debug build) to the address.
 ```sh
-(gdb) add-symbol-file /path/to/examples/hello_world-rs/ta/target/aarch64-unknown-optee-trustzone/debug/ta 0x40014000
+(gdb) add-symbol-file /path/to/examples/hello_world-rs/ta/target/aarch64-unknown-optee/debug/ta 0x40014000
 ```
 Now, you can add breakpoints according to your own needs in the corresponding
 functions or addresses.

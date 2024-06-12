@@ -32,8 +32,8 @@ optee-utee = { path = "../../../optee-utee" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 
-[build_dependencies]
-uuid = { version = "0.8" }
+[build-dependencies]
+uuid = { version = "1.8", default-features = false }
 proto = { path = "../proto" }
 
 [profile.release]

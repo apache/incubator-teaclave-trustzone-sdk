@@ -35,12 +35,12 @@ webpki = { git = "https://github.com/veracruz-project/webpki.git", branch = "ver
 webpki-roots = { git = "https://github.com/veracruz-project/webpki-roots.git", branch = "veracruz", features = ["default"] }
 lazy_static = {version = "1.4.0", features=["spin_no_std"] }
 
-[build_dependencies]
-uuid = { version = "0.8" }
+[build-dependencies]
+uuid = { version = "1.8", default-features = false }
 proto = { path = "../proto" }
 
 [profile.release]
-lto = true
+lto = false
 
 # Patch optee-utee for webpki
 [patch."https://github.com/veracruz-project/rust-optee-trustzone-sdk.git"]

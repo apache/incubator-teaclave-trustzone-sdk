@@ -138,7 +138,9 @@ pub fn do_tls_write(session_id: u32, buf: &mut [u8]) -> usize {
 
 fn make_config() -> Arc<rustls::ServerConfig> {
     let client_auth = NoClientAuth::new();
+    trace_println!("[+] before make_config");
     let mut tls_config = rustls::ServerConfig::new(client_auth);
+    trace_println!("[+] after make_config");
     let certs = load_certs();
     let privkey = load_private_key();
     tls_config

@@ -52,9 +52,12 @@ else
 fi
 
 mkdir -p shared
+rm -f screenlog.0 /tmp/serial.log
 
 # Start QEMU screen
 screen -L -d -m -S qemu_screen ./optee-qemuv8.sh $IMG
 sleep 30
 run_in_qemu "root"
 run_in_qemu "mkdir -p shared && mount -t 9p -o trans=virtio host shared && cd shared"
+# libteec.so.2 since OP-TEE 4.2.0, for legacy versions:
+run_in_qemu "[ ! -e /usr/lib/libteec.so.1 ] && ln -s /usr/lib/libteec.so /usr/lib/libteec.so.1"

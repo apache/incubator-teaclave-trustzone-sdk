@@ -32,7 +32,7 @@ else
 	SIGN := $(OPTEE_OS_DIR)/out/arm/export-ta_arm64/scripts/sign_encrypt.py
 	OPTEE_BIN := $(OPTEE_DIR)/toolchains/$(ARCH)/bin
 	OBJCOPY := $(OPTEE_BIN)/aarch64-linux-gnu-objcopy
-	TARGET := aarch64-unknown-optee-trustzone
+	TARGET := aarch64-unknown-optee
 endif
 
 OUT_DIR := $(CURDIR)/target/$(TARGET)/release

@@ -23,7 +23,7 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/tcp_client-rs/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
+cp ../examples/tcp_client-rs/ta/target/aarch64-unknown-optee/release/*.ta shared
 cp ../examples/tcp_client-rs/host/target/aarch64-unknown-linux-gnu/release/tcp_client-rs shared
 
 # Run script specific commands in QEMU

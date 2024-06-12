@@ -30,7 +30,7 @@ ifneq ($(ARCH), arm)
 	VENDOR := qemu_v8.mk
 	AARCH_CROSS_COMPILE := $(OPTEE_PATH)/toolchains/aarch64/bin/aarch64-linux-gnu-
 	HOST_TARGET := aarch64-unknown-linux-gnu
-	TA_TARGET := aarch64-unknown-optee-trustzone
+	TA_TARGET := aarch64-unknown-optee
 else
 	VENDOR := qemu.mk
 	ARCH_CROSS_COMPILE := $(OPTEE_PATH)/toolchains/aarch32/bin/arm-linux-gnueabihf-
@@ -44,8 +44,9 @@ optee: toolchains optee-os optee-client
 toolchains:
 	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) toolchains
 
+OPTEE_OS_FLAGS ?= CFG_ENABLE_EMBEDDED_TESTS=n
 optee-os:
-	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) optee-os
+	make -C $(OPTEE_BUILD_PATH) -f $(VENDOR) optee-os $(OPTEE_OS_FLAGS)
 
 OPTEE_CLIENT_FLAGS ?= CROSS_COMPILE="$(CCACHE) $(AARCH_CROSS_COMPILE)" \
 	CFG_TEE_BENCHMARK=n \

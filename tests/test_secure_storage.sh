@@ -23,7 +23,7 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/secure_storage-rs/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
+cp ../examples/secure_storage-rs/ta/target/aarch64-unknown-optee/release/*.ta shared
 cp ../examples/secure_storage-rs/host/target/aarch64-unknown-linux-gnu/release/secure_storage-rs shared
 
 # Run script specific commands in QEMU

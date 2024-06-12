@@ -23,7 +23,7 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/acipher-rs/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
+cp ../examples/acipher-rs/ta/target/aarch64-unknown-optee/release/*.ta shared
 cp ../examples/acipher-rs/host/target/aarch64-unknown-linux-gnu/release/acipher-rs shared
 
 # Run script specific commands in QEMU

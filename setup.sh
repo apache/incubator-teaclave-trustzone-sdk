@@ -94,9 +94,9 @@ fi
 
 ########################################################
 # initialize submodules: rust / compiler-builtins / libc
-RUST_COMMIT_ID=cb8a61693c80ebc615c2b66f40f0789cd16e699a
-COMPILER_BUILTINS_COMMIT_ID=45a2e4996fe732172004b292b07397f9a02265ab
-LIBC_COMMIT_ID=1ddfbbbc190bec0f5ec32b08e97585b34d0c6b09
+RUST_COMMIT_ID=036938275b5f1e6c75037df00fdc2a3187711b43
+COMPILER_BUILTINS_COMMIT_ID=42284ae2bc0937440ab1c1edd08981107b6a976c
+LIBC_COMMIT_ID=4fa30318ed3175f6ebe22da8f167f9f9b34567c3
 
 if [ -d rust/ ]
 then
@@ -105,18 +105,18 @@ fi
 
 mkdir rust && cd rust
 
-git clone https://github.com/mesalock-linux/rust.git && \
+git clone https://github.com/DemesneGH/rust.git && \
 	(cd rust && \
 	git checkout "$RUST_COMMIT_ID" && \
 	git submodule update --init library/stdarch && \
 	git submodule update --init library/backtrace)
 
-git clone https://github.com/mesalock-linux/compiler-builtins.git && \
+git clone https://github.com/DemesneGH/compiler-builtins.git && \
 	(cd compiler-builtins && \
 	git checkout "$COMPILER_BUILTINS_COMMIT_ID" && \
 	git submodule update --init libm)
 
-git clone https://github.com/mesalock-linux/libc.git && \
+git clone https://github.com/DemesneGH/libc.git && \
 	(cd libc && \
 	git checkout "$LIBC_COMMIT_ID")
 

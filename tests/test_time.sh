@@ -23,7 +23,7 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/time-rs/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
+cp ../examples/time-rs/ta/target/aarch64-unknown-optee/release/*.ta shared
 cp ../examples/time-rs/host/target/aarch64-unknown-linux-gnu/release/time-rs shared
 
 # Run script specific commands in QEMU

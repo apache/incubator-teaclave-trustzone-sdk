@@ -26,5 +26,5 @@ edition = "2018"
 
 [dependencies]
 
-[build_dependencies]
+[build-dependencies]
 uuid = { version = "0.7" }
