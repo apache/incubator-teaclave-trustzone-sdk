@@ -23,7 +23,7 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/udp_socket-rs/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
+cp ../examples/udp_socket-rs/ta/target/aarch64-unknown-optee/release/*.ta shared
 cp ../examples/udp_socket-rs/host/target/aarch64-unknown-linux-gnu/release/udp_socket-rs shared
 
 # Run script specific commands in QEMU

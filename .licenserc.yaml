@@ -28,7 +28,7 @@ header:
     - 'NOTICE'
     - '**/Cargo.lock'
     - '**/*.lds'
-    - 'aarch64-unknown-optee-trustzone.json'
+    - 'aarch64-unknown-optee.json'
     - 'arm-unknown-optee-trustzone.json'
     - 'KEYS'
     - 'DISCLAIMER-WIP'

@@ -33,18 +33,18 @@ use syn::spanned::Spanned;
 #[proc_macro_attribute]
 pub fn ta_create(_args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as syn::ItemFn);
-    let ident = &f.ident;
+    let ident = &f.sig.ident;
 
     // check the function signature
-    let valid_signature = f.constness.is_none()
+    let valid_signature = f.sig.constness.is_none()
         && match f.vis {
             syn::Visibility::Inherited => true,
             _ => false,
         }
-        && f.abi.is_none()
-        && f.decl.inputs.is_empty()
-        && f.decl.generics.where_clause.is_none()
-        && f.decl.variadic.is_none();
+        && f.sig.abi.is_none()
+        && f.sig.inputs.is_empty()
+        && f.sig.generics.where_clause.is_none()
+        && f.sig.variadic.is_none();
 
     if !valid_signature {
         return syn::parse::Error::new(
@@ -80,19 +80,19 @@ pub fn ta_create(_args: TokenStream, input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn ta_destroy(_args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as syn::ItemFn);
-    let ident = &f.ident;
+    let ident = &f.sig.ident;
 
     // check the function signature
-    let valid_signature = f.constness.is_none()
+    let valid_signature = f.sig.constness.is_none()
         && match f.vis {
             syn::Visibility::Inherited => true,
             _ => false,
         }
-        && f.abi.is_none()
-        && f.decl.inputs.is_empty()
-        && f.decl.generics.where_clause.is_none()
-        && f.decl.variadic.is_none()
-        && match f.decl.output {
+        && f.sig.abi.is_none()
+        && f.sig.inputs.is_empty()
+        && f.sig.generics.where_clause.is_none()
+        && f.sig.variadic.is_none()
+        && match f.sig.output {
             syn::ReturnType::Default => true,
             _ => false,
         };
@@ -134,18 +134,18 @@ pub fn ta_destroy(_args: TokenStream, input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as syn::ItemFn);
-    let ident = &f.ident;
+    let ident = &f.sig.ident;
 
     // check the function signature
-    let valid_signature = f.constness.is_none()
+    let valid_signature = f.sig.constness.is_none()
         && match f.vis {
             syn::Visibility::Inherited => true,
             _ => false,
         }
-        && f.abi.is_none()
-        && (f.decl.inputs.len() == 1 || f.decl.inputs.len() == 2)
-        && f.decl.generics.where_clause.is_none()
-        && f.decl.variadic.is_none();
+        && f.sig.abi.is_none()
+        && (f.sig.inputs.len() == 1 || f.sig.inputs.len() == 2)
+        && f.sig.generics.where_clause.is_none()
+        && f.sig.variadic.is_none();
 
     if !valid_signature {
         return syn::parse::Error::new(
@@ -156,7 +156,7 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
         .into();
     }
 
-    match f.decl.inputs.len() {
+    match f.sig.inputs.len() {
         1 => quote!(
             #[no_mangle]
             pub extern "C" fn TA_OpenSessionEntryPoint(
@@ -177,16 +177,16 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
 
         2 => {
             let input_types: Vec<_> = f
-                .decl
+                .sig
                 .inputs
                 .iter()
                 .map(|arg| match arg {
-                    &syn::FnArg::Captured(ref val) => &val.ty,
+                    &syn::FnArg::Typed(ref val) => &val.ty,
                     _ => unreachable!(),
                 })
                 .collect();
-            let ctx_type = match input_types.last().unwrap() {
-                &syn::Type::Reference(ref r) => &r.elem,
+            let ctx_type = match input_types.last().unwrap().as_ref() {
+                syn::Type::Reference(ref r) => &r.elem,
                 _ => unreachable!(),
             };
 
@@ -232,19 +232,19 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as syn::ItemFn);
-    let ident = &f.ident;
+    let ident = &f.sig.ident;
 
     // check the function signature
-    let valid_signature = f.constness.is_none()
+    let valid_signature = f.sig.constness.is_none()
         && match f.vis {
             syn::Visibility::Inherited => true,
             _ => false,
         }
-        && f.abi.is_none()
-        && (f.decl.inputs.len() == 0 || f.decl.inputs.len() == 1)
-        && f.decl.generics.where_clause.is_none()
-        && f.decl.variadic.is_none()
-        && match f.decl.output {
+        && f.sig.abi.is_none()
+        && (f.sig.inputs.len() == 0 || f.sig.inputs.len() == 1)
+        && f.sig.generics.where_clause.is_none()
+        && f.sig.variadic.is_none()
+        && match f.sig.output {
             syn::ReturnType::Default => true,
             _ => false,
         };
@@ -258,7 +258,7 @@ pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
         .into();
     }
 
-    match f.decl.inputs.len() {
+    match f.sig.inputs.len() {
         0 => quote!(
             #[no_mangle]
             pub extern "C" fn TA_CloseSessionEntryPoint(sess_ctx: *mut libc::c_void) {
@@ -270,16 +270,16 @@ pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
         .into(),
         1 => {
             let input_types: Vec<_> = f
-                .decl
+                .sig
                 .inputs
                 .iter()
                 .map(|arg| match arg {
-                    &syn::FnArg::Captured(ref val) => &val.ty,
+                    &syn::FnArg::Typed(ref val) => &val.ty,
                     _ => unreachable!(),
                 })
                 .collect();
-            let t = match input_types.first().unwrap() {
-                &syn::Type::Reference(ref r) => &r.elem,
+            let t = match input_types.first().unwrap().as_ref() {
+                syn::Type::Reference(ref r) => &r.elem,
                 _ => unreachable!(),
             };
 
@@ -317,18 +317,18 @@ pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as syn::ItemFn);
-    let ident = &f.ident;
+    let ident = &f.sig.ident;
 
     // check the function signature
-    let valid_signature = f.constness.is_none()
+    let valid_signature = f.sig.constness.is_none()
         && match f.vis {
             syn::Visibility::Inherited => true,
             _ => false,
         }
-        && f.abi.is_none()
-        && (f.decl.inputs.len() == 2 || f.decl.inputs.len() == 3)
-        && f.decl.generics.where_clause.is_none()
-        && f.decl.variadic.is_none();
+        && f.sig.abi.is_none()
+        && (f.sig.inputs.len() == 2 || f.sig.inputs.len() == 3)
+        && f.sig.generics.where_clause.is_none()
+        && f.sig.variadic.is_none();
 
     if !valid_signature {
         return syn::parse::Error::new(
@@ -339,7 +339,7 @@ pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream 
         .into();
     }
 
-    match f.decl.inputs.len() {
+    match f.sig.inputs.len() {
         2 => quote!(
             #[no_mangle]
             pub extern "C" fn TA_InvokeCommandEntryPoint(
@@ -362,16 +362,16 @@ pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream 
         .into(),
         3 => {
             let input_types: Vec<_> = f
-                .decl
+                .sig
                 .inputs
                 .iter()
                 .map(|arg| match arg {
-                    &syn::FnArg::Captured(ref val) => &val.ty,
+                    &syn::FnArg::Typed(ref val) => &val.ty,
                     _ => unreachable!(),
                 })
                 .collect();
-            let t = match input_types.first().unwrap() {
-                &syn::Type::Reference(ref r) => &r.elem,
+            let t = match input_types.first().unwrap().as_ref() {
+                syn::Type::Reference(ref r) => &r.elem,
                 _ => unreachable!(),
             };
 

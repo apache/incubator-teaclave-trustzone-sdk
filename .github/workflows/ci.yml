@@ -60,7 +60,7 @@ jobs:
           ./setup.sh &&
           source environment &&
           make optee &&
-          (cd optee-utee && xargo build --target aarch64-unknown-optee-trustzone -vv) &&
+          (cd optee-utee && xargo build --target aarch64-unknown-optee -vv) &&
           (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
    license:
     runs-on: ubuntu-latest

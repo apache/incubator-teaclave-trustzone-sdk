@@ -53,7 +53,7 @@ dependencies = [
 name = "proto"
 version = "0.2.0"
 dependencies = [
- "uuid 0.8.2",
+ "uuid 1.8.0",
 ]
 
 [[package]]
@@ -99,6 +99,6 @@ checksum = "0238db0c5b605dd1cf51de0f21766f97fba2645897024461d6a00c036819a768"
 
 [[package]]
 name = "uuid"
-version = "0.8.2"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
+checksum = "a183cf7feeba97b4dd1c0d46788634f6221d87fa961b305bed08c851829efcc0"

@@ -30,12 +30,12 @@ proto = { path = "../proto" }
 optee-teec = { path = "../../../optee-teec" }
 optee-teec-sys = { path = "../../../optee-teec/optee-teec-sys" }
 
-[build_dependencies]
-uuid = { version = "0.8" }
+[build-dependencies]
+uuid = { version = "1.8", default-features = false }
 proto = { path = "../proto" }
 
 [profile.release]
-lto = true
+lto = false
 
 [lib]
 crate-type = ["cdylib"]

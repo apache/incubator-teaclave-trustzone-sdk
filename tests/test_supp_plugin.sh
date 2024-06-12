@@ -23,7 +23,7 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/supp_plugin-rs/ta/target/aarch64-unknown-optee-trustzone/release/*.ta shared
+cp ../examples/supp_plugin-rs/ta/target/aarch64-unknown-optee/release/*.ta shared
 cp ../examples/supp_plugin-rs/host/target/aarch64-unknown-linux-gnu/release/supp_plugin-rs shared
 cp ../examples/supp_plugin-rs/plugin/target/aarch64-unknown-linux-gnu/release/*.plugin.so shared
 

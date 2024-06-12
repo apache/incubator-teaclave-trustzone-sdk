@@ -10,13 +10,18 @@ checksum = "228047a76f468627ca71776ecdebd732a3423081fcf5125585bcd7c49886ce12"
 
 [[package]]
 name = "hex"
-version = "0.3.2"
+version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "805026a5d0141ffc30abb3be3173848ad46a1b1664fe632428479619a3644d77"
+checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "libc"
-version = "0.2.99"
+version = "0.2.153"
+
+[[package]]
+name = "libc"
+version = "0.2.153"
+source = "git+https://github.com/DemesneGH/libc.git?branch=optee#4fa30318ed3175f6ebe22da8f167f9f9b34567c3"
 
 [[package]]
 name = "optee-utee"
@@ -24,7 +29,7 @@ version = "0.2.0"
 dependencies = [
  "bitflags",
  "hex",
- "libc",
+ "libc 0.2.153 (git+https://github.com/DemesneGH/libc.git?branch=optee)",
  "optee-utee-macros",
  "optee-utee-sys",
  "uuid",
@@ -42,16 +47,16 @@ dependencies = [
 name = "optee-utee-sys"
 version = "0.2.0"
 dependencies = [
- "libc",
+ "libc 0.2.153",
 ]
 
 [[package]]
 name = "proc-macro2"
-version = "0.4.30"
+version = "1.0.85"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf3d2011ab5c909338f7887f4fc896d35932e29146c12c8d01da6b22a80ba759"
+checksum = "22244ce15aa966053a896d1accb3a6e68469b97c7f33f284b99f0d576879fc23"
 dependencies = [
- "unicode-xid",
+ "unicode-ident",
 ]
 
 [[package]]
@@ -63,29 +68,29 @@ dependencies = [
 
 [[package]]
 name = "quote"
-version = "0.6.12"
+version = "1.0.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "faf4799c5d274f3868a4aae320a0a182cbd2baee377b378f080e16a23e9d80db"
+checksum = "0fa76aaf39101c457836aec0ce2316dbdc3ab723cdda1c6bd4e6ad4208acaca7"
 dependencies = [
  "proc-macro2",
 ]
 
 [[package]]
 name = "syn"
-version = "0.15.39"
+version = "2.0.66"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4d960b829a55e56db167e861ddb43602c003c7be0bee1d345021703fac2fb7c"
+checksum = "c42f3f41a2de00b01c0aaad383c5a45241efc8b2d1eda5661812fda5f3cdcff5"
 dependencies = [
  "proc-macro2",
  "quote",
- "unicode-xid",
+ "unicode-ident",
 ]
 
 [[package]]
 name = "ta"
 version = "0.2.0"
 dependencies = [
- "libc",
+ "libc 0.2.153",
  "optee-utee",
  "optee-utee-sys",
  "proto",
@@ -93,13 +98,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "unicode-xid"
-version = "0.1.0"
+name = "unicode-ident"
+version = "1.0.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc72304796d0818e357ead4e000d19c9c174ab23dc11093ac919054d20a6a7fc"
+checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
 
 [[package]]
 name = "uuid"
-version = "0.8.2"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bc5cf98d8186244414c848017f0e2676b3fcb46807f6668a97dfe67359a3c4b7"
+checksum = "a183cf7feeba97b4dd1c0d46788634f6221d87fa961b305bed08c851829efcc0"
