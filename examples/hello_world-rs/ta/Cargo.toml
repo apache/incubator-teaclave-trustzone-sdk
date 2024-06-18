@@ -36,4 +36,4 @@ proto = { path = "../proto" }
 
 [profile.release]
 lto = false
-#opt-level = 1
+opt-level = 1

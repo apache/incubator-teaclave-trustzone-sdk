@@ -94,8 +94,8 @@ fi
 
 ########################################################
 # initialize submodules: rust / compiler-builtins / libc
-RUST_COMMIT_ID=036938275b5f1e6c75037df00fdc2a3187711b43
-COMPILER_BUILTINS_COMMIT_ID=42284ae2bc0937440ab1c1edd08981107b6a976c
+RUST_COMMIT_ID=7af4c8ab9ea24a3679ba0f5ba71495391fa135b6
+#COMPILER_BUILTINS_COMMIT_ID=42284ae2bc0937440ab1c1edd08981107b6a976c
 LIBC_COMMIT_ID=4fa30318ed3175f6ebe22da8f167f9f9b34567c3
 
 if [ -d rust/ ]
@@ -111,10 +111,10 @@ git clone https://github.com/DemesneGH/rust.git && \
 	git submodule update --init library/stdarch && \
 	git submodule update --init library/backtrace)
 
-git clone https://github.com/DemesneGH/compiler-builtins.git && \
-	(cd compiler-builtins && \
-	git checkout "$COMPILER_BUILTINS_COMMIT_ID" && \
-	git submodule update --init libm)
+# git clone https://github.com/DemesneGH/compiler-builtins.git && \
+# 	(cd compiler-builtins && \
+# 	git checkout "$COMPILER_BUILTINS_COMMIT_ID" && \
+# 	git submodule update --init libm)
 
 git clone https://github.com/DemesneGH/libc.git && \
 	(cd libc && \
