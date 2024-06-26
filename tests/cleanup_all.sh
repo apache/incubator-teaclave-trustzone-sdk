@@ -19,5 +19,5 @@
 
 set -xe
 
-rm -rf screenlog.0 shared /tmp/serial.log
+rm -rf screenlog.0 shared /tmp/serial.log openssl.log
 rm -rf optee-qemuv8-*
