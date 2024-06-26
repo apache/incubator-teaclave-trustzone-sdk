@@ -35,7 +35,7 @@ rustflags = [
 linker = "aarch64-linux-gnu-gcc"
 ar = "aarch64-linux-gnu-gcc-ar"
 
-[target.arm-unknown-optee-trustzone]
+[target.arm-unknown-optee]
 linker = "arm-linux-gnueabihf-ld.bfd"
 ar = "arm-linux-gnueabihf-ar"
 rustflags = [
@@ -44,7 +44,7 @@ rustflags = [
     "-C", "link-arg=-Tta.lds",
     "-C", "link-arg=--sort-section=alignment",
     "-C", "link-arg=-pie",
-    "-C", "link-dead-code",
+#    "-C", "link-dead-code",
 ]
 
 [target.arm-unknown-linux-gnueabihf]

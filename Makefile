@@ -35,7 +35,7 @@ else
 	VENDOR := qemu.mk
 	ARCH_CROSS_COMPILE := $(OPTEE_PATH)/toolchains/aarch32/bin/arm-linux-gnueabihf-
 	HOST_TARGET := arm-unknown-linux-gnueabihf
-	TA_TARGET := arm-unknown-optee-trustzone
+	TA_TARGET := arm-unknown-optee
 endif
 
 all: toolchains optee-os optee-client examples

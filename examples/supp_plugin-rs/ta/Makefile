@@ -26,7 +26,7 @@ ifeq ($(ARCH), arm)
 	SIGN := $(OPTEE_OS_DIR)/out/arm/export-ta_arm32/scripts/sign_encrypt.py
 	OPTEE_BIN := $(OPTEE_DIR)/toolchains/aarch32/bin
 	OBJCOPY := $(OPTEE_BIN)/arm-linux-gnueabihf-objcopy
-	TARGET := arm-unknown-optee-trustzone
+	TARGET := arm-unknown-optee
 else
 	TA_SIGN_KEY ?= $(OPTEE_OS_DIR)/out/arm/export-ta_arm64/keys/default_ta.pem
 	SIGN := $(OPTEE_OS_DIR)/out/arm/export-ta_arm64/scripts/sign_encrypt.py
