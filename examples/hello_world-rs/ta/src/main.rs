@@ -48,12 +48,7 @@ fn destroy() {
 
 #[ta_invoke_command]
 fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
-    trace_println!("[+] TA invoke command1111 1111111");
-    trace_println!("cmd_id: {}", cmd_id);
-    let mut m = HashMap::new();
-    trace_println!("after create m: {:?}", m);
-    m.insert(0, 0);
-    trace_println!("m: {:?}", m);
+    trace_println!("[+] TA invoke command");
     let mut values = unsafe { params.0.as_value().unwrap() };
     match Command::from(cmd_id) {
         Command::IncValue => {
