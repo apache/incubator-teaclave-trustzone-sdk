@@ -29,7 +29,7 @@ header:
     - '**/Cargo.lock'
     - '**/*.lds'
     - 'aarch64-unknown-optee.json'
-    - 'arm-unknown-optee-trustzone.json'
+    - 'arm-unknown-optee.json'
     - 'KEYS'
     - 'DISCLAIMER-WIP'
     - '.gitmodules'
