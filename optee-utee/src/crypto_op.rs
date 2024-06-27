@@ -17,7 +17,6 @@
 
 use crate::{Attribute, Error, ObjHandle, Result, TransientObject};
 use optee_utee_sys as raw;
-use crate::trace_println;
 use std::{mem, ptr};
 
 /// Specify one of the available cryptographic operations.
@@ -763,7 +762,6 @@ impl Mac {
     /// 4) Hardware or cryptographic algorithm failure.
     /// 5) If the Implementation detects any other error.
     pub fn init(&self, iv: &[u8]) {
-        trace_println!("iv ptr: {:?}", iv.as_ptr());
         unsafe { raw::TEE_MACInit(self.handle(), iv.as_ptr() as _, iv.len()) };
     }
 
