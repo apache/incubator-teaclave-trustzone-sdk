@@ -138,7 +138,7 @@ fn invoke_command(
 const TA_FLAGS: u32 = 0;
 const TA_DATA_SIZE: u32 = 32 * 1024;
 const TA_STACK_SIZE: u32 = 2 * 1024;
-const TA_VERSION: &[u8] = b"0.1\0";
+const TA_VERSION: &[u8] = b"0.3\0";
 const TA_DESCRIPTION: &[u8] = b"This is an example which serves DH related functions.\0";
 const EXT_PROP_VALUE_1: &[u8] = b"DH TA\0";
 const EXT_PROP_VALUE_2: u32 = 0x0010;

@@ -45,7 +45,7 @@ checksum = "60302e4db3a61da70c0cb7991976248362f30319e88850c487b9b95bbf059e00"
 
 [[package]]
 name = "message_passing_interface-rs"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "libc",
  "optee-teec",
@@ -96,7 +96,7 @@ dependencies = [
 
 [[package]]
 name = "proto"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "serde",
  "serde_json",

@@ -56,7 +56,7 @@ dependencies = [
 
 [[package]]
 name = "proto"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "uuid 0.7.4",
 ]
@@ -83,7 +83,7 @@ dependencies = [
 
 [[package]]
 name = "ta"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "libc",
  "optee-utee",
