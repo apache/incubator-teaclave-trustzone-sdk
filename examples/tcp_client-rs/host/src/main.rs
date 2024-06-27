@@ -15,9 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use optee_teec::{Context, Operation, Session, Uuid};
 use optee_teec::ParamNone;
-use proto::{UUID, Command};
+use optee_teec::{Context, Operation, Session, Uuid};
+use proto::{Command, UUID};
 
 fn tcp_client(session: &mut Session) -> optee_teec::Result<()> {
     let mut operation = Operation::new(0, ParamNone, ParamNone, ParamNone, ParamNone);

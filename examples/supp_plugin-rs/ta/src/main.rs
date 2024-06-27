@@ -17,11 +17,11 @@
 
 #![no_main]
 
+use optee_utee::LoadablePlugin;
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{Error, ErrorKind, Parameters, Result, Uuid};
-use optee_utee::{LoadablePlugin};
 use proto::{Command, PluginCommand, PLUGIN_SUBCMD_NULL, PLUGIN_UUID};
 
 #[ta_create]
@@ -51,19 +51,24 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
     let mut p0 = unsafe { params.0.as_memref().unwrap() };
     let mut inbuf = p0.buffer().to_vec();
-    trace_println!("[+] TA received value {:?} then send to plugin", p0.buffer());
+    trace_println!(
+        "[+] TA received value {:?} then send to plugin",
+        p0.buffer()
+    );
     let uuid = Uuid::parse_str(PLUGIN_UUID).unwrap();
 
     match Command::from(cmd_id) {
         Command::Ping => {
             let mut plugin = LoadablePlugin::new(&uuid);
-            let outbuf = plugin.invoke(
-                PluginCommand::Print as u32, 
-                PLUGIN_SUBCMD_NULL, 
-                &inbuf
-            ).unwrap();
+            let outbuf = plugin
+                .invoke(PluginCommand::Print as u32, PLUGIN_SUBCMD_NULL, &inbuf)
+                .unwrap();
 
-            trace_println!("[+] TA received out value {:?} outlen {:?}", outbuf, outbuf.len());
+            trace_println!(
+                "[+] TA received out value {:?} outlen {:?}",
+                outbuf,
+                outbuf.len()
+            );
             trace_println!("[+] TA call invoke_supp_plugin finished");
 
             Ok(())

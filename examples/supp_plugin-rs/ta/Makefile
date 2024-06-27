@@ -42,6 +42,9 @@ all: ta strip sign
 ta:
 	@xargo build --target $(TARGET) --release --verbose
 
+fmt:
+	@cargo fmt
+
 strip:
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/ta $(OUT_DIR)/stripped_ta
 

@@ -25,17 +25,12 @@ name = "libc"
 version = "0.2.153"
 
 [[package]]
-name = "libc"
-version = "0.2.153"
-source = "git+https://github.com/DemesneGH/libc.git?branch=optee#4fa30318ed3175f6ebe22da8f167f9f9b34567c3"
-
-[[package]]
 name = "optee-utee"
 version = "0.2.0"
 dependencies = [
  "bitflags",
  "hex",
- "libc 0.2.153 (git+https://github.com/DemesneGH/libc.git?branch=optee)",
+ "libc",
  "optee-utee-macros",
  "optee-utee-sys",
  "uuid",
@@ -53,7 +48,7 @@ dependencies = [
 name = "optee-utee-sys"
 version = "0.2.0"
 dependencies = [
- "libc 0.2.153",
+ "libc",
 ]
 
 [[package]]
@@ -164,7 +159,7 @@ dependencies = [
 name = "ta"
 version = "0.2.0"
 dependencies = [
- "libc 0.2.153",
+ "libc",
  "optee-utee",
  "optee-utee-sys",
  "proto",

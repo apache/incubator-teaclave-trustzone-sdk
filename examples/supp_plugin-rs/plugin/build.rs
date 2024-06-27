@@ -19,7 +19,7 @@ use proto;
 use std::env;
 use std::fs::File;
 use std::io::Write;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 use uuid::Uuid;
 
 fn main() -> std::io::Result<()> {

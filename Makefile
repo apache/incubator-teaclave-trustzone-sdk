@@ -56,7 +56,7 @@ OPTEE_CLIENT_FLAGS ?= CROSS_COMPILE="$(CCACHE) $(AARCH_CROSS_COMPILE)" \
 optee-client:
 	make -C $(OPTEE_CLIENT_PATH) $(OPTEE_CLIENT_FLAGS)
 
-examples: $(EXAMPLES) toolchains optee-os optee-client
+examples: toolchains optee-os optee-client $(EXAMPLES)
 $(EXAMPLES):
 	make -C $@
 

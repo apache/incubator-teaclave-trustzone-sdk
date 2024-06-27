@@ -16,8 +16,8 @@
 // under the License.
 
 use optee_teec::{Context, Operation, ParamNone, ParamTmpRef, Session, Uuid};
+use proto::{Command, UUID};
 use serde::Deserialize;
-use proto::{UUID, Command};
 
 #[derive(Deserialize, Debug)]
 struct Point {
@@ -28,7 +28,7 @@ struct Point {
 fn serde(session: &mut Session) -> optee_teec::Result<()> {
     let mut buffer = [0u8; 128];
     let p0 = ParamTmpRef::new_output(&mut buffer);
-    let mut operation = Operation::new(0, p0 , ParamNone, ParamNone, ParamNone);
+    let mut operation = Operation::new(0, p0, ParamNone, ParamNone, ParamNone);
 
     session.invoke_command(Command::DefaultOp as u32, &mut operation)?;
     let updated_size = operation.parameters().0.updated_size();
@@ -41,8 +41,7 @@ fn serde(session: &mut Session) -> optee_teec::Result<()> {
 
 fn main() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
-    let uuid =
-        Uuid::parse_str(UUID).unwrap();
+    let uuid = Uuid::parse_str(UUID).unwrap();
     let mut session = ctx.open_session(uuid)?;
 
     serde(&mut session)?;

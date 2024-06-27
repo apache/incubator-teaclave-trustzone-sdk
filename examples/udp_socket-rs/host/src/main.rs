@@ -15,12 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use optee_teec::{Context, Operation, Session, Uuid};
 use optee_teec::ParamNone;
-use proto::{UUID, Command};
-use std::thread;
+use optee_teec::{Context, Operation, Session, Uuid};
+use proto::{Command, UUID};
 use std::net::UdpSocket;
 use std::str;
+use std::thread;
 
 fn udp_socket(session: &mut Session) -> optee_teec::Result<()> {
     let mut operation = Operation::new(0, ParamNone, ParamNone, ParamNone, ParamNone);
@@ -40,7 +40,9 @@ fn main() -> optee_teec::Result<()> {
 
     let mut buf = [0; 100];
     let (_, src_addr) = socket.recv_from(&mut buf).unwrap();
-    socket.send_to(b"[Host] Hello, Teaclave!", src_addr).unwrap();
+    socket
+        .send_to(b"[Host] Hello, Teaclave!", src_addr)
+        .unwrap();
     println!("{}", str::from_utf8(&buf).unwrap());
     let _ = child.join();
 

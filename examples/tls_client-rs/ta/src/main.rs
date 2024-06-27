@@ -23,11 +23,11 @@ use optee_utee::{
 };
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::Command;
+use rustls::{OwnedTrustAnchor, RootCertStore};
+use std::convert::TryInto;
 use std::io::Read;
 use std::io::Write;
 use std::sync::Arc;
-use std::convert::TryInto;
-use rustls::{OwnedTrustAnchor, RootCertStore};
 
 #[ta_create]
 fn create() -> Result<()> {
@@ -66,18 +66,13 @@ fn invoke_command(cmd_id: u32, _params: &mut Parameters) -> Result<()> {
 // copied from https://github.com/rustls/rustls/blob/v/0.21.0/examples/src/bin/simpleclient.rs
 fn tls_client() {
     let mut root_store = RootCertStore::empty();
-    root_store.add_server_trust_anchors(
-        webpki_roots::TLS_SERVER_ROOTS
-            .0
-            .iter()
-            .map(|ta| {
-                OwnedTrustAnchor::from_subject_spki_name_constraints(
-                    ta.subject,
-                    ta.spki,
-                    ta.name_constraints,
-                )
-            }),
-    );
+    root_store.add_server_trust_anchors(webpki_roots::TLS_SERVER_ROOTS.0.iter().map(|ta| {
+        OwnedTrustAnchor::from_subject_spki_name_constraints(
+            ta.subject,
+            ta.spki,
+            ta.name_constraints,
+        )
+    }));
     trace_println!("[+] root_store added");
 
     let config = rustls::ClientConfig::builder()
@@ -85,7 +80,7 @@ fn tls_client() {
         .with_root_certificates(root_store)
         .with_no_client_auth();
     trace_println!("[+] config created");
-    
+
     let server_name = "google.com".try_into().unwrap();
     let mut conn = rustls::ClientConnection::new(Arc::new(config), server_name).unwrap();
     let mut sock = TcpStream::connect("google.com", 443).unwrap();
@@ -101,14 +96,8 @@ fn tls_client() {
         .as_bytes(),
     )
     .unwrap();
-    let ciphersuite = tls
-        .conn
-        .negotiated_cipher_suite()
-        .unwrap();
-    trace_println!(
-        "Current ciphersuite: {:?}",
-        ciphersuite.suite()
-    );
+    let ciphersuite = tls.conn.negotiated_cipher_suite().unwrap();
+    trace_println!("Current ciphersuite: {:?}", ciphersuite.suite());
     let mut plaintext = Vec::new();
     tls.read_to_end(&mut plaintext).unwrap();
     trace_println!("{}", String::from_utf8_lossy(&plaintext));

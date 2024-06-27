@@ -33,9 +33,7 @@ pub struct AEOp {
 
 impl Default for AEOp {
     fn default() -> Self {
-        Self {
-            op: AE::null()
-        }
+        Self { op: AE::null() }
     }
 }
 
@@ -126,7 +124,7 @@ pub fn encrypt_final(digest: &mut AEOp, params: &mut Parameters) -> Result<()> {
     let mut p0 = unsafe { params.0.as_memref().unwrap() };
     let mut p1 = unsafe { params.1.as_memref().unwrap() };
     let mut p2 = unsafe { params.2.as_memref().unwrap() };
-    
+
     let mut clear = vec![0; p0.buffer().len() as usize];
     clear.copy_from_slice(p0.buffer());
     let mut ciph = vec![0; p1.buffer().len() as usize];
@@ -135,15 +133,14 @@ pub fn encrypt_final(digest: &mut AEOp, params: &mut Parameters) -> Result<()> {
     tag.copy_from_slice(p2.buffer());
 
     match digest.op.encrypt_final(&clear, &mut ciph, &mut tag) {
-
         Err(e) => Err(e),
         Ok((_ciph_len, _tag_len)) => {
             p0.buffer().copy_from_slice(&clear);
             p1.buffer().copy_from_slice(&ciph);
             p2.buffer().copy_from_slice(&tag);
-            
+
             Ok(())
-        },
+        }
     }
 }
 
@@ -151,7 +148,7 @@ pub fn decrypt_final(digest: &mut AEOp, params: &mut Parameters) -> Result<()> {
     let mut p0 = unsafe { params.0.as_memref().unwrap() };
     let mut p1 = unsafe { params.1.as_memref().unwrap() };
     let mut p2 = unsafe { params.2.as_memref().unwrap() };
-     
+
     let mut clear = vec![0; p0.buffer().len() as usize];
     clear.copy_from_slice(p0.buffer());
     let mut ciph = vec![0; p1.buffer().len() as usize];
@@ -166,8 +163,8 @@ pub fn decrypt_final(digest: &mut AEOp, params: &mut Parameters) -> Result<()> {
             p1.buffer().copy_from_slice(&ciph);
             p2.buffer().copy_from_slice(&tag);
 
-            Ok(())    
-        },
+            Ok(())
+        }
     }
 }
 

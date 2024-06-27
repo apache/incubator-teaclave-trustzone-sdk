@@ -70,7 +70,10 @@ fn time() -> Result<()> {
     time.set_ta_time()?;
     let mut time2 = Time::new();
     time2.ta_time()?;
-    trace_println!("[+] After set the TA time 5 seconds ahead of system time, new TA time {}.", time2);
+    trace_println!(
+        "[+] After set the TA time 5 seconds ahead of system time, new TA time {}.",
+        time2
+    );
     Ok(())
 }
 // TA configurations

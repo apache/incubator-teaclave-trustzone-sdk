@@ -19,6 +19,7 @@
 
 [toolchain]
 channel = "nightly-2024-05-15"
+components = [ "rust-src" ]
 targets = ["aarch64-unknown-linux-gnu", "arm-unknown-linux-gnueabihf"]
 # minimal profile: install rustc, cargo, and rust-std
 profile = "minimal"
