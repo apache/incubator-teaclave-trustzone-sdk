@@ -24,17 +24,12 @@ use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::Command;
 
 use lazy_static::lazy_static;
-use rustls;
-use rustls::{NoClientAuth, Session};
 use std::collections::HashMap;
-use std::io::Cursor;
-use std::io::{BufReader, Read, Write};
-use std::sync::Arc;
-use std::sync::Mutex;
-use std::sync::RwLock;
+use std::io::{BufReader, Cursor, Read, Write};
+use std::sync::{Arc, Mutex, RwLock};
 
 lazy_static! {
-    static ref TLS_SESSIONS: RwLock<HashMap<u32, Mutex<rustls::ServerSession>>> =
+    static ref TLS_SESSIONS: RwLock<HashMap<u32, Mutex<rustls::ServerConnection>>> =
         RwLock::new(HashMap::new());
 }
 
@@ -98,7 +93,7 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
 
 pub fn new_tls_session(session_id: u32) {
     let tls_config = make_config();
-    let tls_session = rustls::ServerSession::new(&tls_config);
+    let tls_session = rustls::ServerConnection::new(tls_config).unwrap();
     TLS_SESSIONS
         .write()
         .unwrap()
@@ -118,9 +113,9 @@ pub fn do_tls_read(session_id: u32, buf: &[u8]) {
 
     // Read and process all available plaintext.
     let mut buf = Vec::new();
-    let _rc = tls_session.read_to_end(&mut buf);
+    let _rc = tls_session.reader().read_to_end(&mut buf);
     if !buf.is_empty() {
-        tls_session.write_all(&buf).unwrap();
+        tls_session.writer().write_all(&buf).unwrap();
     }
 }
 
@@ -137,50 +132,35 @@ pub fn do_tls_write(session_id: u32, buf: &mut [u8]) -> usize {
 }
 
 fn make_config() -> Arc<rustls::ServerConfig> {
-    let client_auth = NoClientAuth::new();
-    trace_println!("[+] before make_config");
-    let mut tls_config = rustls::ServerConfig::new(client_auth);
-    trace_println!("[+] after make_config");
     let certs = load_certs();
     let privkey = load_private_key();
-    tls_config
-        .set_single_cert(certs, privkey)
-        .expect("bad certificates/private key");
+    let config = rustls::ServerConfig::builder()
+        .with_safe_defaults()
+        .with_no_client_auth()
+        .with_single_cert(certs, privkey)
+        .unwrap();
 
-    Arc::new(tls_config)
+    Arc::new(config)
 }
 
 fn load_certs() -> Vec<rustls::Certificate> {
     let bytes = include_bytes!("../test-ca/ecdsa/end.fullchain").to_vec();
     let cursor = std::io::Cursor::new(bytes);
     let mut reader = BufReader::new(cursor);
-    rustls::internal::pemfile::certs(&mut reader).unwrap()
+    let certs = rustls_pemfile::certs(&mut reader).unwrap();
+    certs
+        .iter()
+        .map(|v| rustls::Certificate(v.clone()))
+        .collect()
 }
 
 fn load_private_key() -> rustls::PrivateKey {
     let bytes = include_bytes!("../test-ca/ecdsa/end.key").to_vec();
-
-    let rsa_keys = {
-        let cursor = std::io::Cursor::new(bytes.clone());
-        let mut reader = BufReader::new(cursor);
-        rustls::internal::pemfile::rsa_private_keys(&mut reader)
-            .expect("file contains invalid rsa private key")
-    };
-
-    let pkcs8_keys = {
-        let cursor = std::io::Cursor::new(bytes);
-        let mut reader = BufReader::new(cursor);
-        rustls::internal::pemfile::pkcs8_private_keys(&mut reader)
-            .expect("file contains invalid pkcs8 private key (encrypted keys not supported)")
-    };
-
-    // prefer to load pkcs8 keys
-    if !pkcs8_keys.is_empty() {
-        pkcs8_keys[0].clone()
-    } else {
-        assert!(!rsa_keys.is_empty());
-        rsa_keys[0].clone()
-    }
+    let cursor = std::io::Cursor::new(bytes);
+    let mut reader = BufReader::new(cursor);
+    let keys = rustls_pemfile::pkcs8_private_keys(&mut reader).unwrap();
+    assert_eq!(keys.len(), 1);
+    rustls::PrivateKey(keys[0].clone())
 }
 
 // TA configurations
