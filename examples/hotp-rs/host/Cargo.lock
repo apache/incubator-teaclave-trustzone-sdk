@@ -10,7 +10,7 @@ checksum = "805026a5d0141ffc30abb3be3173848ad46a1b1664fe632428479619a3644d77"
 
 [[package]]
 name = "hotp-rs"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "libc",
  "optee-teec",
@@ -60,7 +60,7 @@ dependencies = [
 
 [[package]]
 name = "proto"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "uuid 1.8.0",
 ]

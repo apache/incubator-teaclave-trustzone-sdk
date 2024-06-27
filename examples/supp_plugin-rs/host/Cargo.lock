@@ -51,7 +51,7 @@ dependencies = [
 
 [[package]]
 name = "proto"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "uuid",
 ]
@@ -67,7 +67,7 @@ dependencies = [
 
 [[package]]
 name = "supp_plugin-rs"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "libc",
  "optee-teec",

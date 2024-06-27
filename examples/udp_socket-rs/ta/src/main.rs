@@ -87,8 +87,8 @@ fn udp_socket() {
 const TA_FLAGS: u32 = 0;
 const TA_DATA_SIZE: u32 = 1 * 1024 * 1024;
 const TA_STACK_SIZE: u32 = 2 * 1024 * 1024;
-const TA_VERSION: &[u8] = b"0.1\0";
-const TA_DESCRIPTION: &[u8] = b"This is a hello world example.\0";
+const TA_VERSION: &[u8] = b"0.3\0";
+const TA_DESCRIPTION: &[u8] = b"This is a udp socket example.\0";
 const EXT_PROP_VALUE_1: &[u8] = b"Hello World TA\0";
 const EXT_PROP_VALUE_2: u32 = 0x0010;
 const TRACE_LEVEL: i32 = 4;

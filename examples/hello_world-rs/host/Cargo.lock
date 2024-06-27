@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "hello_world-rs"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "libc",
  "optee-teec",
@@ -60,7 +60,7 @@ dependencies = [
 
 [[package]]
 name = "proto"
-version = "0.2.0"
+version = "0.3.0"
 dependencies = [
  "uuid 1.8.0",
 ]

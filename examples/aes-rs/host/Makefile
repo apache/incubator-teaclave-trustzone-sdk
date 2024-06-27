@@ -36,7 +36,10 @@ OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 all: host strip
 
 host:
-	@cargo fmt && cargo build --target $(TARGET) --release
+	@cargo build --target $(TARGET) --release
+
+fmt:
+	@cargo fmt
 
 strip:
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/$(NAME) $(OUT_DIR)/$(NAME)
