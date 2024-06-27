@@ -22,7 +22,6 @@ use optee_utee::{
 };
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::Command;
-use std::collections::HashMap;
 
 #[ta_create]
 fn create() -> Result<()> {

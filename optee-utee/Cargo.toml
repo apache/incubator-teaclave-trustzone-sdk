@@ -27,14 +27,10 @@ edition = "2018"
 [dependencies]
 optee-utee-sys = { path = "optee-utee-sys" }
 optee-utee-macros = { path = "macros" }
-libc =  { git = "https://github.com/DemesneGH/libc.git", branch = "optee" }
-#libc = { path = "../rust/libc", version = "=0.2.153" }
+libc = { path = "../rust/libc", version = "=0.2.153" }
 bitflags = "1.0"
 uuid = { version = "1.8", default-features = false }
 hex = { version = "0.4", default-features = false, features = ["alloc"] }
 
 #[workspace]
 #members = ['systest']
-
-[patch.crates-io]
-#libc =  { git = "https://github.com/DemesneGH/libc.git", branch = "optee" }

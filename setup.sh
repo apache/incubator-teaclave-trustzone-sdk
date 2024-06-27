@@ -26,7 +26,7 @@ cd "$(dirname "$0")"
 ##########################################
 # install rustup and stable Rust if needed
 if command -v rustup &>/dev/null ; then
-	rustup install stable
+	rustup uninstall stable && rustup install stable
 else
 	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 	source "$HOME/.cargo/env"
@@ -93,9 +93,8 @@ fi
 
 
 ########################################################
-# initialize submodules: rust / compiler-builtins / libc
+# initialize submodules: rust / libc
 RUST_COMMIT_ID=7ee181c5199b0769414f0d0fd13f5e959ef84c27
-#COMPILER_BUILTINS_COMMIT_ID=42284ae2bc0937440ab1c1edd08981107b6a976c
 LIBC_COMMIT_ID=4fa30318ed3175f6ebe22da8f167f9f9b34567c3
 
 if [ -d rust/ ]
@@ -110,11 +109,6 @@ git clone https://github.com/DemesneGH/rust.git && \
 	git checkout "$RUST_COMMIT_ID" && \
 	git submodule update --init library/stdarch && \
 	git submodule update --init library/backtrace)
-
-# git clone https://github.com/DemesneGH/compiler-builtins.git && \
-# 	(cd compiler-builtins && \
-# 	git checkout "$COMPILER_BUILTINS_COMMIT_ID" && \
-# 	git submodule update --init libm)
 
 git clone https://github.com/DemesneGH/libc.git && \
 	(cd libc && \
