@@ -48,10 +48,6 @@ opt-level = 1
 [patch.crates-io]
 ring = { git = "https://github.com/DemesneGH/ring-optee.git", branch = "0.16.20-optee" }
 
-# Patch optee-utee for webpki
-[patch."https://github.com/veracruz-project/rust-optee-trustzone-sdk.git"]
-optee-utee = { path = "../../../optee-utee" }
-
 # Patch optee-utee for rustls
 [patch."https://github.com/apache/incubator-teaclave-trustzone-sdk.git"]
 optee-utee = { path = "../../../optee-utee" }

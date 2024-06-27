@@ -15,25 +15,23 @@
 // specific language governing permissions and limitations
 // under the License.
 
+use optee_teec::{Context, Operation, ParamNone, ParamTmpRef, ParamType, ParamValue, Uuid};
 use proto;
 use url;
-use optee_teec::{Context, Uuid, ParamType, ParamTmpRef, ParamValue, ParamNone, Operation};
 
 type Result<T> = optee_teec::Result<T>;
 
 pub struct EnclaveClient {
     uuid: String,
     context: optee_teec::Context,
-    buffer: Vec<u8>
+    buffer: Vec<u8>,
 }
 
 impl EnclaveClient {
     pub fn open(url: &str) -> Result<Self> {
         let url = url::Url::parse(url).unwrap();
         match url.scheme() {
-            "trustzone-enclave" => {
-                Self::open_uuid(url.host_str().unwrap())
-            },
+            "trustzone-enclave" => Self::open_uuid(url.host_str().unwrap()),
             _ => unimplemented!(),
         }
     }
@@ -43,7 +41,7 @@ impl EnclaveClient {
         Ok(Self {
             uuid: uuid.to_string(),
             context: context,
-            buffer: vec![0; 128]
+            buffer: vec![0; 128],
         })
     }
 
@@ -62,7 +60,8 @@ impl EnclaveClient {
         session.invoke_command(command_id, &mut operation)?;
         let len = operation.parameters().2.a() as usize;
 
-        let output: proto::EnclaveOutput = proto::serde_json::from_slice(&self.buffer[0..len]).unwrap();
+        let output: proto::EnclaveOutput =
+            proto::serde_json::from_slice(&self.buffer[0..len]).unwrap();
         Ok(output)
     }
 }
@@ -72,7 +71,7 @@ fn main() -> optee_teec::Result<()> {
     let mut enclave = EnclaveClient::open(&url).unwrap();
     let input = proto::EnclaveInput {
         command: proto::Command::Hello,
-        message: String::from("World!")
+        message: String::from("World!"),
     };
     let output = enclave.invoke(&input).unwrap();
     println!("{:?}", output);

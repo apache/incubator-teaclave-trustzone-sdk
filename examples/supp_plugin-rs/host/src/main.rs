@@ -15,9 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
+use optee_teec::ParamNone;
 use optee_teec::{Context, Operation, ParamTmpRef, Session, Uuid};
-use optee_teec::{ParamNone};
-use proto::{TA_UUID, Command};
+use proto::{Command, TA_UUID};
 
 fn ping_ta(session: &mut Session) -> optee_teec::Result<()> {
     let test_data = [0x36u8; 10];

@@ -21,9 +21,9 @@ use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{Error, ErrorKind, Parameters, Result};
+use proto::Command;
 use serde::{Deserialize, Serialize};
 use std::io::Write;
-use proto::Command;
 
 #[ta_create]
 fn create() -> Result<()> {
@@ -67,7 +67,7 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
             let len = buffer.write(serialized.as_bytes()).unwrap();
 
             // update size of output buffer
-            unsafe { (*p.raw()).size = len};
+            unsafe { (*p.raw()).size = len };
 
             // Prints serialized = {"x":1,"y":2}
             trace_println!("serialized = {}", serialized);

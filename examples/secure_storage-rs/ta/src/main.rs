@@ -22,7 +22,7 @@ use optee_utee::{
 };
 use optee_utee::{DataFlag, ObjectStorageConstants, PersistentObject};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
-use proto::{Command};
+use proto::Command;
 
 #[ta_create]
 fn create() -> Result<()> {
@@ -134,7 +134,7 @@ pub fn read_raw_object(params: &mut Parameters) -> Result<()> {
     let mut obj_id = vec![0; p0.buffer().len() as usize];
     obj_id.copy_from_slice(p0.buffer());
 
-    let mut data_buffer = vec![0;p1.buffer().len() as usize];
+    let mut data_buffer = vec![0; p1.buffer().len() as usize];
     data_buffer.copy_from_slice(p1.buffer());
 
     match PersistentObject::open(

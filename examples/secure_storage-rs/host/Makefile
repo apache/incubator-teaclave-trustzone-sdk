@@ -38,6 +38,9 @@ all: host strip
 host:
 	@cargo build --target $(TARGET) --release
 
+fmt:
+	@cargo fmt
+
 strip:
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/$(NAME) $(OUT_DIR)/$(NAME)
 

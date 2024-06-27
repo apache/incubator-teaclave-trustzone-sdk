@@ -21,23 +21,23 @@ use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{Error, ErrorKind, Parameters, Result};
-use std::io::Write;
 use proto::{self, Command};
+use std::io::Write;
 
 fn handle_invoke(command: Command, input: proto::EnclaveInput) -> Result<proto::EnclaveOutput> {
     match command {
         Command::Hello => {
             let output = proto::EnclaveOutput {
-                message: format!("Hello, {}", input.message)
+                message: format!("Hello, {}", input.message),
             };
             Ok(output)
-        },
+        }
         Command::Bye => {
             let output = proto::EnclaveOutput {
-                message: format!("Bye, {}", input.message)
+                message: format!("Bye, {}", input.message),
             };
             Ok(output)
-        },
+        }
         _ => Err(Error::new(ErrorKind::BadParameters)),
     }
 }
@@ -67,8 +67,8 @@ fn destroy() {
 #[ta_invoke_command]
 fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
-    let mut p0 = unsafe { params.0.as_memref().unwrap()};
-    let mut p1 = unsafe { params.1.as_memref().unwrap()};
+    let mut p0 = unsafe { params.0.as_memref().unwrap() };
+    let mut p1 = unsafe { params.1.as_memref().unwrap() };
     let mut p2 = unsafe { params.2.as_value().unwrap() };
 
     let input: proto::EnclaveInput = proto::serde_json::from_slice(p0.buffer()).unwrap();

@@ -67,8 +67,8 @@ fn generate_key(dh: &mut DiffieHellman, params: &mut Parameters) -> Result<()> {
 
     // Extract prime and base from parameters
     let prime_base_vec = p0.buffer();
-    let prime_slice = &prime_base_vec[..KEY_SIZE/8];
-    let base_slice = &prime_base_vec[KEY_SIZE/8..];
+    let prime_slice = &prime_base_vec[..KEY_SIZE / 8];
+    let base_slice = &prime_base_vec[KEY_SIZE / 8..];
 
     let attr_prime = AttributeMemref::from_ref(AttributeId::DhPrime, prime_slice);
     let attr_base = AttributeMemref::from_ref(AttributeId::DhBase, base_slice);

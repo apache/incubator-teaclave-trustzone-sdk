@@ -38,6 +38,9 @@ all: host
 
 host:
 	@cargo build --target $(TARGET) --release
+
+fmt:
+	@cargo fmt
 	cp $(CURDIR)/target/$(TARGET)/release/lib$(NAME).so $(CURDIR)/target/$(TARGET)/release/$(PLUGIN_UUID).plugin.so 
 clean:
 	@cargo clean

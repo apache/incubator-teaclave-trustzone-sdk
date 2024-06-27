@@ -15,10 +15,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use libc::{c_char};
-use optee_teec::{Error, ErrorKind, PluginMethod, PluginParameters};
+use libc::c_char;
 use optee_teec::{plugin_init, plugin_invoke};
-use proto::{PluginCommand};
+use optee_teec::{Error, ErrorKind, PluginMethod, PluginParameters};
+use proto::PluginCommand;
 
 #[plugin_init]
 fn init() {
@@ -30,15 +30,22 @@ fn invoke(params: &mut PluginParameters) {
     println!("*plugin*: invoke");
     match PluginCommand::from(params.cmd) {
         PluginCommand::Print => {
-            println!("*plugin*: receive value: {:?} length {:?}", params.inout, params.inout.len());
+            println!(
+                "*plugin*: receive value: {:?} length {:?}",
+                params.inout,
+                params.inout.len()
+            );
 
-            let send_slice: [u8;9] = [0x40;9];
+            let send_slice: [u8; 9] = [0x40; 9];
             params.set_buf_from_slice(&send_slice)?;
-            println!("*plugin*: send value: {:?} length {:?} to ta", send_slice, send_slice.len());
+            println!(
+                "*plugin*: send value: {:?} length {:?} to ta",
+                send_slice,
+                send_slice.len()
+            );
         }
         _ => println!("Unsupported plugin command: {:?}", params.cmd),
     }
 }
-
 
 include!(concat!(env!("OUT_DIR"), "/plugin_static.rs"));
