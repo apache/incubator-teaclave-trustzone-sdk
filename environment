@@ -27,6 +27,7 @@ export OPTEE_CLIENT_DIR="$OPTEE_DIR/optee_client/out"
 export OPTEE_CLIENT_INCLUDE="$OPTEE_DIR/optee_client/out/export/usr/include"
 if [ "$ARCH" = "arm" ]
 then
+  echo "WARNING: ARM32 is not supported in this release, please use v0.2.0"
   # use our toolchain as the first choice
   export PATH=$OPTEE_DIR/toolchains/aarch32/bin:$PATH
   export VENDOR="qemu.mk"
