@@ -17,9 +17,9 @@
 
 // Common Definitions
 
-#[cfg(feature = "std")]
-use std::os::raw::*;
-#[cfg(not(feature = "std"))]
+//#[cfg(target_os = "optee")]
+//use libc::*;
+//#[cfg(not(target_os = "optee"))]
 use core::ffi::*;
 
 pub type TEE_Result = u32;

@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#![cfg_attr(not(feature = "std"), no_std)]
+#![cfg_attr(not(target_os = "optee"), no_std)]
 #![feature(c_size_t)]
 #![allow(non_camel_case_types, non_snake_case)]
 

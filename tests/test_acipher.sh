@@ -23,8 +23,8 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/acipher-rs/ta/target/aarch64-unknown-linux-gnu/release/*.ta shared
-cp ../examples/acipher-rs/host/target/aarch64-unknown-linux-gnu/release/acipher-rs shared
+cp ../examples/acipher-rs/ta/target/$TARGET_TA/release/*.ta shared
+cp ../examples/acipher-rs/host/target/$TARGET_HOST/release/acipher-rs shared
 
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"

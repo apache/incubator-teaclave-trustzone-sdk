@@ -18,11 +18,11 @@
 NAME := acipher-rs
 
 TARGET ?= aarch64-unknown-linux-gnu
-CROSS_COMPILE ?= aarch64-linux-gnu-
-OBJCOPY := $(CROSS_COMPILE)objcopy
-LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)gcc\"
+CROSS_COMPILE_HOST ?= aarch64-linux-gnu-
+OBJCOPY := $(CROSS_COMPILE_HOST)objcopy
+LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE_HOST)gcc\"
 
-OUT_DIR := $(CURDIR)/target/$(TARGET)/release
+OUT_DIR := $(CURDIR)/target/$(TARGET_HOST)/release
 
 
 all: host strip

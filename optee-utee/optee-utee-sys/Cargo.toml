@@ -24,7 +24,3 @@ repository = "https://github.com/apache/incubator-teaclave-trustzone-sdk.git"
 description = "Native bindings to the libutee library."
 edition = "2018"
 links = "utee"
-
-[features]
-default = ["std"]
-std = []

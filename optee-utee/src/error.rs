@@ -17,9 +17,9 @@
 
 use optee_utee_sys as raw;
 use core::{fmt, result};
-#[cfg(feature = "std")]
+#[cfg(target_os = "optee")]
 use std::error;
-#[cfg(not(feature = "std"))]
+#[cfg(not(target_os = "optee"))]
 use core::error;
 
 /// A specialized [`Result`](https://doc.rust-lang.org/std/result/enum.Result.html)

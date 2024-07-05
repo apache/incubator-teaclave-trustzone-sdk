@@ -15,24 +15,26 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#![cfg_attr(not(feature = "std"), no_std)]
-#![cfg_attr(not(feature = "std"), feature(error_in_core))]
+#![cfg_attr(not(target_os = "optee"), no_std)]
+#![cfg_attr(not(target_os = "optee"), feature(error_in_core))]
 
 // Requires `alloc`.
 #[macro_use]
 extern crate alloc;
 
+#[cfg(not(target_os = "optee"))]
 use libc_alloc::LibcAlloc;
 
+#[cfg(not(target_os = "optee"))]
 #[global_allocator]
 static ALLOCATOR: LibcAlloc = LibcAlloc;
 
-#[cfg(not(feature = "std"))]
+#[cfg(not(target_os = "optee"))]
 use core::panic::PanicInfo;
-#[cfg(not(feature = "std"))]
+#[cfg(not(target_os = "optee"))]
 use optee_utee_sys as raw;
 
-#[cfg(not(feature = "std"))]
+#[cfg(not(target_os = "optee"))]
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     unsafe { raw::TEE_Panic(0); }
@@ -63,5 +65,5 @@ pub mod arithmetical;
 pub mod extension;
 pub mod uuid;
 
-#[cfg(feature = "std")]
+#[cfg(target_os = "optee")]
 pub mod net;

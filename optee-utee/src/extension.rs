@@ -17,9 +17,9 @@
 
 use crate::{Error, Result, Uuid};
 use optee_utee_sys as raw;
-#[cfg(not(feature = "std"))]
+#[cfg(not(target_os = "optee"))]
 use alloc::vec::Vec;
-#[cfg(not(feature = "std"))]
+#[cfg(not(target_os = "optee"))]
 use alloc::borrow::ToOwned;
 
 pub struct LoadablePlugin {
