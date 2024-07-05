@@ -23,8 +23,8 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/secure_storage-rs/ta/target/aarch64-unknown-linux-gnu/release/*.ta shared
-cp ../examples/secure_storage-rs/host/target/aarch64-unknown-linux-gnu/release/secure_storage-rs shared
+cp ../examples/secure_storage-rs/ta/target/$TARGET_TA/release/*.ta shared
+cp ../examples/secure_storage-rs/host/target/$TARGET_HOST/release/secure_storage-rs shared
 
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"

@@ -16,6 +16,8 @@
 # under the License.
 
 export PATH=$PATH:$HOME/.cargo/bin
+# for std: specify the target json file
+export RUST_TARGET_PATH="$(pwd)"
 
 if [ -z "$OPTEE_DIR" ]
 then
@@ -26,22 +28,36 @@ fi
 export OPTEE_OS_DIR="$OPTEE_DIR/optee_os"
 export OPTEE_CLIENT_DIR="$OPTEE_DIR/optee_client"
 
-export CROSS_COMPILE="aarch64-linux-gnu-"
 export CROSS_COMPILE32="arm-linux-gnueabihf-"
 export CROSS_COMPILE64="aarch64-linux-gnu-"
 
-if [ "$ARCH" = "arm" ]
+if [ "$ARCH_TA" = "arm" ]
 then
-  # build host and TA as 32-bit
+  # build TA as 32-bit
   export TA_DEV_KIT_DIR="$OPTEE_OS_DIR/out/arm-plat-vexpress/export-ta_arm32"
-  export OPTEE_CLIENT_EXPORT="$OPTEE_CLIENT_DIR/out/export"
-  export TARGET="arm-unknown-linux-gnueabihf"
+  if [ "$STD" ]
+  then
+    export TARGET_TA="arm-unknown-optee"
+    echo "set TARGET_TA=$TARGET_TA (std)"
+  else
+    export TARGET_TA="arm-unknown-linux-gnueabihf"
+    echo "set TARGET_TA=$TARGET_TA (no-std)"
+  fi
+  export CROSS_COMPILE_TA="$CROSS_COMPILE32"
+  echo "set CROSS_COMPILE_TA=$CROSS_COMPILE_TA"
 else
-  # build host and TA as 64-bit by default
-  unset ARCH
+  # build TA as 64-bit by default
   export TA_DEV_KIT_DIR="$OPTEE_OS_DIR/out/arm-plat-vexpress/export-ta_arm64"
-  export OPTEE_CLIENT_EXPORT="$OPTEE_CLIENT_DIR/out/export"
-  export TARGET="aarch64-unknown-linux-gnu"
+  if [ "$STD" ]
+  then
+    export TARGET_TA="aarch64-unknown-optee"
+    echo "set TARGET_TA=$TARGET_TA (std)"
+  else
+    export TARGET_TA="aarch64-unknown-linux-gnu"
+    echo "set TARGET_TA=$TARGET_TA (no-std)"
+  fi
+  export CROSS_COMPILE_TA="$CROSS_COMPILE64"
+  echo "set CROSS_COMPILE_TA=$CROSS_COMPILE_TA"
 fi
 
 # check if libraries exist
@@ -51,6 +67,23 @@ then
 else
   echo -e "Error: TA_DEV_KIT_DIR=$TA_DEV_KIT_DIR does not exist, please set the correct TA_DEV_KIT_DIR or run \"$ ./build_optee_libraries.sh optee/\" then try again\n"
   unset OPTEE_DIR
+fi
+
+if [ "$ARCH_HOST" = "arm" ]
+then
+  # build host as 32-bit
+  export OPTEE_CLIENT_EXPORT="$OPTEE_CLIENT_DIR/export_arm32"
+  export TARGET_HOST="arm-unknown-linux-gnueabihf"
+  echo "set TARGET_HOST=$TARGET_HOST"
+  export CROSS_COMPILE_HOST="$CROSS_COMPILE32"
+  echo "set CROSS_COMPILE_HOST=$CROSS_COMPILE_HOST"
+else
+  # build host as 64-bit by default
+  export OPTEE_CLIENT_EXPORT="$OPTEE_CLIENT_DIR/export_arm64"
+  export TARGET_HOST="aarch64-unknown-linux-gnu"
+  echo "set TARGET_HOST=$TARGET_HOST"
+  export CROSS_COMPILE_HOST="$CROSS_COMPILE64"
+  echo "set CROSS_COMPILE_HOST=$CROSS_COMPILE_HOST"
 fi
 
 if [ -d "$OPTEE_CLIENT_EXPORT" ]

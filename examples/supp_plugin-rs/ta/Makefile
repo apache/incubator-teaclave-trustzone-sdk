@@ -17,19 +17,23 @@
 
 UUID ?= $(shell cat "../ta_uuid.txt")
 
-TARGET ?= aarch64-unknown-linux-gnu
-CROSS_COMPILE ?= aarch64-linux-gnu-
-OBJCOPY := $(CROSS_COMPILE)objcopy
-LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)ld.bfd\"
+TARGET_TA ?= $(TARGET)
+CROSS_COMPILE_TA ?= aarch64-linux-gnu-
+OBJCOPY := $(CROSS_COMPILE_TA)objcopy
+LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE_TA)ld.bfd\"
 
 TA_SIGN_KEY ?= $(TA_DEV_KIT_DIR)/keys/default_ta.pem
 SIGN := $(TA_DEV_KIT_DIR)/scripts/sign_encrypt.py
-OUT_DIR := $(CURDIR)/target/$(TARGET)/release
+OUT_DIR := $(CURDIR)/target/$(TARGET_TA)/release
 
 all: ta strip sign
 
 ta:
-	@cargo build --target $(TARGET) --release --config $(LINKER_CFG)
+	@if [ $(STD) ]; then\
+		xargo build --target $(TARGET_TA) --release --config $(LINKER_CFG) --verbose;\
+	else\
+		cargo build --target $(TARGET_TA) --release --config $(LINKER_CFG);\
+	fi
 
 strip: ta
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/ta $(OUT_DIR)/stripped_ta

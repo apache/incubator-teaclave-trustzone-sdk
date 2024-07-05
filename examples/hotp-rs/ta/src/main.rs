@@ -133,9 +133,11 @@ pub fn hmac_sha1(hotp: &mut HmacOtp, out: &mut [u8]) -> Result<usize> {
                     mac.set_key(&key_object)?;
                 }
             }
-            mac.init(&[0u8; 0]);
+            let iv = [0u8; 0];
+            mac.init(&iv);
             mac.update(&hotp.counter);
-            let out_len = mac.compute_final(&[0u8; 0], out).unwrap();
+            let message = [0u8; 0];
+            let out_len = mac.compute_final(&message, out)?;
             Ok(out_len)
         }
     }

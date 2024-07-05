@@ -46,10 +46,10 @@ jobs:
           source environment
 
           # Build Rust optee-utee and optee-teec
-          (cd optee-utee && cargo build --target aarch64-unknown-linux-gnu --no-default-features -vv)
+          (cd optee-utee && cargo build --target aarch64-unknown-linux-gnu -vv)
           (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
 
-  build-examples:
+  build-and-test-examples:
     runs-on: ubuntu-latest
     container: teaclave/teaclave-trustzone-sdk-build:0.3.0
     steps:
@@ -67,39 +67,59 @@ jobs:
 
           # Build optee_os and optee_client for qemu_v8
           ./build_optee_libraries.sh $HOME
+          export OPTEE_DIR=$HOME
+
+          # Build OP-TEE Rust examples for Arm 32-bit both host and TA
+          export ARCH_HOST=arm
+          export ARCH_TA=arm
+          source environment
+          make -j`nproc`
+
+          # Build OP-TEE Rust examples for Arm 64-bit both host and TA
+          unset ARCH_TA
+          unset ARCH_HOST
+          source environment
+          make clean && make -j`nproc`
+      - name: Run tests for Arm 64-bit both host and TA
+        run: |
+          apt update && apt install libslirp-dev -y
+          source environment
+          (cd ci && ./ci.sh)
+  build-and-test-examples-for-std-TAs:
+    runs-on: ubuntu-latest
+    container: teaclave/teaclave-trustzone-sdk-build:0.3.0
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Setting up $HOME
+        run: |
+          cp /root/.bashrc $HOME/.bashrc &&
+          ln -sf /root/.rustup ~/.rustup &&
+          ln -sf /root/.cargo ~/.cargo
+      - name: Building Arm 64-bit both host and TA (with STD enabled)
+        run: |
+          # Setup Rust and toolchains
+          ./setup.sh
+
+          # Setup std dependencies
+          ./setup_std_dependencies.sh
+
+          # Build optee_os and optee_client for qemu_v8
+          ./build_optee_libraries.sh $HOME
 
           # Setup environment
           export OPTEE_DIR=$HOME
+          export STD=y
           source environment
 
           # Build OP-TEE Rust examples for Arm 64-bit both host and TA
           make -j`nproc`
-
-          # Build OP-TEE Rust examples for Arm 64-bit host and 32-bit TA
-          export TA_DEV_KIT_DIR=~/optee_os/out/arm-plat-vexpress/export-ta_arm32/
-          export CROSS_COMPILE_HOST=$CROSS_COMPILE64
-          export CROSS_COMPILE_TA=$CROSS_COMPILE32
-          export TARGET_HOST="aarch64-unknown-linux-gnu"
-          export TARGET_TA="arm-unknown-linux-gnueabihf"
-          make clean && make -j`nproc`
-
-          # Build OP-TEE Rust examples for Arm 32-bit both host and TA
-          export TA_DEV_KIT_DIR=~/optee_os/out/arm-plat-vexpress/export-ta_arm32/
-          export CROSS_COMPILE_HOST=$CROSS_COMPILE32
-          export CROSS_COMPILE_TA=$CROSS_COMPILE32
-          export TARGET_HOST="arm-unknown-linux-gnueabihf"
-          export TARGET_TA="arm-unknown-linux-gnueabihf"
-          (cd ~/optee_client && make clean && make CROSS_COMPILE=$CROSS_COMPILE32 WITH_TEEACL=0)
-          make clean && make -j`nproc`
-
-          # Build OP-TEE Rust examples for Arm 32-bit host and 64-bit TA
-          export TA_DEV_KIT_DIR=~/optee_os/out/arm-plat-vexpress/export-ta_arm64/
-          export CROSS_COMPILE_HOST=$CROSS_COMPILE32
-          export CROSS_COMPILE_TA=$CROSS_COMPILE64
-          export TARGET_HOST="arm-unknown-linux-gnueabihf"
-          export TARGET_TA="aarch64-unknown-linux-gnu"
-          make clean && make -j`nproc`
-
+      - name: Run tests for Arm 64-bit both host and TA
+        run: |
+          apt update && apt install libslirp-dev -y
+          export STD=y
+          source environment
+          (cd ci && ./ci.sh)
   OPTEE-repo-build-and-run-examples-64bit-TAs:
     runs-on: ubuntu-latest
     container: teaclave/teaclave-trustzone-sdk-build:0.3.0
@@ -123,6 +143,8 @@ jobs:
         run: |
           apt update && apt install libslirp-dev -y
           cd ~/optee-qemuv8
+          # fixed the error: configure: error: you should not run configure as root:
+          export FORCE_UNSAFE_CONFIGURE=1
           rm -rf optee_rust/ &&
           mv $GITHUB_WORKSPACE/incubator-teaclave-trustzone-sdk optee_rust/
           cd build &&
@@ -152,6 +174,8 @@ jobs:
         run: |
           apt update && apt install libslirp-dev -y
           cd ~/optee-qemuv8
+          # fixed the error: configure: error: you should not run configure as root:
+          export FORCE_UNSAFE_CONFIGURE=1
           rm -rf optee_rust/ &&
           mv $GITHUB_WORKSPACE/incubator-teaclave-trustzone-sdk optee_rust/
           cd build &&

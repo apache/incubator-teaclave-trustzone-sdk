@@ -23,8 +23,8 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/big_int-rs/ta/target/aarch64-unknown-linux-gnu/release/*.ta shared
-cp ../examples/big_int-rs/host/target/aarch64-unknown-linux-gnu/release/big_int-rs shared
+cp ../examples/big_int-rs/ta/target/$TARGET_TA/release/*.ta shared
+cp ../examples/big_int-rs/host/target/$TARGET_HOST/release/big_int-rs shared
 
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"

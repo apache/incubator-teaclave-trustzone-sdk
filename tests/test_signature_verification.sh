@@ -23,8 +23,8 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/signature_verification-rs/ta/target/aarch64-unknown-linux-gnu/release/*.ta shared
-cp ../examples/signature_verification-rs/host/target/aarch64-unknown-linux-gnu/release/signature_verification-rs shared
+cp ../examples/signature_verification-rs/ta/target/$TARGET_TA/release/*.ta shared
+cp ../examples/signature_verification-rs/host/target/$TARGET_HOST/release/signature_verification-rs shared
 
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"

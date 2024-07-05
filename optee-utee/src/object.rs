@@ -19,9 +19,9 @@ use crate::{Error, Result};
 use bitflags::bitflags;
 use optee_utee_sys as raw;
 use core::{marker, mem, ptr};
-#[cfg(not(feature = "std"))]
+#[cfg(not(target_os = "optee"))]
 use alloc::boxed::Box;
-#[cfg(not(feature = "std"))]
+#[cfg(not(target_os = "optee"))]
 use alloc::vec::Vec;
 
 /// A general attribute (buffer or value) that can be used to populate an object or to specify

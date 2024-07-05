@@ -23,9 +23,9 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/supp_plugin-rs/ta/target/aarch64-unknown-linux-gnu/release/*.ta shared
-cp ../examples/supp_plugin-rs/host/target/aarch64-unknown-linux-gnu/release/supp_plugin-rs shared
-cp ../examples/supp_plugin-rs/plugin/target/aarch64-unknown-linux-gnu/release/*.plugin.so shared
+cp ../examples/supp_plugin-rs/ta/target/$TARGET_TA/release/*.ta shared
+cp ../examples/supp_plugin-rs/host/target/$TARGET_HOST/release/supp_plugin-rs shared
+cp ../examples/supp_plugin-rs/plugin/target/$TARGET_HOST/release/*.plugin.so shared
 
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"

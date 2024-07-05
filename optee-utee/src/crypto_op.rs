@@ -18,9 +18,9 @@
 use crate::{Attribute, Error, ObjHandle, Result, TransientObject};
 use optee_utee_sys as raw;
 use core::{mem, ptr};
-#[cfg(not(feature = "std"))]
+#[cfg(not(target_os = "optee"))]
 use alloc::boxed::Box;
-#[cfg(not(feature = "std"))]
+#[cfg(not(target_os = "optee"))]
 use alloc::vec::Vec;
 
 /// Specify one of the available cryptographic operations.
