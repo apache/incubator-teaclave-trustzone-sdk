@@ -20,7 +20,7 @@ NAME := aes-rs
 TARGET_HOST ?= aarch64-unknown-linux-gnu
 CROSS_COMPILE_HOST ?= aarch64-linux-gnu-
 OBJCOPY := $(CROSS_COMPILE_HOST)objcopy
-LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE_HOST)gcc\"
+LINKER_CFG := target.$(TARGET_HOST).linker=\"$(CROSS_COMPILE_HOST)gcc\"
 
 OUT_DIR := $(CURDIR)/target/$(TARGET_HOST)/release
 
