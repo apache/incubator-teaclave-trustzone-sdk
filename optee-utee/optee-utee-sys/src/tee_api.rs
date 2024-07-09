@@ -16,10 +16,6 @@
 // under the License.
 
 use super::*;
-
-//#[cfg(target_os = "optee")]
-//use libc::*;
-//#[cfg(not(target_os = "optee"))]
 use core::ffi::*;
 
 extern "C" {

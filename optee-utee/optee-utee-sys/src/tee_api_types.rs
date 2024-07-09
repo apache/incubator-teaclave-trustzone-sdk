@@ -17,9 +17,6 @@
 
 // Common Definitions
 
-//#[cfg(target_os = "optee")]
-//use libc::*;
-//#[cfg(not(target_os = "optee"))]
 use core::ffi::*;
 
 pub type TEE_Result = u32;
