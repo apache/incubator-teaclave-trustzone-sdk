@@ -15,15 +15,12 @@
 # specific language governing permissions and limitations
 # under the License.
 
-TARGET ?= aarch64-unknown-linux-gnu
-CROSS_COMPILE ?= aarch64-linux-gnu-
-
 # If _HOST or _TA specific compiler/target are not specified, then use common
 # compiler/target for both
-CROSS_COMPILE_HOST ?= $(CROSS_COMPILE)
-CROSS_COMPILE_TA ?= $(CROSS_COMPILE)
-TARGET_HOST ?= $(TARGET)
-TARGET_TA ?= $(TARGET)
+CROSS_COMPILE_HOST ?= aarch64-linux-gnu-
+CROSS_COMPILE_TA ?= aarch64-linux-gnu-
+TARGET_HOST ?= aarch64-unknown-linux-gnu
+TARGET_TA ?= aarch64-unknown-linux-gnu
 
 all:
 	$(q)make -C host TARGET=$(TARGET_HOST) \
