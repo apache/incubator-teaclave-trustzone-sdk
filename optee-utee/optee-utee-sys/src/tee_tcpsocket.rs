@@ -15,11 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-//#[cfg(target_os = "optee")]
-//use libc::*;
-//#[cfg(not(target_os = "optee"))]
-use core::ffi::*;
 use super::*;
+use core::ffi::*;
 
 pub type TEE_tcpSocket_Setup = TEE_tcpSocket_Setup_s;
 #[repr(C)]
