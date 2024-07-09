@@ -27,14 +27,12 @@ TA_SIGN_KEY ?= $(TA_DEV_KIT_DIR)/keys/default_ta.pem
 SIGN := $(TA_DEV_KIT_DIR)/scripts/sign_encrypt.py
 OUT_DIR := $(CURDIR)/target/$(TARGET_TA)/release
 
+BUILDER = $(if $(STD),xargo,cargo)
+
 all: ta strip sign
 
 ta:
-	@if [ $(STD) ]; then\
-		xargo build --target $(TARGET_TA) --release --config $(LINKER_CFG) --verbose;\
-	else\
-		cargo build --target $(TARGET_TA) --release --config $(LINKER_CFG);\
-	fi
+	@$(BUILDER) build --target $(TARGET_TA) --release --config $(LINKER_CFG)
 
 strip: ta
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/ta $(OUT_DIR)/stripped_ta
