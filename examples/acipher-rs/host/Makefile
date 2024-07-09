@@ -17,10 +17,10 @@
 
 NAME := acipher-rs
 
-TARGET ?= aarch64-unknown-linux-gnu
+TARGET_HOST ?= aarch64-unknown-linux-gnu
 CROSS_COMPILE_HOST ?= aarch64-linux-gnu-
 OBJCOPY := $(CROSS_COMPILE_HOST)objcopy
-LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE_HOST)gcc\"
+LINKER_CFG := target.$(TARGET_HOST).linker=\"$(CROSS_COMPILE_HOST)gcc\"
 
 OUT_DIR := $(CURDIR)/target/$(TARGET_HOST)/release
 
@@ -28,7 +28,7 @@ OUT_DIR := $(CURDIR)/target/$(TARGET_HOST)/release
 all: host strip
 
 host:
-	@cargo build --target $(TARGET) --release --config $(LINKER_CFG)
+	@cargo build --target $(TARGET_HOST) --release --config $(LINKER_CFG)
 
 strip: host
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/$(NAME) $(OUT_DIR)/$(NAME)
