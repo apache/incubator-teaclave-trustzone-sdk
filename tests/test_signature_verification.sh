@@ -29,6 +29,8 @@ cp ../examples/signature_verification-rs/host/target/$TARGET_HOST/release/signat
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"
 run_in_qemu "./signature_verification-rs\n"
+# Additional 5 secs for the application to finish
+sleep 5
 run_in_qemu "^C"
 
 # Script specific checks
