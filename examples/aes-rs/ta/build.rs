@@ -45,7 +45,7 @@ fn main() -> std::io::Result<()> {
 
     let mut aarch64_flag = true;
     match env::var("TARGET_TA") {
-        Ok(ref v) if v == "arm-unknown-linux-gnueabihf" => {
+        Ok(ref v) if v == "arm-unknown-linux-gnueabihf" || v == "arm-unknown-optee" => {
             println!("cargo:rustc-link-arg=--no-warn-mismatch");
             aarch64_flag = false;
         },

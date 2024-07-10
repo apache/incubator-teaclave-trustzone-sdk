@@ -97,7 +97,7 @@ jobs:
           apt update && apt install libslirp-dev -y
           source environment
           (cd ci && ./ci.sh)
-  build-and-test-examples-for-std-TAs:
+  build-and-test-examples-for-64bit-std-TAs:
     runs-on: ubuntu-latest
     container: teaclave/teaclave-trustzone-sdk-build:0.3.0
     steps:
@@ -129,6 +129,43 @@ jobs:
       - name: Run tests for Arm 64-bit both host and TA
         run: |
           apt update && apt install libslirp-dev -y
+          export STD=y
+          source environment
+          (cd ci && ./ci.sh)
+  build-and-test-examples-for-32bit-std-TAs:
+    runs-on: ubuntu-latest
+    container: teaclave/teaclave-trustzone-sdk-build:0.3.0
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Setting up $HOME
+        run: |
+          cp /root/.bashrc $HOME/.bashrc &&
+          ln -sf /root/.rustup ~/.rustup &&
+          ln -sf /root/.cargo ~/.cargo
+      - name: Building Arm 64-bit both host and TA (with STD enabled)
+        run: |
+          # Setup Rust and toolchains
+          ./setup.sh
+
+          # Setup std dependencies
+          ./setup_std_dependencies.sh
+
+          # Build optee_os and optee_client for qemu_v8
+          ./build_optee_libraries.sh $HOME
+
+          # Setup environment
+          export OPTEE_DIR=$HOME
+          export ARCH_TA=arm
+          export STD=y
+          source environment
+
+          # Build OP-TEE Rust examples for Arm 64-bit both host and TA
+          make -j`nproc`
+      - name: Run tests for Arm 64-bit both host and TA
+        run: |
+          apt update && apt install libslirp-dev -y
+          export ARCH_TA=arm
           export STD=y
           source environment
           (cd ci && ./ci.sh)
