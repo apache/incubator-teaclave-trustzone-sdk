@@ -79,13 +79,13 @@ jobs:
           export ARCH_HOST=arm
           unset ARCH_TA
           source environment
-          make -j`nproc`
+          make clean && make -j`nproc`
 
           # Build OP-TEE Rust examples for Arm 64-bit host and 32-bit TA
           unset ARCH_HOST
           export ARCH_TA=arm
           source environment
-          make -j`nproc`
+          make clean && make -j`nproc`
 
           # Build OP-TEE Rust examples for Arm 64-bit both host and TA
           unset ARCH_TA
@@ -162,7 +162,7 @@ jobs:
 
           # Build OP-TEE Rust examples for Arm 64-bit both host and TA
           make -j`nproc`
-      - name: Run tests for Arm 64-bit both host and TA
+      - name: Run tests for Arm 32-bit both host and TA
         run: |
           apt update && apt install libslirp-dev -y
           export ARCH_TA=arm
