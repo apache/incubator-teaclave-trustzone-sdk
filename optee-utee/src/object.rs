@@ -224,6 +224,10 @@ impl ObjectHandle {
         unsafe { *(self.raw) }
     }
 
+    fn is_null(&self) -> bool {
+        self.raw.is_null()
+    }
+
     fn from_raw(raw: *mut raw::TEE_ObjectHandle) -> ObjectHandle {
         Self { raw }
     }
@@ -515,6 +519,15 @@ impl TransientObject {
     /// Create a [TransientObject](TransientObject) with a null handle which points to nothing.
     pub fn null_object() -> Self {
         Self(ObjectHandle::from_raw(ptr::null_mut()))
+    }
+
+    /// Check if current object is created with null handle.
+    ///
+    /// # See Also
+    ///
+    /// - [Self::null_object](Self::null_object).
+    pub fn is_null_object(&self) -> bool {
+        self.0.is_null()
     }
 
     /// Allocate an uninitialized [TransientObject](TransientObject), i.e. a container for attributes.
