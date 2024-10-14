@@ -15,19 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
-header:
-  license:
-    spdx-id: Apache-2.0
-    copyright-owner: Apache Software Foundation
+[dependencies.std]
+path = "../../../rust/rust/library/std"
 
-  paths-ignore:
-    - 'dist'
-    - 'licenses'
-    - '**/*.md'
-    - 'LICENSE'
-    - 'NOTICE'
-    - '**/Cargo.lock'
-    - 'KEYS'
-    - 'DISCLAIMER-WIP'
-    - '*.json'
-    - 'examples/tls_server-rs/ta/test-ca/**'
+[patch.crates-io]
+libc =  { path = "../../../rust/libc" }
+rustc-std-workspace-core = { path = "../../../rust/rust/library/rustc-std-workspace-core" }
+rustc-std-workspace-alloc = { path = "../../../rust/rust/library/rustc-std-workspace-alloc" }

@@ -15,19 +15,19 @@
 # specific language governing permissions and limitations
 # under the License.
 
-header:
-  license:
-    spdx-id: Apache-2.0
-    copyright-owner: Apache Software Foundation
+# If _HOST or _TA specific compiler/target are not specified, then use common
+# compiler/target for both
+CROSS_COMPILE_HOST ?= aarch64-linux-gnu-
+CROSS_COMPILE_TA ?= aarch64-linux-gnu-
+TARGET_HOST ?= aarch64-unknown-linux-gnu
+TARGET_TA ?= aarch64-unknown-linux-gnu
 
-  paths-ignore:
-    - 'dist'
-    - 'licenses'
-    - '**/*.md'
-    - 'LICENSE'
-    - 'NOTICE'
-    - '**/Cargo.lock'
-    - 'KEYS'
-    - 'DISCLAIMER-WIP'
-    - '*.json'
-    - 'examples/tls_server-rs/ta/test-ca/**'
+all:
+	$(q)make -C host TARGET_HOST=$(TARGET_HOST) \
+		CROSS_COMPILE_HOST=$(CROSS_COMPILE_HOST)
+	$(q)make -C ta TARGET_TA=$(TARGET_TA) \
+		CROSS_COMPILE_TA=$(CROSS_COMPILE_TA)
+
+clean:
+	$(q)make -C host clean
+	$(q)make -C ta clean

@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,19 +17,27 @@
 # specific language governing permissions and limitations
 # under the License.
 
-header:
-  license:
-    spdx-id: Apache-2.0
-    copyright-owner: Apache Software Foundation
+set -xe
 
-  paths-ignore:
-    - 'dist'
-    - 'licenses'
-    - '**/*.md'
-    - 'LICENSE'
-    - 'NOTICE'
-    - '**/Cargo.lock'
-    - 'KEYS'
-    - 'DISCLAIMER-WIP'
-    - '*.json'
-    - 'examples/tls_server-rs/ta/test-ca/**'
+# Include base script
+source setup.sh
+
+# Copy TA and host binary
+cp ../examples/udp_socket-rs/ta/target/$TARGET_TA/release/*.ta shared
+cp ../examples/udp_socket-rs/host/target/$TARGET_HOST/release/udp_socket-rs shared
+
+# Run script specific commands in QEMU
+run_in_qemu "cp *.ta /lib/optee_armtz/\n"
+run_in_qemu "./udp_socket-rs\n"
+run_in_qemu "^C"
+
+# Script specific checks
+{
+	grep -q "Success" screenlog.0
+} || {
+	cat -v screenlog.0
+	cat -v /tmp/serial.log
+        false
+}
+
+rm screenlog.0
