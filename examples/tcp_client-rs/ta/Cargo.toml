@@ -15,19 +15,25 @@
 # specific language governing permissions and limitations
 # under the License.
 
-header:
-  license:
-    spdx-id: Apache-2.0
-    copyright-owner: Apache Software Foundation
+[package]
+name = "ta"
+version = "0.3.0"
+authors = ["Teaclave Contributors <dev@teaclave.apache.org>"]
+license = "Apache-2.0"
+repository = "https://github.com/apache/incubator-teaclave-trustzone-sdk.git"
+description = "An example of Rust OP-TEE TrustZone SDK."
+edition = "2018"
 
-  paths-ignore:
-    - 'dist'
-    - 'licenses'
-    - '**/*.md'
-    - 'LICENSE'
-    - 'NOTICE'
-    - '**/Cargo.lock'
-    - 'KEYS'
-    - 'DISCLAIMER-WIP'
-    - '*.json'
-    - 'examples/tls_server-rs/ta/test-ca/**'
+[dependencies]
+proto = { path = "../proto" }
+optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys" }
+optee-utee = { path = "../../../optee-utee" }
+
+[build-dependencies]
+uuid = { version = "1.8", default-features = false }
+proto = { path = "../proto" }
+
+[profile.release]
+panic = "abort"
+lto = false
+opt-level = 1

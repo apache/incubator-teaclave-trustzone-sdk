@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,19 +17,30 @@
 # specific language governing permissions and limitations
 # under the License.
 
-header:
-  license:
-    spdx-id: Apache-2.0
-    copyright-owner: Apache Software Foundation
+set -xe
 
-  paths-ignore:
-    - 'dist'
-    - 'licenses'
-    - '**/*.md'
-    - 'LICENSE'
-    - 'NOTICE'
-    - '**/Cargo.lock'
-    - 'KEYS'
-    - 'DISCLAIMER-WIP'
-    - '*.json'
-    - 'examples/tls_server-rs/ta/test-ca/**'
+# Include base script
+source setup.sh
+
+# Copy TA and host binary
+cp ../examples/serde-rs/ta/target/$TARGET_TA/release/*.ta shared
+cp ../examples/serde-rs/host/target/$TARGET_HOST/release/serde-rs shared
+
+# Run script specific commands in QEMU
+run_in_qemu "cp *.ta /lib/optee_armtz/\n"
+run_in_qemu "./serde-rs\n"
+run_in_qemu "^C"
+
+# Script specific checks
+{
+	grep -q "Success" screenlog.0 &&
+	grep -q "Point { x: 1, y: 2 }" screenlog.0 &&
+	grep -q "serialized = " /tmp/serial.log &&
+	grep -q "deserialized = " /tmp/serial.log
+} || {
+        cat -v screenlog.0
+        cat -v /tmp/serial.log
+        false
+}
+
+rm screenlog.0

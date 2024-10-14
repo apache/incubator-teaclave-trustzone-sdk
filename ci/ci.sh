@@ -36,4 +36,14 @@ pushd ../tests
 ./test_supp_plugin.sh
 ./test_error_handling.sh
 
+# Run std only tests
+if [ "$STD" ]; then
+    ./test_serde.sh
+    ./test_message_passing_interface.sh
+    ./test_tcp_client.sh
+    ./test_udp_socket.sh
+    ./test_tls_client.sh
+    ./test_tls_server.sh
+fi
+
 popd
