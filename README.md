@@ -14,10 +14,16 @@ TrustZone applications with Rust's standard library (std) and many third-party
 libraries (i.e., crates). Teaclave TrustZone SDK is a sub-project of [Apache
 Teaclave (incubating)](https://teaclave.apache.org/).
 
-Teaclave TrustZone SDK provides two development modes for Rust TAs: `no-std` 
-(check out the `no-std` branch) and `std` (check out the `master` branch). 
+Teaclave TrustZone SDK provides two development modes for Rust TAs: `no-std` and `std`. 
 We recommend using `no-std` by default. For a detailed comparison, please refer
 to [Comparison](#comparison).
+
+**UPDATES:** We have developed a new build environment on the `main` branch, 
+which will now be the only branch for development and maintenance and includes 
+breaking changes to the legacy `master` branch.
+If you're using the `master` branch and wish to migrate to the new development 
+branch (`main`), please refer to the 
+[migration guide](docs/migrating-to-new-building-env.md).
 
 ## Table of Contents
 
@@ -25,14 +31,15 @@ to [Comparison](#comparison).
   - [Comparison](#comparison)
   - [Supported Examples](#supported-examples)
 - [Quick Start with the OP-TEE Repo for QEMUv8](#quick-start-with-the-op-tee-repo-for-qemuv8)
-- [Getting started](#getting-started)
-  - [Environment](#environment)
+- [Getting Started](#getting-started)
+  - [Platforms](#platforms)
     - [Develop with QEMUv8](#develop-with-qemuv8)
-    - [Develop on other platforms](#develop-on-other-platforms)
-  - [Build & Install](#build--install)
+    - [Develop on Other Platforms](#develop-on-other-platforms)
+  - [Setup Building Environment](#setup-building-environment)
+  - [Build Examples](#build-examples)
   - [Run Rust Applications](#run-rust-applications)
     - [Run Rust Applications in QEMUv8](#run-rust-applications-in-qemuv8)
-    - [Run Rust Applications on other platforms](#run-rust-applications-on-other-platforms)
+    - [Run Rust Applications on Other Platforms](#run-rust-applications-on-other-platforms)
   - [Test](#test)
 - [Documentation](#documentation)
 - [Publication](#publication)
@@ -75,7 +82,7 @@ to [Comparison](#comparison).
   `test_message_passing_interface`, `test_tls_client`, `test_tls_server`.
 
 
-## Quick start with the OP-TEE Repo for QEMUv8
+## Quick Start with the OP-TEE Repo for QEMUv8
 
 Teaclave TrustZone SDK has been integrated into the OP-TEE Repo since OP-TEE
 Release 3.15.0 (18/Oct/21). The aarch64 Rust examples are built and installed
@@ -86,9 +93,9 @@ to set up the OP-TEE repo and try the Rust examples!
 UPDATES: The `no-std` TA has replaced the original `std` TAs since OP-TEE 
 Release 4.1.0 (19/Jan/24).
 
-## Getting started
+## Getting Started
 
-### Environment
+### Platforms
 
 To get started with Teaclave TrustZone SDK, you could choose either [QEMU for
 Armv8-A](#develop-with-qemuv8) (QEMUv8) or [other
@@ -113,7 +120,7 @@ cd [YOUR_OPTEE_DIR]/optee_rust/
 git pull github master
 ```
 
-#### Develop on other platforms
+#### Develop on Other Platforms
 
 If you are building trusted applications for other platforms ([platforms OP-TEE
 supported](https://optee.readthedocs.io/en/latest/general/platforms.html)). QEMU
@@ -125,83 +132,74 @@ initialized in the setup process.
 1. The complete list of prerequisites can be found here: [OP-TEE
 Prerequisites](https://optee.readthedocs.io/en/latest/building/prerequisites.html).
 
-``` sh
-# install dependencies
-sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
-  automake bc bison build-essential ccache cscope curl device-tree-compiler \
-  expect flex ftp-upload gdisk iasl libattr1-dev libc6:i386 libcap-dev \
-  libfdt-dev libftdi-dev libglib2.0-dev libhidapi-dev libncurses5-dev \
-  libpixman-1-dev libssl-dev libstdc++6:i386 libtool libz1:i386 make \
-  mtools netcat python-crypto python3-crypto python-pyelftools \
-  python3-pycryptodome python3-pyelftools python-serial python3-serial \
-  rsync unzip uuid-dev xdg-utils xterm xz-utils zlib1g-dev
-```
+   ```sh
+   # install dependencies
+   sudo apt-get install android-tools-adb android-tools-fastboot autoconf \
+   automake bc bison build-essential ccache cscope curl device-tree-compiler \
+   expect flex ftp-upload gdisk iasl libattr1-dev libc6:i386 libcap-dev \
+   libfdt-dev libftdi-dev libglib2.0-dev libhidapi-dev libncurses5-dev \
+   libpixman-1-dev libssl-dev libstdc++6:i386 libtool libz1:i386 make \
+   mtools netcat python-crypto python3-crypto python-pyelftools \
+   python3-pycryptodome python3-pyelftools python-serial python3-serial \
+   rsync unzip uuid-dev xdg-utils xterm xz-utils zlib1g-dev
+   ```
 
-Alternatively, you can use a docker container built with our
-[Dockerfile](Dockerfile).
+   Alternatively, you can use a docker container built with our
+   [Dockerfile](Dockerfile).
 
 2. After installing dependencies or building the Docker image, fetch the source
    code from the official GitHub repository:
+   
+   ```sh
+   git clone https://github.com/apache/incubator-teaclave-trustzone-sdk.git
+   cd incubator-teaclave-trustzone-sdk
+   ```
 
-``` sh
-# clone the project
-git clone https://github.com/apache/incubator-teaclave-trustzone-sdk.git
-cd incubator-teaclave-trustzone-sdk
-```
+### Setup Building Environment
 
-### Build & Install
+1. Install the Rust environment and toolchains:
 
-To build the project, the Rust environment and several related submodules are
-required.
-
-1. Run the script as follows to install the Rust environment and toolchains:
-
-```sh
-./setup.sh
-```
+   ```sh
+   ./setup.sh
+   ```
 
 2. Build OP-TEE libraries
 
-- for QEMUv8:
+   By default, the `OPTEE_DIR` is 
+   `incubator-teaclave-trustzone-sdk/optee/`. OP-TEE submodules 
+   (`optee_os` and `optee_client` for QEMUv8) will be initialized 
+   automatically by executing:
 
-By default, the `OPTEE_DIR` is `incubator-teaclave-trustzone-sdk/optee/`.
-  OP-TEE submodules (`optee_os` and `optee_client`) will be initialized
-automatically by executing:
+   ```sh
+   ./build_optee_libraries.sh optee/
+   ```
 
-```
-./build_optee_libraries.sh optee/
-```
+3. Before building applications, set up the configuration:
 
-Then the environment should be properly set up before building applications:
+   a. By default, the target platform is `aarch64` for both CA and TA. If 
+   you want to build for the `arm` target, you can set up `ARCH`:
 
-``` sh
-source environment
-```
+   ```sh
+   export ARCH_HOST=arm
+   export ARCH_TA=arm
+   ```
 
-Note: by default, the target platform is `aarch64`. If you want to build for the
-`arm` target, you can setup `ARCH` before the `source environment` command:
+   b. By default, the build is for `no-std` TA. If you want to enable 
+   `std` TA, set the `STD` variable:
 
-```sh
-export ARCH=arm
-source environment
-```
+   ```sh
+   export STD=y
+   ```
 
-- for other platforms:
+4. Run this script to set up all toolchain and library paths:
 
-You should set these environment variables for building, e.g:
+   ```sh
+   source environment
+   ```
 
-```
-export CROSS_COMPILE_HOST="aarch64-linux-gnu-"
-export CROSS_COMPILE_TA="arm-linux-gnueabihf-"
+### Build Examples
 
-export TARGET_HOST="aarch64-unknown-linux-gnu"
-export TARGET_TA="arm-unknown-linux-gnueabihf"
-
-export TA_DEV_KIT_DIR=~/optee_os/out/arm-plat-vexpress/export-ta_arm32/
-export OPTEE_CLIENT_EXPORT=~/optee_client/out/export/
-```
-
-3. Run this command to build all Rust examples:
+Run this command to build all Rust examples:
 
 ``` sh
 make examples
@@ -263,7 +261,7 @@ mkdir shared && mount -t 9p -o trans=virtio host shared
 documentation](https://optee.readthedocs.io/en/latest/building/optee_with_rust.html)
 describes.
 
-#### Run Rust Applications on other platforms
+#### Run Rust Applications on Other Platforms
 
 Copy the applications to your platform and run.
 
