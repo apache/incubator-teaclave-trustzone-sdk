@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use core::ffi::*;
+use core::ffi::{c_int, c_void};
 use core::mem;
 use core::primitive::u64;
 
@@ -39,13 +39,13 @@ pub static ta_head: optee_utee_sys::ta_head = optee_utee_sys::ta_head {
 pub static ta_heap: [u8; TA_DATA_SIZE as usize] = [0; TA_DATA_SIZE as usize];
 
 #[no_mangle]
-pub static ta_heap_size: c_size_t = mem::size_of::<u8>() * TA_DATA_SIZE as usize;
+pub static ta_heap_size: usize = mem::size_of::<u8>() * TA_DATA_SIZE as usize;
 static FLAG_BOOL: bool = (TA_FLAGS & optee_utee_sys::TA_FLAG_SINGLE_INSTANCE) != 0;
 static FLAG_MULTI: bool = (TA_FLAGS & optee_utee_sys::TA_FLAG_MULTI_SESSION) != 0;
 static FLAG_INSTANCE: bool = (TA_FLAGS & optee_utee_sys::TA_FLAG_INSTANCE_KEEP_ALIVE) != 0;
 
 #[no_mangle]
-pub static ta_num_props: c_size_t = 9;
+pub static ta_num_props: usize = 9;
 
 #[no_mangle]
 pub static ta_props: [optee_utee_sys::user_ta_property; 9] = [

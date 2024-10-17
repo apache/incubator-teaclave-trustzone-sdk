@@ -17,7 +17,6 @@
 
 #![no_std]
 #![no_main]
-#![feature(c_size_t)]
 
 use optee_utee::Time;
 use optee_utee::{

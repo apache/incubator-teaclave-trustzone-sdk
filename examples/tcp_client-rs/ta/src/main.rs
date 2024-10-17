@@ -16,7 +16,6 @@
 // under the License.
 
 #![no_main]
-#![feature(c_size_t)]
 
 use optee_utee::net::TcpStream;
 use optee_utee::{
