@@ -19,24 +19,24 @@
 
 UUID ?= $(shell cat "../uuid.txt")
 
-TARGET_TA ?= aarch64-unknown-linux-gnu
-CROSS_COMPILE_TA ?= aarch64-linux-gnu-
-OBJCOPY := $(CROSS_COMPILE_TA)objcopy
-LINKER_CFG := target.$(TARGET_TA).linker=\"$(CROSS_COMPILE_TA)ld.bfd\"
+TARGET ?= aarch64-unknown-linux-gnu
+CROSS_COMPILE ?= aarch64-linux-gnu-
+OBJCOPY := $(CROSS_COMPILE)objcopy
+LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)ld.bfd\"
 
 TA_SIGN_KEY ?= $(TA_DEV_KIT_DIR)/keys/default_ta.pem
 SIGN := $(TA_DEV_KIT_DIR)/scripts/sign_encrypt.py
-OUT_DIR := $(CURDIR)/target/$(TARGET_TA)/release
+OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 
 ifeq ($(STD),)
 all:
-	@echo "Please export STD=y to build the STD version"
+	@echo "Please `export STD=y` then rerun `source environment` to build the STD version"
 else
 all: ta strip sign
 endif
 
 ta:
-	@xargo build --target $(TARGET_TA) --release --config $(LINKER_CFG)
+	@xargo build --target $(TARGET) --release --config $(LINKER_CFG)
 
 strip: ta
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/ta $(OUT_DIR)/stripped_ta
