@@ -16,8 +16,6 @@
 // under the License.
 
 #![no_main]
-// this is the workaround for the error:
-// error[E0658]: use of unstable library feature 'c_size_t'
 
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,

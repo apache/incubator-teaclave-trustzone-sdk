@@ -17,15 +17,19 @@
 
 NAME := tls_client-rs
 
-TARGET_HOST ?= aarch64-unknown-linux-gnu
-CROSS_COMPILE_HOST ?= aarch64-linux-gnu-
-OBJCOPY := $(CROSS_COMPILE_HOST)objcopy
-LINKER_CFG := target.$(TARGET_HOST).linker=\"$(CROSS_COMPILE_HOST)gcc\"
+TARGET ?= aarch64-unknown-linux-gnu
+CROSS_COMPILE ?= aarch64-linux-gnu-
+OBJCOPY := $(CROSS_COMPILE)objcopy
+LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)gcc\"
 
-OUT_DIR := $(CURDIR)/target/$(TARGET_HOST)/release
+OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 
-
+ifeq ($(STD),)
+all:
+	@echo "Please `export STD=y` then rerun `source environment` to build the STD version"
+else
 all: host strip
+endif
 
 host:
 	@cargo build --target $(TARGET_HOST) --release --config $(LINKER_CFG)

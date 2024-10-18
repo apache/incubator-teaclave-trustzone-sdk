@@ -22,13 +22,21 @@ CROSS_COMPILE_TA ?= aarch64-linux-gnu-
 TARGET_HOST ?= aarch64-unknown-linux-gnu
 TARGET_TA ?= aarch64-unknown-linux-gnu
 
-all:
+.PHONY: host ta plugin all clean
+
+all: host ta plugin
+
+host:
 	$(q)make -C host TARGET=$(TARGET_HOST) \
 		CROSS_COMPILE=$(CROSS_COMPILE_HOST)
-	$(q)make -C plugin TARGET=$(TARGET_HOST) \
-		CROSS_COMPILE=$(CROSS_COMPILE_HOST)
+
+ta:
 	$(q)make -C ta TARGET=$(TARGET_TA) \
 		CROSS_COMPILE=$(CROSS_COMPILE_TA)
+
+plugin:
+	$(q)make -C plugin TARGET=$(TARGET_HOST) \
+		CROSS_COMPILE=$(CROSS_COMPILE_HOST)
 
 clean:
 	$(q)make -C host clean
