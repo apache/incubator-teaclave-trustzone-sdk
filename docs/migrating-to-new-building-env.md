@@ -13,6 +13,39 @@ Note that the migration is mainly for building scripts to support both
 `no-std` and `std` building for TA, no need for modifying your application 
 code.
 
+### Current Structure
+
+We have retained almost the same structure as the original but removed 
+`ta_arm.lds` and `ta_aarch64.lds` from the directory structure. Besides 
+we have some modification on `ta/ta_static.rs`, `ta/build.rs` and all 
+`Makefile`s. (See the explanation in next part). 
+
+For example the current `examples/acipher-rs/`:
+```
+examples/acipher-rs/
+├── host
+│   ├── Cargo.toml
+│   ├── Makefile
+│   └── src
+│       └── main.rs
+├── Makefile
+├── proto
+│   ├── build.rs
+│   ├── Cargo.toml
+│   └── src
+│       └── lib.rs
+├── ta
+│   ├── build.rs
+│   ├── Cargo.toml
+│   ├── Makefile
+│   ├── src
+│   │   └── main.rs
+│   ├── ta_static.rs
+│   └── Xargo.toml
+└── uuid.txt
+```
+
+
 ### Changes in Build Scripts  
 
 1. **TA linking script**: `ta_arm.lds` and `ta_aarch64.lds`.  
