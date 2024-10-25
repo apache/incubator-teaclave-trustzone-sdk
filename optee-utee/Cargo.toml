@@ -28,6 +28,7 @@ edition = "2018"
 default = ["std", "sys_std"]
 std = []
 sys_std = ["optee-utee-sys/std"]
+no_panic_handler = []
 
 [dependencies]
 optee-utee-sys = { path = "optee-utee-sys", default-features = false }
