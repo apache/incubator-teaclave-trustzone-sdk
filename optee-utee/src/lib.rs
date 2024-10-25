@@ -34,7 +34,7 @@ use core::panic::PanicInfo;
 #[cfg(not(target_os = "optee"))]
 use optee_utee_sys as raw;
 
-#[cfg(not(target_os = "optee"))]
+#[cfg(all(not(target_os = "optee"), not(feature = "no_panic_handler")))]
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     unsafe { raw::TEE_Panic(0); }
