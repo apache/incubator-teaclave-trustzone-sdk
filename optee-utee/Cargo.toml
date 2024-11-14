@@ -27,7 +27,7 @@ edition = "2018"
 [dependencies]
 optee-utee-sys = { path = "optee-utee-sys" }
 optee-utee-macros = { path = "macros" }
-bitflags = "=1.0.4"
+bitflags = "1.0.4"
 uuid = { version = "0.8", default-features = false }
 hex = { version = "0.4", default-features = false, features = ["alloc"] }
 libc_alloc = "=1.0.5"
