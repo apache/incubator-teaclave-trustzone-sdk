@@ -26,7 +26,7 @@ OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 
 ifeq ($(STD),)
 all:
-	@echo "Please `export STD=y` then rerun `source environment` to build the STD version"
+	@echo "Please \`export STD=y\` then rerun \`source environment\` to build the STD version"
 else
 all: host strip
 endif
