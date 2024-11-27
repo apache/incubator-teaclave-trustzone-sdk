@@ -16,6 +16,7 @@
 // under the License.
 
 mod cli;
+mod tests;
 
 use optee_teec::{Context, Operation, ParamType, Uuid};
 use optee_teec::{ParamNone, ParamTmpRef, ParamValue};
@@ -56,54 +57,92 @@ fn invoke_command(command: proto::Command, input: &[u8]) -> optee_teec::Result<V
     }
 }
 
+pub fn create_wallet() -> Result<uuid::Uuid> {
+    let serialized_output = invoke_command(proto::Command::CreateWallet, &[])?;
+    let output: proto::CreateWalletOutput = bincode::deserialize(&serialized_output)?;
+    Ok(output.wallet_id)
+}
+
+pub fn remove_wallet(wallet_id: uuid::Uuid) -> Result<()> {
+    let input = proto::RemoveWalletInput { wallet_id };
+    let _output = invoke_command(proto::Command::RemoveWallet, &bincode::serialize(&input)?)?;
+    Ok(())
+}
+
+pub fn derive_address(wallet_id: uuid::Uuid, hd_path: &str) -> Result<[u8; 20]> {
+    let input = proto::DeriveAddressInput {
+        wallet_id,
+        hd_path: hd_path.to_string(),
+    };
+    let serialized_output =
+        invoke_command(proto::Command::DeriveAddress, &bincode::serialize(&input)?)?;
+    let output: proto::DeriveAddressOutput = bincode::deserialize(&serialized_output)?;
+    Ok(output.address)
+}
+
+pub fn sign_transaction(
+    wallet_id: uuid::Uuid,
+    hd_path: &str,
+    chain_id: u64,
+    nonce: u128,
+    to: [u8; 20],
+    value: u128,
+    gas_price: u128,
+    gas: u128,
+) -> Result<Vec<u8>> {
+    let transaction = proto::EthTransaction {
+        chain_id,
+        nonce,
+        to: Some(to),
+        value,
+        gas_price,
+        gas,
+        data: vec![],
+    };
+    let input = proto::SignTransactionInput {
+        wallet_id,
+        hd_path: hd_path.to_string(),
+        transaction,
+    };
+    let serialized_output = invoke_command(
+        proto::Command::SignTransaction,
+        &bincode::serialize(&input)?,
+    )?;
+    let output: proto::SignTransactionOutput = bincode::deserialize(&serialized_output)?;
+    Ok(output.signature)
+}
+
 fn main() -> Result<()> {
     let args = cli::Opt::from_args();
     match args.command {
         cli::Command::CreateWallet(_opt) => {
-            let serialized_output = invoke_command(proto::Command::CreateWallet, &[])?;
-            let output: proto::CreateWalletOutput = bincode::deserialize(&serialized_output)?;
-            println!("Wallet ID: {}", output.wallet_id);
+            let wallet_id = create_wallet()?;
+            println!("Wallet ID: {}", wallet_id);
         }
         cli::Command::RemoveWallet(opt) => {
-            let input = proto::RemoveWalletInput {
-                wallet_id: opt.wallet_id,
-            };
-            let _output =
-                invoke_command(proto::Command::RemoveWallet, &bincode::serialize(&input)?)?;
+            remove_wallet(opt.wallet_id)?;
             println!("Wallet removed");
         }
         cli::Command::DeriveAddress(opt) => {
-            let input = proto::DeriveAddressInput {
-                wallet_id: opt.wallet_id,
-                hd_path: opt.hd_path,
-            };
-            let serialized_output =
-                invoke_command(proto::Command::DeriveAddress, &bincode::serialize(&input)?)?;
-            let output: proto::DeriveAddressOutput = bincode::deserialize(&serialized_output)?;
-            println!("Address: 0x{}", hex::encode(&output.address));
-            println!("Public key: {}", hex::encode(&output.public_key));
+            let address = derive_address(opt.wallet_id, &opt.hd_path)?;
+            println!("Address: 0x{}", hex::encode(&address));
         }
         cli::Command::SignTransaction(opt) => {
-            let transaction = proto::EthTransaction {
-                chain_id: opt.chain_id,
-                nonce: opt.nonce,
-                to: Some(opt.to),
-                value: opt.value,
-                gas_price: opt.gas_price,
-                gas: opt.gas,
-                data: vec![],
-            };
-            let input = proto::SignTransactionInput {
-                wallet_id: opt.wallet_id,
-                hd_path: opt.hd_path,
-                transaction,
-            };
-            let serialized_output = invoke_command(
-                proto::Command::SignTransaction,
-                &bincode::serialize(&input)?,
+            let signature = sign_transaction(
+                opt.wallet_id,
+                &opt.hd_path,
+                opt.chain_id,
+                opt.nonce,
+                opt.to,
+                opt.value,
+                opt.gas_price,
+                opt.gas,
             )?;
-            let output: proto::SignTransactionOutput = bincode::deserialize(&serialized_output)?;
-            println!("Signature: {}", hex::encode(&output.signature));
+            println!("Signature: {}", hex::encode(&signature));
+        }
+        cli::Command::Test => {
+            tests::tests::test_workflow();
+            println!("Tests passed");
         }
         _ => {
             bail!("Unsupported command");

@@ -19,32 +19,24 @@
 
 set -xe
 
-pushd ../tests
+# Include base script
+source setup.sh
 
-./test_hello_world.sh
-./test_random.sh
-./test_secure_storage.sh
-./test_aes.sh
-./test_hotp.sh
-./test_acipher.sh
-./test_big_int.sh
-./test_diffie_hellman.sh
-./test_digest.sh
-./test_authentication.sh
-./test_time.sh
-./test_signature_verification.sh
-./test_supp_plugin.sh
-./test_error_handling.sh
+# Copy TA and host binary
+cp ../projects/web3/eth_wallet/ta/target/$TARGET_TA/release/*.ta shared
+cp ../projects/web3/eth_wallet/host/target/$TARGET_HOST/release/eth_wallet-rs shared
 
-# Run std only tests
-if [ "$STD" ]; then
-    ./test_serde.sh
-    ./test_message_passing_interface.sh
-    ./test_tcp_client.sh
-    ./test_udp_socket.sh
-    ./test_tls_client.sh
-    ./test_tls_server.sh
-    ./test_eth_wallet.sh
-fi
+# Run script specific commands in QEMU
+run_in_qemu "cp *.ta /lib/optee_armtz/\n"
+run_in_qemu "./eth_wallet-rs test\n"
+run_in_qemu "^C"
 
-popd
+# Script specific checks
+{
+	grep -q "Tests passed" screenlog.0
+} || {
+        cat -v screenlog.0
+        false
+}
+
+rm screenlog.0

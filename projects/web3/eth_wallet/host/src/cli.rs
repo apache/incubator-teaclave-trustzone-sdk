@@ -87,6 +87,9 @@ pub enum Command {
     /// Sign a transaction.
     #[structopt(name = "sign-transaction")]
     SignTransaction(SignTransactionOpt),
+    /// Run tests
+    #[structopt(name = "test")]
+    Test,
 }
 
 #[derive(Debug, StructOpt)]
