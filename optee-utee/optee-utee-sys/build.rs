@@ -19,6 +19,22 @@ use std::env;
 use std::path::Path;
 
 fn main() {
+    const ENV_SYS_BUILD_TYPE: &str = "SYS_BUILD_TYPE";
+    println!("cargo:rerun-if-env-changed={}", ENV_SYS_BUILD_TYPE);
+
+    let build_type = env::var(ENV_SYS_BUILD_TYPE).unwrap_or(String::from("")).to_lowercase();
+    match build_type.as_str() {
+        "unit_test" => unit_test_build(),
+        _ => production_build(),
+    }
+}
+
+// this allow developers to run unit tests in host machine by
+// SYS_BUILD_TYPE=unit_test cargo test --lib --features no_panic_handler
+fn unit_test_build() {
+}
+
+fn production_build() {
     let optee_os_dir = env::var("TA_DEV_KIT_DIR").unwrap();
     let search_path = Path::new(&optee_os_dir).join("lib");
 

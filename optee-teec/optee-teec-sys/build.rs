@@ -19,6 +19,21 @@ use std::env;
 use std::path::Path;
 
 fn main() {
+    const ENV_SYS_BUILD_TYPE: &str = "SYS_BUILD_TYPE";
+    println!("cargo:rerun-if-env-changed={}", ENV_SYS_BUILD_TYPE);
+
+    let build_type = env::var(ENV_SYS_BUILD_TYPE).unwrap_or(String::from("")).to_lowercase();
+    match build_type.as_str() {
+        "unit_test" => unit_test_build(),
+        _ => production_build(),
+    }
+}
+
+// this allow developers to run unit tests in host machine(even x86)
+fn unit_test_build() {
+}
+
+fn production_build() {
     let optee_client_dir = env::var("OPTEE_CLIENT_EXPORT").expect("OPTEE_CLIENT_EXPORT is not set");
     let search_path = Path::new(&optee_client_dir).join("usr/lib");
     println!("cargo:rustc-link-search={}", search_path.display());

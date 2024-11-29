@@ -45,6 +45,10 @@ jobs:
           export OPTEE_DIR=$HOME
           source environment
 
+          # Run unit tests
+          (cd optee-utee && SYS_BUILD_TYPE=unit_test cargo test --lib --features no_panic_handler -vv)
+          (cd optee-teec && SYS_BUILD_TYPE=unit_test cargo test --lib -vv)
+
           # Build Rust optee-utee and optee-teec
           (cd optee-utee && cargo build --target aarch64-unknown-linux-gnu -vv)
           (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
