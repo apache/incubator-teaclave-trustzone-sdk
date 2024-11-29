@@ -105,11 +105,34 @@ impl fmt::Display for Uuid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(
             f,
-            "{:x}-{:x}-{:x}-{}",
+            "{:08x}-{:04x}-{:04x}-{}-{}",
             self.raw.timeLow,
             self.raw.timeMid,
             self.raw.timeHiAndVersion,
-            hex::encode(self.raw.clockSeqAndNode)
+            hex::encode(&self.raw.clockSeqAndNode[0..2]),
+            hex::encode(&self.raw.clockSeqAndNode[2..8]),
         )
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    extern crate alloc;
+    use super::*;
+    use alloc::string::ToString;
+
+    #[test]
+    fn test_to_string() {
+        let uuids = [
+            "00173366-2aca-49bc-beb7-10c975e6131e", // uuid with timeLow leading zeros
+            "11173366-0aca-49bc-beb7-10c975e6131e", // uuid with timeMid leading zeros
+            "11173366-2aca-09bc-beb7-10c975e6131e", // uuid with timeHiAndVersion leading zeros
+            "11173366-2aca-19bc-beb7-10c975e6131e", // random uuid
+        ];
+        for origin in uuids.iter() {
+            let uuid = Uuid::parse_str(origin).unwrap();
+            let formatted = uuid.to_string();
+            assert_eq!(origin, &formatted);
+        }
     }
 }
