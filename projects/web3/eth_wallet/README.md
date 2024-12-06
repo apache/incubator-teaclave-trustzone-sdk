@@ -16,6 +16,52 @@ management. The implementation provides basic wallet abstractions, including:
   keys to the normal world.
 - Key Erase: Erasing keys when they are no longer needed.
 
+## Security Assumptions
+
+This demo assumes the following security foundations:
+
+1. **Trusted Environment**:
+
+   - The device supports OP-TEE as the TEE operating system.
+   - Both the TEE OS and the Trusted Application (TA) are considered secure and
+     trusted.
+
+2. **Hardware-Specific Security Capabilities**
+   - The hardware provides secure storage capabilities to protect cryptographic
+     keys.
+   - The device includes secure display capabilities (or a Multi-Factor
+     Authentication device as alternative) for secure user interface. (MFA
+     integration is planned for another demo project)
+   - Note that these capabilities depend on specific hardware implementations.
+     While this demo provides a default implementation, it should be customized
+     to suit the target hardware.
+
+### Important Notes on Security Design
+
+This demo focuses on showcasing core functionalities and may not implement all
+security measures required for a production-grade key custodian solution across
+the entire key lifecycle. Developers should address the following considerations
+when adapting this demo for real-world use cases:
+
+- **Secure User Interface**:  
+  In the `create_wallet` function, the mnemonic is returned to the Normal World
+  for backup. This approach is inherently risky. For production systems, it is
+  strongly recommended to display the mnemonic on a Trusted UI or secure
+  display. Additionally, transactions should be confirmed by the user through
+  this secure display. As secure display implementations are hardware-specific,
+  this demo does not include such functionality.
+
+- **Secure Storage Limitations**:  
+  Keys in this demo are stored in an encrypted file on the Normal World File
+  System. While this approach ensures basic protection, root access in the
+  Normal World could delete this file, leading to key loss. For production
+  scenarios, consider more reliable storage solutions like Replay Protected
+  Memory Block (RPMB), which is hardware-specific and not included in this demo.
+
+For developers, please note that this demo is intended as a foundational
+reference and must be enhanced with hardware-specific adaptations for
+production-grade security.
+
 ## Structure
 
 - [TA](./ta): The Trusted Application (TA) that performs all secure operations
