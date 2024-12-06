@@ -130,6 +130,9 @@ jobs:
 
           # Build OP-TEE Rust examples for Arm 64-bit both host and TA
           make -j`nproc`
+
+          # Build project
+          (cd projects/web3/eth_wallet && make -j`nproc`)
       - name: Run tests for Arm 64-bit both host and TA
         run: |
           apt update && apt install libslirp-dev -y
@@ -166,6 +169,9 @@ jobs:
 
           # Build OP-TEE Rust examples for Arm 64-bit both host and TA
           make -j`nproc`
+
+          # Build project
+          (cd projects/web3/eth_wallet && make -j`nproc`)
       - name: Run tests for Arm 32-bit both host and TA
         run: |
           apt update && apt install libslirp-dev -y

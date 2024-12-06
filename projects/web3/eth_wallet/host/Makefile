@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -17,34 +15,27 @@
 # specific language governing permissions and limitations
 # under the License.
 
-set -xe
+NAME := eth_wallet-rs
 
-pushd ../tests
+TARGET_HOST ?= aarch64-unknown-linux-gnu
+CROSS_COMPILE_HOST ?= aarch64-linux-gnu-
+OBJCOPY := $(CROSS_COMPILE_HOST)objcopy
+LINKER_CFG := target.$(TARGET_HOST).linker=\"$(CROSS_COMPILE_HOST)gcc\"
 
-./test_hello_world.sh
-./test_random.sh
-./test_secure_storage.sh
-./test_aes.sh
-./test_hotp.sh
-./test_acipher.sh
-./test_big_int.sh
-./test_diffie_hellman.sh
-./test_digest.sh
-./test_authentication.sh
-./test_time.sh
-./test_signature_verification.sh
-./test_supp_plugin.sh
-./test_error_handling.sh
+OUT_DIR := $(CURDIR)/target/$(TARGET_HOST)/release
 
-# Run std only tests
-if [ "$STD" ]; then
-    ./test_serde.sh
-    ./test_message_passing_interface.sh
-    ./test_tcp_client.sh
-    ./test_udp_socket.sh
-    ./test_tls_client.sh
-    ./test_tls_server.sh
-    ./test_eth_wallet.sh
-fi
+ifeq ($(STD),)
+all:
+	@echo "Please `export STD=y` then rerun `source environment` to build the STD version"
+else
+all: host strip
+endif
 
-popd
+host:
+	@cargo build --target $(TARGET_HOST) --release --config $(LINKER_CFG)
+
+strip: host
+	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/$(NAME) $(OUT_DIR)/$(NAME)
+
+clean:
+	@cargo clean
