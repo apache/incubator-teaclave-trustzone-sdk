@@ -16,7 +16,6 @@
 // under the License.
 
 #![no_main]
-#![feature(c_size_t)]
 
 mod hash;
 mod secure_storage;
@@ -144,9 +143,9 @@ fn handle_invoke(command: Command, serialized_input: &[u8]) -> Result<Vec<u8>> {
 #[ta_invoke_command]
 fn invoke_command(cmd_id: u32, params: &mut Parameters) -> optee_utee::Result<()> {
     dbg_println!("[+] TA invoke command");
-    let mut p0 = unsafe { params.0.as_memref().unwrap() };
-    let mut p1 = unsafe { params.1.as_memref().unwrap() };
-    let mut p2 = unsafe { params.2.as_value().unwrap() };
+    let mut p0 = unsafe { params.0.as_memref()? };
+    let mut p1 = unsafe { params.1.as_memref()? };
+    let mut p2 = unsafe { params.2.as_value()? };
 
     let output_vec = match handle_invoke(Command::from(cmd_id), p0.buffer()) {
         Ok(output) => output,
