@@ -44,4 +44,8 @@ cargo --version >/dev/null
 
 ##########################################
 # install toolchain
-apt update && apt -y install gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
+if [[ "$(uname -m)" == "aarch64" ]]; then
+    apt update && apt -y install gcc gcc-arm-linux-gnueabihf
+else
+    apt update && apt -y install gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
+fi
