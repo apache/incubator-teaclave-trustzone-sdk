@@ -44,6 +44,7 @@ jobs:
           # Run unit tests
           (cd optee-utee && SYS_BUILD_TYPE=unit_test cargo test --lib --features no_panic_handler -vv)
           (cd optee-teec && SYS_BUILD_TYPE=unit_test cargo test --lib -vv)
+          (cd optee-utee-build && cargo test -vv)
 
           # Build Rust optee-utee and optee-teec
           (cd optee-utee && cargo build --target aarch64-unknown-linux-gnu -vv)
