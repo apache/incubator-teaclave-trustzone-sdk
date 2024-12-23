@@ -157,6 +157,9 @@ Prerequisites](https://optee.readthedocs.io/en/latest/building/prerequisites.htm
 
 ### Setup Building Environment
 
+Currently, we support building on both `aarch64` and `x86_64` host machines, and
+ they share the same steps.
+
 1. Install the Rust environment and toolchains:
 
    ```sh
