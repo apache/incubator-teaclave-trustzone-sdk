@@ -2,6 +2,11 @@
 permalink: /trustzone-sdk-docs/migrating-to-new-building-env.md
 ---
 
+> After optee-utee-build release, this doc is keeping for developers 
+who intend to know the detail of building process, we suggest use 
+[optee-utee-build](./writing-rust-tas-using-optee-utee-build.md) for building 
+instead.
+
 ## Migration Guide: Moving from `master` to `main` Branch (Post-Oct 2024)
 
 Since the `main` branch (after October 2024) introduces breaking changes 
