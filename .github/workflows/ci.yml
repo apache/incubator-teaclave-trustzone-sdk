@@ -24,19 +24,15 @@ defaults:
 jobs:
   build-utee-teec:
     runs-on: ubuntu-latest
-    container: teaclave/teaclave-trustzone-sdk-build:0.3.0
+    container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Setting up $HOME
-        run: |
-          cp /root/.bashrc $HOME/.bashrc &&
-          ln -sf /root/.rustup ~/.rustup &&
-          ln -sf /root/.cargo ~/.cargo
       - name: Building
         run: |
           # Setup Rust and toolchains
           ./setup.sh
+          source "$HOME/.cargo/env"
  
           # Build optee_os and optee_client for qemu_v8
           ./build_optee_libraries.sh $HOME
@@ -55,19 +51,15 @@ jobs:
 
   build-and-test-examples:
     runs-on: ubuntu-latest
-    container: teaclave/teaclave-trustzone-sdk-build:0.3.0
+    container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Setting up $HOME
-        run: |
-          cp /root/.bashrc $HOME/.bashrc &&
-          ln -sf /root/.rustup ~/.rustup &&
-          ln -sf /root/.cargo ~/.cargo
       - name: Building
         run: |
           # Setup Rust and toolchains
           ./setup.sh
+          source "$HOME/.cargo/env"
 
           # Build optee_os and optee_client for qemu_v8
           ./build_optee_libraries.sh $HOME
@@ -98,24 +90,19 @@ jobs:
           make clean && make -j`nproc`
       - name: Run tests for Arm 64-bit both host and TA
         run: |
-          apt update && apt install libslirp-dev -y
           source environment
           (cd ci && ./ci.sh)
   build-and-test-examples-for-64bit-std-TAs:
     runs-on: ubuntu-latest
-    container: teaclave/teaclave-trustzone-sdk-build:0.3.0
+    container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Setting up $HOME
-        run: |
-          cp /root/.bashrc $HOME/.bashrc &&
-          ln -sf /root/.rustup ~/.rustup &&
-          ln -sf /root/.cargo ~/.cargo
       - name: Building Arm 64-bit both host and TA (with STD enabled)
         run: |
           # Setup Rust and toolchains
           ./setup.sh
+          source "$HOME/.cargo/env"
 
           # Setup std dependencies
           ./setup_std_dependencies.sh
@@ -135,25 +122,20 @@ jobs:
           (cd projects/web3/eth_wallet && make -j`nproc`)
       - name: Run tests for Arm 64-bit both host and TA
         run: |
-          apt update && apt install libslirp-dev -y
           export STD=y
           source environment
           (cd ci && ./ci.sh)
   build-and-test-examples-for-32bit-std-TAs:
     runs-on: ubuntu-latest
-    container: teaclave/teaclave-trustzone-sdk-build:0.3.0
+    container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-      - name: Setting up $HOME
-        run: |
-          cp /root/.bashrc $HOME/.bashrc &&
-          ln -sf /root/.rustup ~/.rustup &&
-          ln -sf /root/.cargo ~/.cargo
       - name: Building Arm 64-bit both host and TA (with STD enabled)
         run: |
           # Setup Rust and toolchains
           ./setup.sh
+          source "$HOME/.cargo/env"
 
           # Setup std dependencies
           ./setup_std_dependencies.sh
@@ -174,14 +156,13 @@ jobs:
           (cd projects/web3/eth_wallet && make -j`nproc`)
       - name: Run tests for Arm 32-bit both host and TA
         run: |
-          apt update && apt install libslirp-dev -y
           export ARCH_TA=arm
           export STD=y
           source environment
           (cd ci && ./ci.sh)
   OPTEE-repo-build-and-run-examples-64bit-TAs:
     runs-on: ubuntu-latest
-    container: teaclave/teaclave-trustzone-sdk-build:0.3.0
+    container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
     steps:
       - name: Remove /__t/*
         run: rm -rf /__t/*
@@ -192,18 +173,12 @@ jobs:
           path: 'incubator-teaclave-trustzone-sdk'
       - name: Checkout OP-TEE repository
         run: |
-          mkdir -p ~/bin
-          curl https://storage.googleapis.com/git-repo-downloads/repo-1 > ~/bin/repo && chmod a+x ~/bin/repo
-          export PATH=~/bin:$PATH
           mkdir -p ~/optee-qemuv8 && cd ~/optee-qemuv8 &&
           repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml &&
           repo sync -j4 --no-clone-bundle
       - name: Build images and run tests
         run: |
-          apt update && apt install libslirp-dev -y
           cd ~/optee-qemuv8
-          # fixed the error: configure: error: you should not run configure as root:
-          export FORCE_UNSAFE_CONFIGURE=1
           rm -rf optee_rust/ &&
           mv $GITHUB_WORKSPACE/incubator-teaclave-trustzone-sdk optee_rust/
           cd build &&
@@ -212,7 +187,7 @@ jobs:
 
   OPTEE-repo-build-and-run-examples-32bit-TAs:
     runs-on: ubuntu-latest
-    container: teaclave/teaclave-trustzone-sdk-build:0.3.0
+    container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
     steps:
       - name: Remove /__t/*
         run: rm -rf /__t/*
@@ -223,18 +198,12 @@ jobs:
           path: 'incubator-teaclave-trustzone-sdk'
       - name: Checkout OP-TEE repository
         run: |
-          mkdir -p ~/bin
-          curl https://storage.googleapis.com/git-repo-downloads/repo-1 > ~/bin/repo && chmod a+x ~/bin/repo
-          export PATH=~/bin:$PATH
           mkdir -p ~/optee-qemuv8 && cd ~/optee-qemuv8 &&
           repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml &&
           repo sync -j4 --no-clone-bundle
       - name: Build images and run tests
         run: |
-          apt update && apt install libslirp-dev -y
           cd ~/optee-qemuv8
-          # fixed the error: configure: error: you should not run configure as root:
-          export FORCE_UNSAFE_CONFIGURE=1
           rm -rf optee_rust/ &&
           mv $GITHUB_WORKSPACE/incubator-teaclave-trustzone-sdk optee_rust/
           cd build &&
