@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-FROM ubuntu:22.04
+FROM ubuntu:24.04
 MAINTAINER Teaclave Contributors <dev@teaclave.apache.org>
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -37,8 +37,6 @@ RUN apt-get update && \
     expect \
     flex \
     ftp-upload \
-    gcc-aarch64-linux-gnu \
-    gcc-arm-linux-gnueabihf \
     gdisk \
     iasl \
     libattr1-dev \
@@ -55,16 +53,15 @@ RUN apt-get update && \
     libtool \
     make \
     mtools \
-    netcat \
     ninja-build \
-    python \
-    python-crypto \
-    python3-crypto \
-    python-pyelftools \
+    python3 \
     python3-pycryptodome \
     python3-pyelftools \
     python3-serial \
+    python3-cryptography \
+    python3-tomli \
     rsync \
+    repo \
     unzip \
     uuid-dev \
     xdg-utils \
@@ -74,23 +71,9 @@ RUN apt-get update && \
     wget \
     cpio \
     libcap-ng-dev \
+    libslirp-dev \
     screen \
     libvdeplug-dev \
     libsdl2-dev \
     pip \
     ca-certificates
-
-RUN pip install cryptography
-
-RUN apt-get install -y software-properties-common && \
-    add-apt-repository ppa:linuxuprising/libpng12 && \
-    apt-get update && \
-    apt-get install libpng12-0
-
-# Install Rust
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y && \
-  . $HOME/.cargo/env && \
-  rustup target install aarch64-unknown-linux-gnu && \
-  rustup default nightly-2023-12-18
-
-ENV PATH="/root/.cargo/bin:$PATH"
