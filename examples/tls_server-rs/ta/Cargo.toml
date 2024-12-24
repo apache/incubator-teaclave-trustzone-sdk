@@ -46,7 +46,7 @@ proto = { path = "../proto" }
 [profile.release]
 panic = "abort"
 lto = false
-opt-level = 1
+opt-level = 3
 
 [patch.crates-io]
 ring = { git = "https://github.com/DemesneGH/ring-optee.git", branch = "0.16.20-optee" }
