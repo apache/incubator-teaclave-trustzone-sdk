@@ -84,16 +84,4 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
     }
 }
 
-// TA configurations
-const TA_FLAGS: u32 = 0;
-const TA_DATA_SIZE: u32 = 64 * 1024;
-const TA_STACK_SIZE: u32 = 4 * 1024;
-const TA_VERSION: &[u8] = b"0.3\0";
-const TA_DESCRIPTION: &[u8] = b"This is a serde example.\0";
-const EXT_PROP_VALUE_1: &[u8] = b"Serde TA\0";
-const EXT_PROP_VALUE_2: u32 = 0x0010;
-const TRACE_LEVEL: i32 = 4;
-const TRACE_EXT_PREFIX: &[u8] = b"TA\0";
-const TA_FRAMEWORK_STACK_SIZE: u32 = 2048;
-
 include!(concat!(env!("OUT_DIR"), "/user_ta_header.rs"));

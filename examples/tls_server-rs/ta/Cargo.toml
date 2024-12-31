@@ -40,8 +40,8 @@ sct = "=0.7.0"
 lazy_static = { version = "1.4.0", features=["spin_no_std"] }
 
 [build-dependencies]
-uuid = { version = "1.8", default-features = false }
 proto = { path = "../proto" }
+optee-utee-build = { path = "../../../optee-utee-build" }
 
 [profile.release]
 panic = "abort"
