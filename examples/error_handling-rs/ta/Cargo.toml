@@ -29,9 +29,9 @@ proto = { path = "../proto" }
 optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys" }
 optee-utee = { path = "../../../optee-utee" }
 
-[build_dependencies]
-uuid = { version = "1.6.1", default-features = false }
+[build-dependencies]
 proto = { path = "../proto" }
+optee-utee-build = { path = "../../../optee-utee-build" }
 
 [profile.release]
 panic = "abort"
