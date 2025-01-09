@@ -21,7 +21,7 @@ version = "0.3.0"
 authors = ["Teaclave Contributors <dev@teaclave.apache.org>"]
 license = "Apache-2.0"
 repository = "https://github.com/apache/incubator-teaclave-trustzone-sdk.git"
-description = "An example of Rust OP-TEE TrustZone SDK."
+description = "An example of Ethereum wallet TA."
 edition = "2018"
 
 [dependencies]
@@ -43,6 +43,7 @@ bincode = "1.3.3"
 [build-dependencies]
 uuid = { version = "1.8", default-features = false }
 proto = { path = "../proto" }
+optee-utee-build = { path = "../../../../optee-utee-build" }
 
 [profile.release]
 lto = false
