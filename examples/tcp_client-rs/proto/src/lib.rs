@@ -14,20 +14,22 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
+#![no_std]
+use num_enum::{FromPrimitive, TryFromPrimitive, IntoPrimitive};
 
+#[derive(FromPrimitive, IntoPrimitive)]
+#[repr(u32)]
 pub enum Command {
     Start,
+    #[default]
     Unknown,
 }
 
-impl From<u32> for Command {
-    #[inline]
-    fn from(value: u32) -> Command {
-        match value {
-            0 => Command::Start,
-            _ => Command::Unknown,
-        }
-    }
+#[derive(TryFromPrimitive, IntoPrimitive)]
+#[repr(u32)]
+pub enum IpVersion {
+    V4 = 1,
+    V6 = 2,
 }
 
 pub const UUID: &str = &include_str!(concat!(env!("OUT_DIR"), "/uuid.txt"));
