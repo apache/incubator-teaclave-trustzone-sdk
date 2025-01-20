@@ -17,13 +17,6 @@
 # specific language governing permissions and limitations
 # under the License.
 
-# std examples: tcp_client, udp_socket, tls_client, tls_server needs the external network
-if [ "$STD" ]; then
-    EXTERNAL_NETWORK_PARAMS=" \
-    -netdev user,id=vmnic,hostfwd=:127.0.0.1:54433-:4433 \
-    -device virtio-net-device,netdev=vmnic"
-fi
-
 cd $1 && ./qemu-system-aarch64 \
     -nodefaults \
     -nographic \
@@ -37,4 +30,6 @@ cd $1 && ./qemu-system-aarch64 \
     -append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2' \
     -kernel Image -no-acpi \
     -fsdev local,id=fsdev0,path=$(pwd)/../shared,security_model=none \
-    -device virtio-9p-device,fsdev=fsdev0,mount_tag=host $EXTERNAL_NETWORK_PARAMS
+    -device virtio-9p-device,fsdev=fsdev0,mount_tag=host \
+    -netdev user,id=vmnic,hostfwd=:127.0.0.1:54433-:4433 \
+    -device virtio-net-device,netdev=vmnic

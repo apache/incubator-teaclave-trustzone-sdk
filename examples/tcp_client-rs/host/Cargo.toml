@@ -28,6 +28,7 @@ edition = "2018"
 libc = "0.2.48"
 proto = { path = "../proto" }
 optee-teec = { path = "../../../optee-teec" }
+tiny_http = "0.12.0"
 
 [profile.release]
 lto = true

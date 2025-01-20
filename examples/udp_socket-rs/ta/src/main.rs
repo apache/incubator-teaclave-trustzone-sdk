@@ -15,16 +15,29 @@
 // specific language governing permissions and limitations
 // under the License.
 
+#![cfg_attr(not(target_os = "optee"), no_std)]
 #![no_main]
 
+cfg_block::cfg_block! {
+    // In Teaclave, if target_os = "optee", the codes is compiled with std.
+    // Otherwise, no-std
+    if #[cfg(target_os = "optee")] {
+        use std::io::{Read, Write};
+    } else {
+        extern crate alloc;
+        use optee_utee::net::{StdCompatConnect, StdCompatWrite, StdCompatRead};
+        use alloc::vec::Vec;
+        use alloc::string::String;
+    }
+}
+
+use core::convert::TryFrom;
 use optee_utee::net::UdpSocket;
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{Error, ErrorKind, Parameters, Result};
-use proto::Command;
-use std::io::Read;
-use std::io::Write;
+use proto::{Command, IpVersion};
 
 #[ta_create]
 fn create() -> Result<()> {
@@ -49,20 +62,41 @@ fn destroy() {
 }
 
 #[ta_invoke_command]
-fn invoke_command(cmd_id: u32, _params: &mut Parameters) -> Result<()> {
+fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
     match Command::from(cmd_id) {
         Command::Start => {
-            udp_socket();
-            Ok(())
+            let mut param0 = unsafe { params.0.as_memref()? };
+            let param1 = unsafe { params.1.as_value()? };
+
+            let address = core::str::from_utf8(param0.buffer()).unwrap();
+            let port = param1.a() as u16;
+            let ip_version =
+                IpVersion::try_from(param1.b()).map_err(|_| ErrorKind::BadParameters)?;
+
+            udp_socket(address, port, ip_version)
         }
         _ => Err(Error::new(ErrorKind::BadParameters)),
     }
 }
 
-fn udp_socket() {
-    let mut stream = UdpSocket::connect("127.0.0.1", 34254).unwrap();
-    stream.write_all(b"[TA]: Hello, Teaclave!").unwrap();
+fn udp_socket(address: &str, port: u16, ip_version: IpVersion) -> Result<()> {
+    let mut stream = match ip_version {
+        IpVersion::V4 => UdpSocket::connect_v4(address, port),
+        IpVersion::V6 => UdpSocket::connect_v6(address, port),
+    }
+    .map_err(|err| {
+        trace_println!("failed to connect to {}:{} due to {:?}", address, port, err);
+        ErrorKind::Generic
+    })?;
+
+    stream.set_send_timeout_in_milli(60 * 1000);
+    stream.set_recv_timeout_in_milli(60 * 1000);
+
+    stream.write_all(b"[TA]: Hello, Teaclave!").map_err(|err| {
+        trace_println!("failed to write_all due to {:?}", err);
+        ErrorKind::Generic
+    })?;
     let mut response = Vec::new();
     let mut chunk = [0u8; 1024];
 
@@ -74,13 +108,14 @@ fn udp_socket() {
                 response.extend_from_slice(&chunk[..n]);
                 break;
             }
-            Err(_) => {
-                trace_println!("Error");
-                panic!();
+            Err(err) => {
+                trace_println!("failed to read due to {:?}", err);
+                return Err(ErrorKind::Generic.into());
             }
         }
     }
     trace_println!("{}", String::from_utf8_lossy(&response));
+    Ok(())
 }
 
 include!(concat!(env!("OUT_DIR"), "/user_ta_header.rs"));
