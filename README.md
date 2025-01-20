@@ -14,7 +14,8 @@ TrustZone applications with Rust's standard library (std) and many third-party
 libraries (i.e., crates). Teaclave TrustZone SDK is a sub-project of [Apache
 Teaclave (incubating)](https://teaclave.apache.org/).
 
-Teaclave TrustZone SDK provides two development modes for Rust TAs: `no-std` and `std`. 
+Teaclave TrustZone SDK provides two development modes for Rust TAs: `no-std`
+and `std`. 
 We recommend using `no-std` by default. For a detailed comparison, please refer
 to [Comparison](#comparison).
 
@@ -60,18 +61,20 @@ branch (`main`), please refer to the
   - Substantial reduction in binary size.
   
 - **Cons**:
-  - Limited support for third-party crates. In the no-std mode, Trusted Applications
-   (TAs) are unable to utilize crates dependent on the standard library (std).
+  - Limited support for third-party crates. In the no-std mode, Trusted
+    Applications (TAs) are unable to utilize crates dependent on the standard
+    library (std).
 
 #### `std`
 
 - **Pros**:
-  - Enables the utilization of more third-party crates, including those requiring
-    `std`, such as `serde_json` and `rustls`, which are essential for functionality.
+  - Enables the utilization of more third-party crates, including those
+    requiring `std`, such as `rustls`, which are essential for functionality.
   
 - **Cons**:
-  - Manual porting of `std` with infrequent updates. Currently using `std` version
-   `1.56.1` and `Rust` version `nightly-2021-09-20`. (Planned to update)
+  - Manual porting of `std` with infrequent updates. Currently using `std`
+    version `1.80.0` and `Rust` version `nightly-2024-05-14`, which might not
+    meet the MSRV requirements of some crates.
 
 ### Supported Examples
 
