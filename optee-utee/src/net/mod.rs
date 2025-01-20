@@ -14,21 +14,14 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-#![no_std]
 
-pub enum Command {
-    Start,
-    Unknown,
-}
+mod error;
+mod optee;
+mod socket;
 
-impl From<u32> for Command {
-    #[inline]
-    fn from(value: u32) -> Command {
-        match value {
-            0 => Command::Start,
-            _ => Command::Unknown,
-        }
-    }
-}
+pub use error::SocketError;
+pub use optee::{Setup, TcpStream, UdpSocket, TcpAdapter, UdpAdapter};
+pub use socket::{Socket, SocketAdapter};
 
-pub const UUID: &str = &include_str!(concat!(env!("OUT_DIR"), "/uuid.txt"));
+#[cfg(target_os = "optee")]
+mod optee_std;
