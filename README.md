@@ -81,8 +81,8 @@ branch (`main`), please refer to the
 - **Common**: See
   [Overview of OP-TEE Rust Examples](https://teaclave.apache.org/trustzone-sdk-docs/overview-of-optee-rust-examples/).
 
-- **`no-std`**: Excludes `test_serde`, `test_tcp_client`, `test_udp_socket`,
-  `test_message_passing_interface`, `test_tls_client`, `test_tls_server`.
+- **`no-std`**: Excludes `test_serde`, `test_message_passing_interface`,
+  `test_tls_client`, `test_tls_server`.
 
 
 ## Quick Start with the OP-TEE Repo for QEMUv8

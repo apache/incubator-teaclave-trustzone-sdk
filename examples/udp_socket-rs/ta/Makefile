@@ -29,15 +29,12 @@ TA_SIGN_KEY ?= $(TA_DEV_KIT_DIR)/keys/default_ta.pem
 SIGN := $(TA_DEV_KIT_DIR)/scripts/sign_encrypt.py
 OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 
-ifeq ($(STD),)
-all:
-	@echo "Please \`export STD=y\` then rerun \`source environment\` to build the STD version"
-else
+BUILDER = $(if $(STD),xargo,cargo)
+
 all: ta strip sign
-endif
 
 ta:
-	@xargo build --target $(TARGET) --release --config $(LINKER_CFG)
+	@$(BUILDER) build --target $(TARGET) --release --config $(LINKER_CFG)
 
 strip: ta
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/ta $(OUT_DIR)/stripped_ta

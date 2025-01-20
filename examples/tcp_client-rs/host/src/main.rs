@@ -15,13 +15,33 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use optee_teec::ParamNone;
-use optee_teec::{Context, Operation, Session, Uuid};
-use proto::{Command, UUID};
+use std::net::{Ipv6Addr, SocketAddr, SocketAddrV6};
+use std::thread;
 
-fn tcp_client(session: &mut Session) -> optee_teec::Result<()> {
-    let mut operation = Operation::new(0, ParamNone, ParamNone, ParamNone, ParamNone);
+use optee_teec::{Context, Operation, ParamType, Session, Uuid};
+use optee_teec::{ParamNone, ParamTmpRef, ParamValue};
+use proto::{Command, IpVersion, UUID};
+
+fn tcp_client(
+    session: &mut Session,
+    address: &str,
+    port: u16,
+    ip_version: IpVersion,
+    host_name: &str,
+) -> optee_teec::Result<()> {
+    println!("Test on: {}", address);
+
+    let http_data = format!("GET / HTTP/1.0\r\nHost: {}\r\n\r\n", host_name);
+    let mut operation = Operation::new(
+        0,
+        ParamTmpRef::new_input(address.as_bytes()),
+        ParamValue::new(port as u32, ip_version as u32, ParamType::ValueInput),
+        ParamTmpRef::new_input(http_data.as_bytes()),
+        ParamNone,
+    );
     session.invoke_command(Command::Start as u32, &mut operation)?;
+
+    println!("Success");
     Ok(())
 }
 
@@ -30,8 +50,36 @@ fn main() -> optee_teec::Result<()> {
     let uuid = Uuid::parse_str(UUID).unwrap();
     let mut session = ctx.open_session(uuid)?;
 
-    tcp_client(&mut session)?;
+    // test ipv4
+    const IPV4_HOST: &str = "teaclave.apache.org";
+    // Use the host directly to also check its domain name resolving capability.
+    tcp_client(&mut session, IPV4_HOST, 80, IpVersion::V4, IPV4_HOST)?;
 
-    println!("Success");
+    // test ipv6
+    let addr = SocketAddr::V6(SocketAddrV6::new(Ipv6Addr::LOCALHOST, 0, 0, 0));
+    let server = tiny_http::Server::http(addr).unwrap();
+    let listen_addr = server.server_addr().to_ip().unwrap();
+    let ip = listen_addr.ip().to_string();
+    let port = listen_addr.port();
+
+    let child = thread::spawn(move || {
+        for request in server.incoming_requests() {
+            println!(
+                "received request! method: {:?}, url: {:?}, headers: {:?}",
+                request.method(),
+                request.url(),
+                request.headers()
+            );
+
+            let response = tiny_http::Response::from_string("hello world");
+            request.respond(response).unwrap();
+            break;
+        }
+    });
+    // Use the IP address directly to ensure we're actually trying an IPv6
+    // address.
+    tcp_client(&mut session, &ip, port, IpVersion::V6, &ip)?;
+    let _ = child.join();
+
     Ok(())
 }
