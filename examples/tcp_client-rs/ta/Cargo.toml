@@ -28,6 +28,7 @@ edition = "2018"
 proto = { path = "../proto" }
 optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys" }
 optee-utee = { path = "../../../optee-utee" }
+cfg_block = "0.2.0"
 
 [build-dependencies]
 proto = { path = "../proto" }
@@ -35,5 +36,5 @@ optee-utee-build = { path = "../../../optee-utee-build" }
 
 [profile.release]
 panic = "abort"
-lto = false
+lto = true
 opt-level = 1

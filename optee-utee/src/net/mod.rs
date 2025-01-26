@@ -14,22 +14,17 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-#![no_std]
-use num_enum::{FromPrimitive, IntoPrimitive, TryFromPrimitive};
 
-#[derive(FromPrimitive, IntoPrimitive)]
-#[repr(u32)]
-pub enum Command {
-    Start = 1,
-    #[default]
-    Unknown,
-}
+mod error;
+mod optee;
+mod socket;
 
-#[derive(TryFromPrimitive, IntoPrimitive)]
-#[repr(u32)]
-pub enum IpVersion {
-    V4 = 1,
-    V6 = 2,
-}
+pub use error::SocketError;
+pub use optee::{Setup, TcpAdapter, TcpStream, UdpAdapter, UdpSocket};
+pub use socket::{Socket, SocketAdapter};
 
-pub const UUID: &str = &include_str!(concat!(env!("OUT_DIR"), "/uuid.txt"));
+#[cfg(target_os = "optee")]
+mod optee_std;
+
+mod optee_no_std;
+pub use optee_no_std::{StdCompatConnect, StdCompatRead, StdCompatWrite};

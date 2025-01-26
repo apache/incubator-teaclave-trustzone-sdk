@@ -35,13 +35,13 @@ pushd ../tests
 ./test_signature_verification.sh
 ./test_supp_plugin.sh
 ./test_error_handling.sh
+./test_tcp_client.sh
+./test_udp_socket.sh
 
 # Run std only tests
 if [ "$STD" ]; then
     ./test_serde.sh
     ./test_message_passing_interface.sh
-    ./test_tcp_client.sh
-    ./test_udp_socket.sh
     ./test_tls_client.sh
     ./test_tls_server.sh
     ./test_eth_wallet.sh

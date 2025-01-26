@@ -14,28 +14,44 @@
 // KIND, either express or implied.  See the License for the
 // specific language governing permissions and limitations
 // under the License.
-
-use optee_teec::ParamNone;
-use optee_teec::{Context, Operation, Session, Uuid};
-use proto::{Command, UUID};
-use std::net::UdpSocket;
+use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6, UdpSocket};
 use std::str;
 use std::thread;
 
-fn udp_socket(session: &mut Session) -> optee_teec::Result<()> {
-    let mut operation = Operation::new(0, ParamNone, ParamNone, ParamNone, ParamNone);
-    session.invoke_command(Command::Start as u32, &mut operation)?;
-    Ok(())
-}
+use optee_teec::{Context, Operation, Uuid};
+use optee_teec::{ParamNone, ParamTmpRef, ParamValue};
+use proto::{Command, IpVersion, UUID};
 
-fn main() -> optee_teec::Result<()> {
-    let socket = UdpSocket::bind("127.0.0.1:34254").unwrap();
+fn udp_socket(ip_version: IpVersion) {
+    let addr: SocketAddr = match ip_version {
+        IpVersion::V4 => SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::LOCALHOST, 0)),
+        IpVersion::V6 => SocketAddr::V6(SocketAddrV6::new(Ipv6Addr::LOCALHOST, 0, 0, 0)),
+    };
+    let socket = UdpSocket::bind(addr).unwrap();
+    let local_addr = socket.local_addr().unwrap();
+    println!("Test on: {}", local_addr);
 
-    let mut ctx = Context::new()?;
-    let uuid = Uuid::parse_str(UUID).unwrap();
     let child = thread::spawn(move || {
+        let mut ctx = Context::new().unwrap();
+        let uuid = Uuid::parse_str(UUID).unwrap();
         let mut session = ctx.open_session(uuid).unwrap();
-        udp_socket(&mut session).unwrap();
+
+        let ip = local_addr.ip().to_string();
+        let port = local_addr.port();
+        let mut operation = Operation::new(
+            0,
+            ParamTmpRef::new_input(ip.as_bytes()),
+            ParamValue::new(
+                port as u32,
+                ip_version as u32,
+                optee_teec::ParamType::ValueInput,
+            ),
+            ParamNone,
+            ParamNone,
+        );
+        session
+            .invoke_command(Command::Start as u32, &mut operation)
+            .unwrap();
     });
 
     let mut buf = [0; 100];
@@ -47,5 +63,11 @@ fn main() -> optee_teec::Result<()> {
     let _ = child.join();
 
     println!("Success");
+}
+
+fn main() -> optee_teec::Result<()> {
+    udp_socket(IpVersion::V4);
+    udp_socket(IpVersion::V6);
+
     Ok(())
 }

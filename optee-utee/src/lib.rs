@@ -64,6 +64,4 @@ pub mod time;
 pub mod arithmetical;
 pub mod extension;
 pub mod uuid;
-
-#[cfg(target_os = "optee")]
 pub mod net;
