@@ -23,7 +23,7 @@ defaults:
 
 jobs:
   build-utee-teec:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
     steps:
       - name: Checkout repository
@@ -51,7 +51,7 @@ jobs:
           (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
 
   build-and-test-examples:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
     steps:
       - name: Checkout repository
@@ -94,7 +94,7 @@ jobs:
           source environment
           (cd ci && ./ci.sh)
   build-and-test-examples-for-64bit-std-TAs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
     steps:
       - name: Checkout repository
@@ -127,7 +127,7 @@ jobs:
           source environment
           (cd ci && ./ci.sh)
   build-and-test-examples-for-32bit-std-TAs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
     steps:
       - name: Checkout repository
@@ -162,7 +162,7 @@ jobs:
           source environment
           (cd ci && ./ci.sh)
   OPTEE-repo-build-and-run-examples-64bit-TAs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
     steps:
       - name: Remove /__t/*
@@ -187,7 +187,7 @@ jobs:
           make -j`nproc` RUST_ENABLE=y check
 
   OPTEE-repo-build-and-run-examples-32bit-TAs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
     steps:
       - name: Remove /__t/*
@@ -212,7 +212,7 @@ jobs:
           make -j`nproc` RUST_ENABLE=y COMPILE_S_USER=32 check
 
   license:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v2
       - name: Check License Header
