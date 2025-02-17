@@ -25,6 +25,4 @@ description = "Data structures and functions shared by host and TA."
 edition = "2018"
 
 [dependencies]
-
-[build_dependencies]
-uuid = { version = "1.6.1", default-features = false }
+num_enum = { version = "0.7.3", default-features = false }

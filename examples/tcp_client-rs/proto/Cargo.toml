@@ -26,6 +26,3 @@ edition = "2018"
 
 [dependencies]
 num_enum = { version = "0.7.3", default-features = false }
-
-[build-dependencies]
-uuid = { version = "1.8", default-features = false }

@@ -16,22 +16,18 @@
 // under the License.
 
 #![no_std]
+use num_enum::{FromPrimitive, IntoPrimitive};
 
+#[derive(FromPrimitive, IntoPrimitive)]
+#[repr(u32)]
 pub enum Command {
     RegisterSharedKey,
     GetHOTP,
+    #[default]
     Unknown,
 }
 
-impl From<u32> for Command {
-    #[inline]
-    fn from(value: u32) -> Command {
-        match value {
-            0 => Command::RegisterSharedKey,
-            1 => Command::GetHOTP,
-            _ => Command::Unknown,
-        }
-    }
-}
-
-pub const UUID: &str = &include_str!(concat!(env!("OUT_DIR"), "/uuid.txt"));
+// If Uuid::parse_str() returns an InvalidLength error, there may be an extra
+// newline in your uuid.txt file. You can remove it by running 
+// `truncate -s 36 uuid.txt`.
+pub const UUID: &str = &include_str!("../../uuid.txt");
