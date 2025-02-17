@@ -25,8 +25,6 @@ description = "Data structures and functions shared by host and TA."
 edition = "2018"
 
 [dependencies]
+num_enum = { version = "0.7.3", default-features = false }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-
-[build-dependencies]
-uuid = { version = "1.8", default-features = false }

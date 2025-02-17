@@ -16,40 +16,32 @@
 // under the License.
 
 #![no_std]
+use num_enum::{FromPrimitive, IntoPrimitive};
 
+#[derive(FromPrimitive, IntoPrimitive)]
+#[repr(u32)]
 pub enum Command {
     Ping,
+    #[default]
     Unknown,
 }
 
-impl From<u32> for Command {
-    #[inline]
-    fn from(value: u32) -> Command {
-        match value {
-            0 => Command::Ping,
-            _ => Command::Unknown,
-        }
-    }
-}
-
-pub const TA_UUID: &str = &include_str!(concat!(env!("OUT_DIR"), "/ta_uuid.txt"));
+// If Uuid::parse_str() returns an InvalidLength error, there may be an extra
+// newline in your uuid.txt file. You can remove it by running 
+// `truncate -s 36 ta_uuid.txt`.
+pub const TA_UUID: &str = &include_str!("../../ta_uuid.txt");
 
 //for plugin
+#[derive(FromPrimitive, IntoPrimitive)]
+#[repr(u32)]
 pub enum PluginCommand {
     Print,
+    #[default]
     Unknown,
-}
-
-impl From<u32> for PluginCommand {
-    #[inline]
-    fn from(value: u32) -> PluginCommand {
-        match value {
-            0 => PluginCommand::Print,
-            _ => PluginCommand::Unknown,
-        }
-    }
 }
 
 pub const PLUGIN_SUBCMD_NULL: u32 = 0xFFFFFFFF;
-pub const PLUGIN_UUID: &str = &include_str!(concat!(env!("OUT_DIR"), "/plugin_uuid.txt"));
-
+// If Uuid::parse_str() returns an InvalidLength error, there may be an extra
+// newline in your uuid.txt file. You can remove it by running 
+// `truncate -s 36 plugin_uuid.txt`.
+pub const PLUGIN_UUID: &str = &include_str!("../../plugin_uuid.txt");
