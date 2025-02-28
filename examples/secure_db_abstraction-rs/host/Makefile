@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -17,35 +15,29 @@
 # specific language governing permissions and limitations
 # under the License.
 
-set -xe
+# STD-ONLY example
 
-pushd ../tests
+NAME := secure_db_abstraction-rs
 
-./test_hello_world.sh
-./test_random.sh
-./test_secure_storage.sh
-./test_aes.sh
-./test_hotp.sh
-./test_acipher.sh
-./test_big_int.sh
-./test_diffie_hellman.sh
-./test_digest.sh
-./test_authentication.sh
-./test_time.sh
-./test_signature_verification.sh
-./test_supp_plugin.sh
-./test_error_handling.sh
-./test_tcp_client.sh
-./test_udp_socket.sh
+TARGET ?= aarch64-unknown-linux-gnu
+CROSS_COMPILE ?= aarch64-linux-gnu-
+OBJCOPY := $(CROSS_COMPILE)objcopy
+LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)gcc\"
 
-# Run std only tests
-if [ "$STD" ]; then
-    ./test_serde.sh
-    ./test_message_passing_interface.sh
-    ./test_tls_client.sh
-    ./test_tls_server.sh
-    ./test_eth_wallet.sh
-    ./test_secure_db_abstraction.sh
-fi
+OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 
-popd
+ifeq ($(STD),)
+all:
+	@echo "Please \`export STD=y\` then rerun \`source environment\` to build the STD version"
+else
+all: host strip
+endif
+
+host:
+	@cargo build --target $(TARGET_HOST) --release --config $(LINKER_CFG)
+
+strip: host
+	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/$(NAME) $(OUT_DIR)/$(NAME)
+
+clean:
+	@cargo clean
