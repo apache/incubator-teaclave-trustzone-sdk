@@ -117,10 +117,10 @@ jobs:
           source environment
 
           # Build OP-TEE Rust examples for Arm 64-bit both host and TA
-          make -j`nproc`
+          make -j2
 
           # Build project
-          (cd projects/web3/eth_wallet && make -j`nproc`)
+          (cd projects/web3/eth_wallet && make)
       - name: Run tests for Arm 64-bit both host and TA
         run: |
           export STD=y
@@ -151,10 +151,10 @@ jobs:
           source environment
 
           # Build OP-TEE Rust examples for Arm 64-bit both host and TA
-          make -j`nproc`
+          make -j2
 
           # Build project
-          (cd projects/web3/eth_wallet && make -j`nproc`)
+          (cd projects/web3/eth_wallet && make)
       - name: Run tests for Arm 32-bit both host and TA
         run: |
           export ARCH_TA=arm
