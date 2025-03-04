@@ -28,19 +28,17 @@ export CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 # install rustup and stable Rust if needed
 if command -v rustup &>/dev/null ; then
-    # uninstall to avoid file corruption
-    rustup uninstall stable && rustup install stable
+    # 1. rustup early than 1.28 fails with `rustup toolchain install` 
+    #    due to parameter mismatch. So self update first.
+    # 2. uninstall to avoid file corruption
+    rustup self update && rustup uninstall stable && rustup install stable
 else
 	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 	source "$HOME/.cargo/env"
 fi
 
-# Ensure the toolchain, components, and targets we've specified in
-# rust-toolchain.toml are ready to go. Since that file sets rustup's default
-# toolchain for the entire directory, all we need to do is run any
-# rustup-wrapped command to trigger installation. We've arbitrarily chosen
-# "cargo --version" since it has no other effect.
-cargo --version >/dev/null
+# install the Rust toolchain set in rust-toolchain.toml
+rustup toolchain install
 
 ##########################################
 # install toolchain
