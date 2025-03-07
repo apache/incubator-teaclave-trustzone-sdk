@@ -34,3 +34,5 @@ To compile one of the examples, run `make -C examples/EXAMPLE_DIR`.
 | signature_verification-rs    | `c7e478c2-89b3-46eb-ac19-571e66c3830d` | Sign a message and verify the signature using the third party crate [ring](https://github.com/veracruz-project/ring). |
 | tls_client-rs                | `ec55bfe2-d9c7-11eb-8b0e-f3f8fad927f7` | Do TLS connection from Trusted Application.                  |
 | tls_server-rs                | `69547de6-f47e-11eb-994e-f34e88d5c2b4` | Set up the TLS server in Trusted Application.                |
+| secure_db_abstraction-rs     | `e55291e1-521c-4dca-aa24-51e34ab32ad9` | An abstraction of database base on Secure Storage.           |
+| mnist-rs                     | Train: `1b5f5b74-e9cf-4e62-8c3e-7e41da6d76f6` <br/> Infer: `ff09aa8a-fbb9-4734-ae8c-d7cd1a3f6744` | Training and Performing Inference in Trusted Application. |
