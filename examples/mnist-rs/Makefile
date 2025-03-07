@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -17,37 +15,32 @@
 # specific language governing permissions and limitations
 # under the License.
 
-set -xe
+# If _HOST or _TA specific compiler/target are not specified, then use common
+# compiler/target for both
+CROSS_COMPILE_HOST ?= aarch64-linux-gnu-
+CROSS_COMPILE_TA ?= aarch64-linux-gnu-
+TARGET_HOST ?= aarch64-unknown-linux-gnu
+TARGET_TA ?= aarch64-unknown-linux-gnu
 
-pushd ../tests
+.PHONY: host ta all clean
 
-./test_hello_world.sh
-./test_random.sh
-./test_secure_storage.sh
-./test_aes.sh
-./test_hotp.sh
-./test_acipher.sh
-./test_big_int.sh
-./test_diffie_hellman.sh
-./test_digest.sh
-./test_authentication.sh
-./test_time.sh
-./test_signature_verification.sh
-./test_supp_plugin.sh
-./test_error_handling.sh
-./test_tcp_client.sh
-./test_udp_socket.sh
+all: toolchain host ta
 
-# Run std only tests
-if [ "$STD" ]; then
-    ./test_serde.sh
-    ./test_message_passing_interface.sh
-    ./test_tls_client.sh
-    ./test_tls_server.sh
-    ./test_eth_wallet.sh
-    ./test_secure_db_abstraction.sh
-else
-    ./test_mnist_rs.sh
-fi
+toolchain:
+	rustup toolchain install
 
-popd
+host: toolchain
+	$(q)make -C host TARGET=$(TARGET_HOST) \
+		CROSS_COMPILE=$(CROSS_COMPILE_HOST)
+
+ta: toolchain
+	$(q)make -C ta/train TARGET=$(TARGET_TA) \
+		CROSS_COMPILE=$(CROSS_COMPILE_TA)
+	$(q)make -C ta/inference TARGET=$(TARGET_TA) \
+		CROSS_COMPILE=$(CROSS_COMPILE_TA)
+
+clean:
+	$(q)make -C host clean
+	cd proto && cargo clean
+	$(q)make -C ta/train clean
+	$(q)make -C ta/inference clean

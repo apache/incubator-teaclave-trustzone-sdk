@@ -19,35 +19,30 @@
 
 set -xe
 
-pushd ../tests
+# Include base script
+source setup.sh
 
-./test_hello_world.sh
-./test_random.sh
-./test_secure_storage.sh
-./test_aes.sh
-./test_hotp.sh
-./test_acipher.sh
-./test_big_int.sh
-./test_diffie_hellman.sh
-./test_digest.sh
-./test_authentication.sh
-./test_time.sh
-./test_signature_verification.sh
-./test_supp_plugin.sh
-./test_error_handling.sh
-./test_tcp_client.sh
-./test_udp_socket.sh
+# Copy TA and host binary
+cp ../examples/mnist-rs/ta/target/$TARGET_TA/release/*.ta shared
+cp ../examples/mnist-rs/host/target/$TARGET_HOST/release/mnist-rs shared
+# Copy samples files
+cp -r ../examples/mnist-rs/host/samples shared
 
-# Run std only tests
-if [ "$STD" ]; then
-    ./test_serde.sh
-    ./test_message_passing_interface.sh
-    ./test_tls_client.sh
-    ./test_tls_server.sh
-    ./test_eth_wallet.sh
-    ./test_secure_db_abstraction.sh
-else
-    ./test_mnist_rs.sh
-fi
+# Run script specific commands in QEMU
+run_in_qemu "cp *.ta /lib/optee_armtz/\n"
+# Do not export the model due to QEMU's memory limitations.
+run_in_qemu_with_timeout_secs "./mnist-rs train -n 1\n" 300
+run_in_qemu "./mnist-rs infer -m samples/model.bin -b samples/7.bin -i samples/7.png\n"
+run_in_qemu "^C"
 
-popd
+# Script specific checks
+{
+    grep -q "Train Success" screenlog.0 &&
+    grep -q "Infer Success" screenlog.0
+} || {
+    cat -v screenlog.0
+    cat -v /tmp/serial.log
+    false
+}
+
+rm screenlog.0

@@ -43,6 +43,11 @@ run_in_qemu() {
     sleep 5
 }
 
+run_in_qemu_with_timeout_secs() {
+    screen -S qemu_screen -p 0 -X stuff "$1\n"
+    sleep $2
+}
+
 # Check if the image file exists locally
 if [ ! -d "${IMG}" ]; then
     echo "Image file '${IMG}' not found locally. Downloading from network."
