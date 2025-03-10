@@ -63,7 +63,9 @@ fn invoke_command(cmd_id: u32, _params: &mut Parameters) -> Result<()> {
     }
 }
 
-// copied from https://github.com/rustls/rustls/blob/v/0.21.0/examples/src/bin/simpleclient.rs
+// This code is based on the Rustls example:
+// https://github.com/rustls/rustls/blob/v/0.21.0/examples/src/bin/simpleclient.rs
+// with modifications to demonstrate Rustls usage in the TA.
 fn tls_client() {
     let mut root_store = RootCertStore::empty();
     root_store.add_server_trust_anchors(webpki_roots::TLS_SERVER_ROOTS.0.iter().map(|ta| {
