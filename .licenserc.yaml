@@ -28,6 +28,6 @@ header:
     - 'NOTICE'
     - '**/Cargo.lock'
     - 'KEYS'
-    - 'DISCLAIMER-WIP'
+    - 'DISCLAIMER'
     - '*.json'
     - 'examples/tls_server-rs/ta/test-ca/**'
