@@ -3,3 +3,7 @@ Copyright 2019-2025 The Apache Software Foundation
 
 This product includes software developed at
 The Apache Software Foundation (http://www.apache.org/).
+
+Portions of `examples/tls_client-rs/ta/src/main.rs` are based on
+Rustls (https://github.com/rustls/rustls), with modifications by 
+Teaclave. Licensed under the Apache License, Version 2.0.
