@@ -200,3 +200,10 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
+
+-------------------------------------------------------------------------------
+This product includes the following third-party code: 
+The code in `examples/tls_client-rs/ta/src/main.rs` is modified based on 
+Rustls (Apache License, Version 2.0).
+
+For the full text of the licenses, see the `licenses/` directory.
