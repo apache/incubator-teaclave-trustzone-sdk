@@ -15,11 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use libc;
 use optee_teec_sys as raw;
-use std::ptr;
-use std::marker;
-
+use std::{ptr, sync::Arc, cell::RefCell};
+use super::context::InnerContext;
 use crate::Param;
 use crate::{Context, Error, Operation, Result, Uuid};
 
@@ -41,46 +39,61 @@ pub enum ConnectionMethods {
 }
 
 /// Represents a connection between a client application and a trusted application.
-pub struct Session<'ctx> {
+pub struct Session {
     raw: raw::TEEC_Session,
-    _marker: marker::PhantomData<&'ctx mut Context>,
+
+    // Just a holder to ensure InnerContext is not dropped and to eliminate the
+    // lifetime constraint, never use it.
+    _ctx: Arc<RefCell<InnerContext>>,
 }
 
-impl<'ctx> Session<'ctx> {
+// Since raw::TEEC_Session contains a raw pointer, Rust does not automatically
+// implement Send and Sync for it. We need to manually implement them and ensure
+// that raw::TEEC_Session is used safely.
+unsafe impl Send for Session {}
+unsafe impl Sync for Session {}
+
+impl Session {
     /// Initializes a TEE session object with specified context and uuid.
     pub fn new<A: Param, B: Param, C: Param, D: Param>(
-        context: &'ctx mut Context,
+        context: &mut Context,
         uuid: Uuid,
         operation: Option<&mut Operation<A, B, C, D>>,
     ) -> Result<Self> {
+        // define an empty TEEC_Session
         let mut raw_session = raw::TEEC_Session {
-            ctx: context.as_mut_raw_ptr(),
+            ctx: ptr::null_mut(),
             session_id: 0,
         };
+        // define all parameters for raw::TEEC_OpenSession outside of the unsafe
+        // block to maximize Rust's safety checks and leverage the compiler's
+        // validation.
         let mut err_origin: u32 = 0;
         let raw_operation = match operation {
             Some(o) => o.as_mut_raw_ptr(),
             None => ptr::null_mut() as *mut raw::TEEC_Operation,
         };
-        unsafe {
-            match raw::TEEC_OpenSession(
-                context.as_mut_raw_ptr(),
+        let inner_ctx = context.inner_context();
+        let raw_ctx = &mut inner_ctx.borrow_mut().0;
+        let raw_uuid = uuid.as_raw_ptr();
+
+        match unsafe {
+            raw::TEEC_OpenSession(
+                raw_ctx,
                 &mut raw_session,
-                uuid.as_raw_ptr(),
+                raw_uuid,
                 ConnectionMethods::LoginPublic as u32,
-                ptr::null() as *const libc::c_void,
+                ptr::null(),
                 raw_operation,
                 &mut err_origin,
-            ) {
-                raw::TEEC_SUCCESS => Ok(Self { raw: raw_session,  _marker: marker::PhantomData }),
-                code => Err(Error::from_raw_error(code)),
-            }
+            )
+        } {
+            raw::TEEC_SUCCESS => Ok(Self {
+                raw: raw_session,
+                _ctx: context.inner_context(),
+            }),
+            code => Err(Error::from_raw_error(code)),
         }
-    }
-
-    /// Converts a TEE client context to a raw pointer.
-    pub fn as_mut_raw_ptr(&mut self) -> *mut raw::TEEC_Session {
-        &mut self.raw
     }
 
     /// Invokes a command with an operation with this session.
@@ -104,7 +117,7 @@ impl<'ctx> Session<'ctx> {
     }
 }
 
-impl<'ctx> Drop for Session<'ctx> {
+impl Drop for Session {
     fn drop(&mut self) {
         unsafe {
             raw::TEEC_CloseSession(&mut self.raw);

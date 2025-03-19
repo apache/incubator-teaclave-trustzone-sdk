@@ -17,15 +17,32 @@
 
 use crate::{Error, Operation, Result, Session, Uuid};
 use crate::{Param, ParamNone};
-use libc;
 use optee_teec_sys as raw;
-use std::ptr;
+use std::{cell::RefCell, ptr, sync::Arc};
+
+pub struct InnerContext(pub raw::TEEC_Context);
+
+impl Drop for InnerContext {
+    fn drop(&mut self) {
+        unsafe {
+            raw::TEEC_FinalizeContext(&mut self.0);
+        }
+    }
+}
 
 /// An abstraction of the logical connection between a client application and a
 /// TEE.
 pub struct Context {
-    raw: raw::TEEC_Context,
+    // Use Arc to share it with Session, eliminating the lifetime constraint.
+    // Use RefCell to allow conversion into a raw mutable pointer.
+    raw: Arc<RefCell<InnerContext>>,
 }
+
+// Since RefCell is used for Context, Rust does not automatically implement
+// Send and Sync for it. We need to manually implement them and ensure that
+// InnerContext is used correctly.
+unsafe impl Send for Context{}
+unsafe impl Sync for Context{}
 
 impl Context {
     /// Creates a TEE client context object.
@@ -36,40 +53,18 @@ impl Context {
     /// let ctx = Context::new().unwrap();
     /// ```
     pub fn new() -> Result<Context> {
-        Context::new_raw(0, true, false).map(|raw| Context { raw })
-    }
-
-    /// Creates a raw TEE client context with implementation defined parameters.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let raw_ctx: optee_teec_sys::TEEC_Context = Context::new_raw(0, true).unwrap();
-    /// ```
-    pub fn new_raw(fd: libc::c_int, reg_mem: bool, memref_null: bool) -> Result<raw::TEEC_Context> {
+        // define an empty TEEC_Context
         let mut raw_ctx = raw::TEEC_Context {
-            fd,
-            reg_mem,
-            memref_null,
+            fd: 0,
+            reg_mem: false,
+            memref_null: false,
         };
-        unsafe {
-            match raw::TEEC_InitializeContext(ptr::null_mut() as *mut libc::c_char, &mut raw_ctx) {
-                raw::TEEC_SUCCESS => Ok(raw_ctx),
-                code => Err(Error::from_raw_error(code)),
-            }
+        match unsafe { raw::TEEC_InitializeContext(ptr::null_mut(), &mut raw_ctx) } {
+            raw::TEEC_SUCCESS => Ok(Self {
+                raw: Arc::new(RefCell::new(InnerContext(raw_ctx))),
+            }),
+            code => Err(Error::from_raw_error(code)),
         }
-    }
-
-    /// Converts a TEE client context to a raw pointer.
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// let mut ctx = Context::new().unwrap();
-    /// let mut raw_ptr: *mut optee_teec_sys::TEEC_Context = ctx.as_mut_raw_ptr();
-    /// ```
-    pub fn as_mut_raw_ptr(&mut self) -> *mut raw::TEEC_Context {
-        &mut self.raw
     }
 
     /// Opens a new session with the specified trusted application.
@@ -114,10 +109,10 @@ impl Context {
     }
 }
 
-impl Drop for Context {
-    fn drop(&mut self) {
-        unsafe {
-            raw::TEEC_FinalizeContext(&mut self.raw);
-        }
+// Intenal usage only
+impl Context {
+    // anyone who wants to access the inner_context must take this as mut.
+    pub(crate) fn inner_context(&mut self) -> Arc<RefCell<InnerContext>> {
+        self.raw.clone()
     }
 }

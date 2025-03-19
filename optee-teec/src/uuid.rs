@@ -102,6 +102,17 @@ impl Uuid {
     }
 }
 
+impl Clone for Uuid {
+    fn clone(&self) -> Self {
+        Self::new_raw(
+            self.raw.timeLow,
+            self.raw.timeMid,
+            self.raw.timeHiAndVersion,
+            self.raw.clockSeqAndNode,
+        )
+    }
+}
+
 impl fmt::Display for Uuid {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(

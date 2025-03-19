@@ -16,7 +16,7 @@
 // under the License.
 
 use optee_teec_sys as raw;
-use libc::{c_char};
+use core::ffi::c_char;
 use crate::{Result, Error, ErrorKind};
 
 #[repr(C)]
@@ -48,9 +48,9 @@ pub struct PluginParameters<'a> {
 impl<'a> PluginParameters<'a> {
     pub fn new(cmd: u32, sub_cmd: u32, inout: &'a mut [u8]) -> Self {
         Self {
-            cmd: cmd,
-            sub_cmd: sub_cmd,
-            inout: inout,
+            cmd,
+            sub_cmd,
+            inout,
             outlen: 0 as usize,
         }
     }
