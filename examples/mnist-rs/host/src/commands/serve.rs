@@ -59,7 +59,7 @@ pub fn execute(args: &Args) -> anyhow::Result<()> {
 }
 
 fn handle(
-    caller: &mut crate::tee::InferenceTaConnector<'_>,
+    caller: &mut crate::tee::InferenceTaConnector,
     request: &mut Request,
 ) -> anyhow::Result<HttpResponse> {
     if request.method().ne(&tiny_http::Method::Post) {
@@ -74,7 +74,7 @@ fn handle(
 }
 
 fn handle_image(
-    caller: &mut crate::tee::InferenceTaConnector<'_>,
+    caller: &mut crate::tee::InferenceTaConnector,
     request: &mut Request,
 ) -> anyhow::Result<HttpResponse> {
     let mut data = Vec::with_capacity(IMAGE_SIZE);
@@ -93,7 +93,7 @@ fn handle_image(
 }
 
 fn handle_binary(
-    caller: &mut crate::tee::InferenceTaConnector<'_>,
+    caller: &mut crate::tee::InferenceTaConnector,
     request: &mut Request,
 ) -> anyhow::Result<HttpResponse> {
     let mut data = Vec::with_capacity(IMAGE_SIZE);
@@ -108,7 +108,7 @@ fn handle_binary(
 }
 
 fn handle_infer(
-    caller: &mut crate::tee::InferenceTaConnector<'_>,
+    caller: &mut crate::tee::InferenceTaConnector,
     image: &[u8],
 ) -> anyhow::Result<u8> {
     let result = caller.infer_batch(bytemuck::cast_slice(image))?;
