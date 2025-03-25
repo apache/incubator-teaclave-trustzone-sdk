@@ -16,12 +16,12 @@
 // under the License.
 
 pub use self::context::Context;
-pub use self::error::{Error, ErrorKind, Result};
+pub use self::error::{Error, ErrorKind, ErrorOrigin, Result};
+pub use self::extension::*;
 pub use self::operation::Operation;
 pub use self::parameter::{Param, ParamNone, ParamTmpRef, ParamType, ParamTypes, ParamValue};
 pub use self::session::{ConnectionMethods, Session};
 pub use self::uuid::Uuid;
-pub use self::extension::*;
 pub use optee_teec_macros::{plugin_init, plugin_invoke};
 // Re-export optee_teec_sys so developers don't have to add it to their cargo
 // dependencies.
@@ -29,8 +29,8 @@ pub use optee_teec_sys as raw;
 
 mod context;
 mod error;
+mod extension;
 mod operation;
 mod parameter;
 mod session;
 mod uuid;
-mod extension;
