@@ -22,7 +22,7 @@ use std::{marker::PhantomData, mem};
 /// invoke command operation. It is also used for cancellation of operations,
 /// which may be desirable even if no payload is passed.
 pub struct Operation<A, B, C, D> {
-    pub raw: raw::TEEC_Operation,
+    raw: raw::TEEC_Operation,
     phantom0: PhantomData<A>,
     phantom1: PhantomData<B>,
     phantom2: PhantomData<C>,
@@ -50,7 +50,7 @@ impl<A: Param, B: Param, C: Param, D: Param> Operation<A, B, C, D> {
         }
     }
 
-    pub fn as_mut_raw_ptr(&mut self) -> *mut raw::TEEC_Operation {
+    pub(crate) fn as_mut_raw_ptr(&mut self) -> *mut raw::TEEC_Operation {
         &mut self.raw
     }
 
