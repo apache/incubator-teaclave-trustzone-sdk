@@ -17,7 +17,6 @@
 
 use crate::raw;
 use core::fmt;
-use hex;
 use uuid as uuid_crate;
 use uuid_crate::parser::ParseError;
 use uuid_crate::BytesError;
@@ -34,7 +33,12 @@ impl Uuid {
     /// # Examples
     ///
     /// ```
-    /// let uuid = Uuid::parse_str("8abcf200-2450-11e4-abe2-0002a5d5c51b").unwrap();
+    /// # use optee_teec::Uuid;
+    /// # use uuid::parser::ParseError;
+    /// # fn main() -> Result<(), ParseError> {
+    /// let uuid = Uuid::parse_str("8abcf200-2450-11e4-abe2-0002a5d5c51b")?;
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn parse_str(input: &str) -> Result<Uuid, ParseError> {
         let uuid = uuid_crate::Uuid::parse_str(input)?;
@@ -52,6 +56,7 @@ impl Uuid {
     /// # Examples
     ///
     /// ```
+    /// # use optee_teec::Uuid;
     /// let bytes: [u8; 16] = [70, 235, 208, 238, 14, 109, 67, 201, 185, 13, 204, 195, 90, 145, 63, 62,];
     /// let uuid = Uuid::from_bytes(bytes);
     /// ```
@@ -66,8 +71,12 @@ impl Uuid {
     /// # Examples
     ///
     /// ```
+    /// # use optee_teec::Uuid;
+    /// # fn main() -> Result<(), uuid::BytesError> {
     /// let bytes: &[u8; 16] = &[70, 235, 208, 238, 14, 109, 67, 201, 185, 13, 204, 195, 90, 145, 63, 62,];
-    /// let uuid = Uuid::from_slice(bytes);
+    /// let uuid = Uuid::from_slice(bytes)?;
+    /// # Ok(())
+    /// # }
     /// ```
     pub fn from_slice(b: &[u8]) -> Result<Uuid, BytesError> {
         let uuid = uuid_crate::Uuid::from_slice(b)?;
@@ -99,6 +108,17 @@ impl Uuid {
     /// Converts a uuid to a const raw `TEEC_UUID` pointer.
     pub fn as_raw_ptr(&self) -> *const raw::TEEC_UUID {
         &self.raw
+    }
+}
+
+impl Clone for Uuid {
+    fn clone(&self) -> Self {
+        Self::new_raw(
+            self.raw.timeLow,
+            self.raw.timeMid,
+            self.raw.timeHiAndVersion,
+            self.raw.clockSeqAndNode,
+        )
     }
 }
 
