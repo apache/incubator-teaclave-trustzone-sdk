@@ -15,9 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use optee_teec_sys as raw;
-use std::marker;
-use std::mem;
+use crate::raw;
+use std::{marker, mem};
 
 pub trait Param {
     fn into_raw(&mut self) -> raw::TEEC_Parameter;

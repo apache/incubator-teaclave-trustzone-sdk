@@ -15,10 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use crate::{Error, Operation, Result, Session, Uuid};
-use crate::{Param, ParamNone};
+use crate::{raw, Error, Operation, Param, ParamNone, Result, Session, Uuid};
 use libc;
-use optee_teec_sys as raw;
 use std::ptr;
 
 /// An abstraction of the logical connection between a client application and a
@@ -44,7 +42,7 @@ impl Context {
     /// # Examples
     ///
     /// ```
-    /// let raw_ctx: optee_teec_sys::TEEC_Context = Context::new_raw(0, true).unwrap();
+    /// let raw_ctx: optee_teec::raw::TEEC_Context = Context::new_raw(0, true).unwrap();
     /// ```
     pub fn new_raw(fd: libc::c_int, reg_mem: bool, memref_null: bool) -> Result<raw::TEEC_Context> {
         let mut raw_ctx = raw::TEEC_Context {
@@ -66,7 +64,7 @@ impl Context {
     ///
     /// ```
     /// let mut ctx = Context::new().unwrap();
-    /// let mut raw_ptr: *mut optee_teec_sys::TEEC_Context = ctx.as_mut_raw_ptr();
+    /// let mut raw_ptr: *mut optee_teec::raw::TEEC_Context = ctx.as_mut_raw_ptr();
     /// ```
     pub fn as_mut_raw_ptr(&mut self) -> *mut raw::TEEC_Context {
         &mut self.raw

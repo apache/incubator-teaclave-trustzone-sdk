@@ -15,30 +15,40 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use libc::{c_char};
-use optee_teec::{PluginMethod, PluginParameters};
-use optee_teec::{plugin_init, plugin_invoke};
-use proto::{PluginCommand};
+use optee_teec::{plugin_init, plugin_invoke, ErrorKind, PluginParameters};
+use proto::PluginCommand;
 
 #[plugin_init]
-fn init() {
-    println!("*plugin*: init");
+fn init() -> optee_teec::Result<()> {
+    println!("*plugin*: init, version: {}", env!("CARGO_PKG_VERSION"));
+    Ok(())
 }
 
 #[plugin_invoke]
-fn invoke(params: &mut PluginParameters) {
+fn invoke(params: &mut PluginParameters) -> optee_teec::Result<()> {
     println!("*plugin*: invoke");
     match PluginCommand::from(params.cmd) {
         PluginCommand::Print => {
-            println!("*plugin*: receive value: {:?} length {:?}", params.inout, params.inout.len());
+            println!(
+                "*plugin*: receive value: {:?} length {:?}",
+                params.inout,
+                params.inout.len()
+            );
 
-            let send_slice: [u8;9] = [0x40;9];
+            let send_slice: [u8; 9] = [0x40; 9];
             params.set_buf_from_slice(&send_slice)?;
-            println!("*plugin*: send value: {:?} length {:?} to ta", send_slice, send_slice.len());
+            println!(
+                "*plugin*: send value: {:?} length {:?} to ta",
+                send_slice,
+                send_slice.len()
+            );
+            Ok(())
         }
-        _ => println!("Unsupported plugin command: {:?}", params.cmd),
+        _ => {
+            println!("Unsupported plugin command: {:?}", params.cmd);
+            Err(ErrorKind::BadParameters.into())
+        }
     }
 }
-
 
 include!(concat!(env!("OUT_DIR"), "/plugin_static.rs"));

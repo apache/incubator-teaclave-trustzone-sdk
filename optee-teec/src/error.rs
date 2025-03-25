@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use optee_teec_sys as raw;
+use crate::raw;
 use std::fmt;
 
 /// A specialized [`Result`](https://doc.rust-lang.org/std/result/enum.Result.html)

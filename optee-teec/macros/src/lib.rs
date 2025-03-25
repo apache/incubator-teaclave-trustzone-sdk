@@ -20,7 +20,7 @@
 extern crate proc_macro;
 
 use proc_macro::TokenStream;
-use quote::quote;
+use quote::{quote, ToTokens};
 use syn::parse_macro_input;
 use syn::spanned::Spanned;
 
@@ -34,38 +34,56 @@ pub fn plugin_init(_args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as syn::ItemFn);
     let f_vis = &f.vis;
     let f_block = &f.block;
-    let f_decl = &f.decl;
-    let f_inputs = &f_decl.inputs;
+    let f_sig = &f.sig;
+    let f_inputs = &f_sig.inputs;
 
     // check the function signature
-    let valid_signature = f.constness.is_none()
+    let valid_signature = f_sig.constness.is_none()
         && match f_vis {
             syn::Visibility::Inherited => true,
             _ => false,
         }
-        && f.abi.is_none()
+        && f_sig.abi.is_none()
         && f_inputs.len() == 0
-        && f.decl.generics.where_clause.is_none()
-        && f.decl.variadic.is_none();
+        && f_sig.generics.where_clause.is_none()
+        && f_sig.variadic.is_none()
+        && check_return_type(&f);
 
     if !valid_signature {
         return syn::parse::Error::new(
             f.span(),
-            "`#[plugin_init]` function must have signature `fn()`",
+            "`#[plugin_init]` function must have signature `fn() -> optee_teec::Result<()>`",
         )
         .to_compile_error()
         .into();
     }
 
     quote!(
-        #[no_mangle]
-        pub fn _plugin_init() -> optee_teec::Result<()> {
-            #f_block
-            Ok(())
+        pub fn _plugin_init() -> optee_teec::raw::TEEC_Result {
+            fn inner() -> optee_teec::Result<()> {
+                #f_block
+            }
+            match inner() {
+                Ok(()) => optee_teec::raw::TEEC_SUCCESS,
+                Err(err) => err.raw_code(),
+            }
         }
     )
     .into()
+}
 
+// check if return_type of the function is `optee_teec::Result<()>`
+fn check_return_type(item_fn: &syn::ItemFn) -> bool {
+    if let syn::ReturnType::Type(_, return_type) = item_fn.sig.output.to_owned() {
+        if let syn::Type::Path(path) = return_type.as_ref() {
+            let expected_type = quote! { optee_teec::Result<()> };
+            let actual_type = path.path.to_token_stream();
+            if expected_type.to_string() == actual_type.to_string() {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
 /// Attribute to declare the invoke function of a plugin
@@ -78,50 +96,61 @@ pub fn plugin_invoke(_args: TokenStream, input: TokenStream) -> TokenStream {
     let f = parse_macro_input!(input as syn::ItemFn);
     let f_vis = &f.vis;
     let f_block = &f.block;
-    let f_decl = &f.decl;
-    let f_inputs = &f_decl.inputs;
+    let f_sig = &f.sig;
+    let f_inputs = &f_sig.inputs;
 
     // check the function signature
-    let valid_signature = f.constness.is_none()
+    let valid_signature = f_sig.constness.is_none()
         && match f_vis {
             syn::Visibility::Inherited => true,
             _ => false,
         }
-        && f.abi.is_none()
+        && f_sig.abi.is_none()
         && f_inputs.len() == 1
-        && f.decl.generics.where_clause.is_none()
-        && f.decl.variadic.is_none();
+        && f_sig.generics.where_clause.is_none()
+        && f_sig.variadic.is_none()
+        && check_return_type(&f);
 
     if !valid_signature {
         return syn::parse::Error::new(
             f.span(),
-            "`#[plugin_invoke]` function must have signature `fn(params: &mut PluginParamters)`",
+            concat!(
+                "`#[plugin_invoke]` function must have signature",
+                " `fn(params: &mut PluginParameters) -> optee_teec::Result<()>`"
+            ),
         )
         .to_compile_error()
         .into();
     }
 
+    let params = f_inputs
+        .first()
+        .expect("we have already verified its len")
+        .into_token_stream();
+
     quote!(
-        #[no_mangle]
         pub fn _plugin_invoke(
             cmd: u32,
             sub_cmd: u32,
-            data: *mut c_char,
+            data: *mut core::ffi::c_char,
             in_len: u32,
             out_len: *mut u32
-        ) -> optee_teec::Result<()> {
+        ) -> optee_teec::raw::TEEC_Result {
+            fn inner(#params) -> optee_teec::Result<()> {
+                #f_block
+            }
             let mut inbuf = unsafe { std::slice::from_raw_parts_mut(data, in_len as usize) };
-            let mut params = PluginParameters::new(cmd, sub_cmd, inbuf);
-            #f_block
+            let mut params = optee_teec::PluginParameters::new(cmd, sub_cmd, inbuf);
+            if let Err(err) = inner(&mut params) {
+                return err.raw_code();
+            };
             let outslice = params.get_out_slice();
             unsafe {
                 *out_len = outslice.len() as u32;
                 std::ptr::copy(outslice.as_ptr(), data, outslice.len());
-            }
-
-            Ok(())
+            };
+            return optee_teec::raw::TEEC_SUCCESS;
         }
     )
     .into()
-
 }

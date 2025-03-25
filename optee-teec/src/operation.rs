@@ -15,10 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use crate::{Param, ParamTypes};
-use optee_teec_sys as raw;
-use std::marker::PhantomData;
-use std::mem;
+use crate::{raw, Param, ParamTypes};
+use std::{marker::PhantomData, mem};
 
 /// This type defines the payload of either an open session operation or an
 /// invoke command operation. It is also used for cancellation of operations,

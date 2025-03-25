@@ -20,11 +20,11 @@
 
 extern crate alloc;
 
+use optee_utee::LoadablePlugin;
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
-use optee_utee::{Error, ErrorKind, Parameters, Result, Uuid};
-use optee_utee::{LoadablePlugin};
+use optee_utee::{ErrorKind, Parameters, Result, Uuid};
 use proto::{Command, PluginCommand, PLUGIN_SUBCMD_NULL, PLUGIN_UUID};
 
 #[ta_create]
@@ -52,26 +52,32 @@ fn destroy() {
 #[ta_invoke_command]
 fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
-    let mut p0 = unsafe { params.0.as_memref().unwrap() };
+    let mut p0 = unsafe { params.0.as_memref()? };
     let inbuf = p0.buffer().to_vec();
-    trace_println!("[+] TA received value {:?} then send to plugin", p0.buffer());
-    let uuid = Uuid::parse_str(PLUGIN_UUID).unwrap();
+    trace_println!(
+        "[+] TA received value {:?} then send to plugin",
+        p0.buffer()
+    );
+    let uuid = Uuid::parse_str(PLUGIN_UUID).map_err(|err| {
+        trace_println!("Invalid PluginUuid: {:?}", err);
+        ErrorKind::BadParameters
+    })?;
 
     match Command::from(cmd_id) {
         Command::Ping => {
-            let mut plugin = LoadablePlugin::new(&uuid);
-            let outbuf = plugin.invoke(
-                PluginCommand::Print as u32, 
-                PLUGIN_SUBCMD_NULL, 
-                &inbuf
-            ).unwrap();
+            let plugin = LoadablePlugin::new(&uuid);
+            let outbuf = plugin.invoke(PluginCommand::Print as u32, PLUGIN_SUBCMD_NULL, &inbuf)?;
 
-            trace_println!("[+] TA received out value {:?} outlen {:?}", outbuf, outbuf.len());
+            trace_println!(
+                "[+] TA received out value {:?} outlen {:?}",
+                outbuf,
+                outbuf.len()
+            );
             trace_println!("[+] TA call invoke_supp_plugin finished");
 
             Ok(())
         }
-        _ => Err(Error::new(ErrorKind::BadParameters)),
+        _ => Err(ErrorKind::BadParameters.into()),
     }
 }
 
