@@ -28,9 +28,8 @@ edition = "2018"
 libc = "0.2.48"
 proto = { path = "../proto" }
 optee-teec = { path = "../../../optee-teec" }
-optee-teec-sys = { path = "../../../optee-teec/optee-teec-sys" }
 
-[build_dependencies]
+[build-dependencies]
 uuid = { version = "0.8" }
 proto = { path = "../proto" }
 

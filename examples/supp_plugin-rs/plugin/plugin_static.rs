@@ -16,8 +16,8 @@
 // under the License.
 
 #[no_mangle]
-pub static mut plugin_method: PluginMethod = PluginMethod {
-    name: plugin_name.as_ptr() as *const c_char,
+pub static mut plugin_method: optee_teec::PluginMethod = optee_teec::PluginMethod {
+    name: plugin_name.as_ptr(),
     uuid: PLUGIN_UUID_STRUCT,
     init: _plugin_init,
     invoke: _plugin_invoke,

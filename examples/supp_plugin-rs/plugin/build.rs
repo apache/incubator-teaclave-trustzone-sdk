@@ -15,11 +15,10 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use proto;
 use std::env;
 use std::fs::File;
 use std::io::Write;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 use uuid::Uuid;
 
 fn main() -> std::io::Result<()> {
@@ -33,7 +32,7 @@ fn main() -> std::io::Result<()> {
     write!(buffer, "\n")?;
     write!(
         buffer,
-        "const PLUGIN_UUID_STRUCT: optee_teec_sys::TEEC_UUID = optee_teec_sys::TEEC_UUID {{
+        "const PLUGIN_UUID_STRUCT: optee_teec::raw::TEEC_UUID = optee_teec::raw::TEEC_UUID {{
     timeLow: {:#x},
     timeMid: {:#x},
     timeHiAndVersion: {:#x},

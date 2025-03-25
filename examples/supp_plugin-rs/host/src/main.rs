@@ -15,9 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use optee_teec::{Context, Operation, ParamTmpRef, Session, Uuid};
-use optee_teec::{ParamNone};
-use proto::{TA_UUID, Command};
+use optee_teec::{Context, ErrorKind, Operation, ParamNone, ParamTmpRef, Session, Uuid};
+use proto::{Command, TA_UUID};
 
 fn ping_ta(session: &mut Session) -> optee_teec::Result<()> {
     let test_data = [0x36u8; 10];
@@ -34,7 +33,10 @@ fn ping_ta(session: &mut Session) -> optee_teec::Result<()> {
 
 fn main() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
-    let uuid = Uuid::parse_str(TA_UUID).unwrap();
+    let uuid = Uuid::parse_str(TA_UUID).map_err(|err| {
+        println!("Invalid TA_UUID: {:?}", err);
+        ErrorKind::BadParameters
+    })?;
     let mut session = ctx.open_session(uuid)?;
 
     ping_ta(&mut session)?;

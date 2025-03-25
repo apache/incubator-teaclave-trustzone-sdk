@@ -23,6 +23,9 @@ pub use self::session::{ConnectionMethods, Session};
 pub use self::uuid::Uuid;
 pub use self::extension::*;
 pub use optee_teec_macros::{plugin_init, plugin_invoke};
+// Re-export optee_teec_sys so developers don't have to add it to their cargo
+// dependencies.
+pub use optee_teec_sys as raw;
 
 mod context;
 mod error;

@@ -15,22 +15,22 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use optee_teec_sys as raw;
-use libc::{c_char};
-use crate::{Result, Error, ErrorKind};
+use crate::raw;
+use crate::{Error, ErrorKind, Result};
+use libc::c_char;
 
 #[repr(C)]
 pub struct PluginMethod {
     pub name: *const c_char,
     pub uuid: raw::TEEC_UUID,
-    pub init: fn() -> Result<()>,
+    pub init: fn() -> raw::TEEC_Result,
     pub invoke: fn(
         cmd: u32,
         sub_cmd: u32,
         data: *mut c_char,
         in_len: u32,
         out_len: *mut u32,
-    ) -> Result<()>,
+    ) -> raw::TEEC_Result,
 }
 
 /// struct PluginParameters {

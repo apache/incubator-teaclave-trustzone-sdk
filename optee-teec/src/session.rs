@@ -16,12 +16,10 @@
 // under the License.
 
 use libc;
-use optee_teec_sys as raw;
-use std::ptr;
 use std::marker;
+use std::ptr;
 
-use crate::Param;
-use crate::{Context, Error, Operation, Result, Uuid};
+use crate::{raw, Context, Error, Operation, Param, Result, Uuid};
 
 /// Session login methods.
 #[derive(Copy, Clone)]
@@ -72,7 +70,10 @@ impl<'ctx> Session<'ctx> {
                 raw_operation,
                 &mut err_origin,
             ) {
-                raw::TEEC_SUCCESS => Ok(Self { raw: raw_session,  _marker: marker::PhantomData }),
+                raw::TEEC_SUCCESS => Ok(Self {
+                    raw: raw_session,
+                    _marker: marker::PhantomData,
+                }),
                 code => Err(Error::from_raw_error(code)),
             }
         }

@@ -15,9 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
+use crate::raw;
 use core::fmt;
 use hex;
-use optee_teec_sys as raw;
 use uuid as uuid_crate;
 use uuid_crate::parser::ParseError;
 use uuid_crate::BytesError;
