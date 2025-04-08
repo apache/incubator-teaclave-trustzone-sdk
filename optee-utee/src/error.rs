@@ -15,12 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use optee_utee_sys as raw;
-use core::{fmt, result};
-#[cfg(target_os = "optee")]
-use std::error;
 #[cfg(not(target_os = "optee"))]
 use core::error;
+use core::{fmt, result};
+use optee_utee_sys as raw;
+#[cfg(target_os = "optee")]
+use std::error;
 
 /// A specialized [`Result`](https://doc.rust-lang.org/std/result/enum.Result.html)
 /// type for TEE operations.
@@ -34,76 +34,79 @@ use core::error;
 /// ````
 pub type Result<T> = result::Result<T, Error>;
 
+#[derive(Clone)]
 pub struct Error {
-    code: u32,
+    kind: ErrorKind,
+    origin: Option<ErrorOrigin>,
 }
 
 /// A list specifying general categories of TEE error and its corresponding code
 /// in OP-TEE OS.
-#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+#[derive(Clone, Copy, Debug, Default, Eq, Hash, Ord, PartialEq, PartialOrd)]
 #[repr(u32)]
 pub enum ErrorKind {
     /// Object corruption.
-    CorruptObject = 0xF0100001,
+    CorruptObject = raw::TEE_ERROR_CORRUPT_OBJECT,
     /// Persistent object corruption.
-    CorruptObject2 = 0xF0100002,
+    CorruptObject2 = raw::TEE_ERROR_CORRUPT_OBJECT_2,
     /// Object storage is not available.
-    StorageNotAvailable = 0xF0100003,
+    StorageNotAvailable = raw::TEE_ERROR_STORAGE_NOT_AVAILABLE,
     /// Persistent object storage is not available.
-    StorageNotAvailable2 = 0xF0100004,
+    StorageNotAvailable2 = raw::TEE_ERROR_STORAGE_NOT_AVAILABLE_2,
     /// Non-specific cause.
-    Generic = 0xFFFF0000,
+    Generic = raw::TEE_ERROR_GENERIC,
     /// Access privileges are not sufficient.
-    AccessDenied = 0xFFFF0001,
+    AccessDenied = raw::TEE_ERROR_ACCESS_DENIED,
     /// The operation was canceled.
-    Cancel = 0xFFFF0002,
+    Cancel = raw::TEE_ERROR_CANCEL,
     /// Concurrent accesses caused conflict.
-    AccessConflict = 0xFFFF0003,
+    AccessConflict = raw::TEE_ERROR_ACCESS_CONFLICT,
     /// Too much data for the requested operation was passed.
-    ExcessData = 0xFFFF0004,
+    ExcessData = raw::TEE_ERROR_EXCESS_DATA,
     /// Input data was of invalid format.
-    BadFormat = 0xFFFF0005,
+    BadFormat = raw::TEE_ERROR_BAD_FORMAT,
     /// Input parameters were invalid.
-    BadParameters = 0xFFFF0006,
+    BadParameters = raw::TEE_ERROR_BAD_PARAMETERS,
     /// Operation is not valid in the current state.
-    BadState = 0xFFFF0007,
+    BadState = raw::TEE_ERROR_BAD_STATE,
     /// The requested data item is not found.
-    ItemNotFound = 0xFFFF0008,
+    ItemNotFound = raw::TEE_ERROR_ITEM_NOT_FOUND,
     /// The requested operation should exist but is not yet implemented.
-    NotImplemented = 0xFFFF0009,
+    NotImplemented = raw::TEE_ERROR_NOT_IMPLEMENTED,
     /// The requested operation is valid but is not supported in this implementation.
-    NotSupported = 0xFFFF000A,
+    NotSupported = raw::TEE_ERROR_NOT_SUPPORTED,
     /// Expected data was missing.
-    NoData = 0xFFFF000B,
+    NoData = raw::TEE_ERROR_NO_DATA,
     /// System ran out of resources.
-    OutOfMemory = 0xFFFF000C,
+    OutOfMemory = raw::TEE_ERROR_OUT_OF_MEMORY,
     /// The system is busy working on something else.
-    Busy = 0xFFFF000D,
+    Busy = raw::TEE_ERROR_BUSY,
     /// Communication with a remote party failed.
-    Communication = 0xFFFF000E,
+    Communication = raw::TEE_ERROR_COMMUNICATION,
     /// A security fault was detected.
-    Security = 0xFFFF000F,
+    Security = raw::TEE_ERROR_SECURITY,
     /// The supplied buffer is too short for the generated output.
-    ShortBuffer = 0xFFFF0010,
+    ShortBuffer = raw::TEE_ERROR_SHORT_BUFFER,
     /// The operation has been cancelled by an external event which occurred in
     /// the REE while the function was in progress.
-    ExternalCancel = 0xFFFF0011,
+    ExternalCancel = raw::TEE_ERROR_EXTERNAL_CANCEL,
     /// Data overflow.
-    Overflow = 0xFFFF300F,
+    Overflow = raw::TEE_ERROR_OVERFLOW,
     /// Trusted Application has panicked during the operation.
-    TargetDead = 0xFFFF3024,
+    TargetDead = raw::TEE_ERROR_TARGET_DEAD,
     /// Insufficient space is available.
-    StorageNoSpace = 0xFFFF3041,
+    StorageNoSpace = raw::TEE_ERROR_STORAGE_NO_SPACE,
     /// MAC is invalid.
-    MacInvalid = 0xFFFF3071,
+    MacInvalid = raw::TEE_ERROR_MAC_INVALID,
     /// Signature is invalid.
-    SignatureInvalid = 0xFFFF3072,
+    SignatureInvalid = raw::TEE_ERROR_SIGNATURE_INVALID,
     /// The persistent time has not been set.
-    TimeNotSet = 0xFFFF5000,
+    TimeNotSet = raw::TEE_ERROR_TIME_NOT_SET,
     /// The persistent time has been set but may have been corrupted and SHALL
     /// no longer be trusted.
-    TimeNeedsReset = 0xFFFF5001,
+    TimeNeedsReset = raw::TEE_ERROR_TIME_NEEDS_RESET,
     /// Unknown error.
+    #[default]
     Unknown,
 }
 
@@ -150,36 +153,15 @@ impl ErrorKind {
     }
 }
 
-impl Error {
-    pub fn new(kind: ErrorKind) -> Error {
-        Error { code: kind as u32 }
+impl From<ErrorKind> for u32 {
+    fn from(kind: ErrorKind) -> u32 {
+        kind as u32
     }
+}
 
-    /// Creates a new instance of an `Error` from a particular TEE error code.
-    ///
-    /// # Examples
-    ///
-    /// ``` no_run
-    /// use optee_utee;
-    ///
-    /// let error = optee_utee::Error::from_raw_error(0xFFFF000F);
-    /// assert_eq!(error.kind(), optee_utee::ErrorKind::Security);
-    /// ```
-    pub fn from_raw_error(code: u32) -> Error {
-        Error { code }
-    }
-
-    /// Returns the corresponding `ErrorKind` for this error.
-    ///
-    /// # Examples
-    ///
-    /// ``` no_run
-    /// use optee_utee;
-    ///
-    /// let error = optee_utee::Error::new(optee_utee::ErrorKind::Security);
-    /// ```
-    pub fn kind(&self) -> ErrorKind {
-        match self.code {
+impl From<u32> for ErrorKind {
+    fn from(code: u32) -> ErrorKind {
+        match code {
             raw::TEE_ERROR_CORRUPT_OBJECT => ErrorKind::CorruptObject,
             raw::TEE_ERROR_CORRUPT_OBJECT_2 => ErrorKind::CorruptObject2,
             raw::TEE_ERROR_STORAGE_NOT_AVAILABLE => ErrorKind::StorageNotAvailable,
@@ -212,11 +194,59 @@ impl Error {
             _ => ErrorKind::Unknown,
         }
     }
+}
 
-    pub fn raw_code(&self) -> u32 {
-        self.code
+impl Error {
+    pub fn new(kind: ErrorKind) -> Error {
+        Error { kind, origin: None }
     }
 
+    /// Creates a new instance of an `Error` from a particular TEE error code.
+    ///
+    /// # Examples
+    ///
+    /// ``` no_run
+    /// use optee_utee;
+    ///
+    /// let error = optee_utee::Error::from_raw_error(0xFFFF000F);
+    /// assert_eq!(error.kind(), optee_utee::ErrorKind::Security);
+    /// ```
+    pub fn from_raw_error(code: u32) -> Error {
+        Error {
+            kind: ErrorKind::from(code),
+            origin: None,
+        }
+    }
+
+    pub fn with_origin(mut self, origin: ErrorOrigin) -> Self {
+        self.origin = Some(origin);
+        self
+    }
+
+    /// Returns the corresponding `ErrorKind` for this error.
+    ///
+    /// # Examples
+    ///
+    /// ``` no_run
+    /// use optee_utee;
+    ///
+    /// let error = optee_utee::Error::new(optee_utee::ErrorKind::Security);
+    /// ```
+    pub fn kind(&self) -> ErrorKind {
+        self.kind
+    }
+
+    /// Returns the origin of this error.
+    pub fn origin(&self) -> Option<ErrorOrigin> {
+        self.origin.clone()
+    }
+
+    /// Returns raw code of this error.
+    pub fn raw_code(&self) -> u32 {
+        self.kind.into()
+    }
+
+    /// Returns corresponding error message of this error.
     pub fn message(&self) -> &str {
         self.kind().as_str()
     }
@@ -224,13 +254,19 @@ impl Error {
 
 impl fmt::Debug for Error {
     fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        write!(fmt, "{} (error code 0x{:x})", self.message(), self.code)
+        write!(
+            fmt,
+            "{} (error code 0x{:x}, origin 0x{:x})",
+            self.message(),
+            self.raw_code(),
+            self.origin().map(|v| v.into()).unwrap_or(0_u32),
+        )
     }
 }
 
 impl fmt::Display for Error {
-    fn fmt(&self, fmt: &mut fmt::Formatter) -> fmt::Result {
-        write!(fmt, "{} (error code 0x{:x})", self.message(), self.code)
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt(self, f)
     }
 }
 
@@ -243,6 +279,35 @@ impl error::Error for Error {
 impl From<ErrorKind> for Error {
     #[inline]
     fn from(kind: ErrorKind) -> Error {
-        Error { code: kind as u32 }
+        Error { kind, origin: None }
+    }
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+#[repr(u32)]
+pub enum ErrorOrigin {
+    API = raw::TEE_ORIGIN_API,
+    COMMS = raw::TEE_ORIGIN_COMMS,
+    TEE = raw::TEE_ORIGIN_TEE,
+    TA = raw::TEE_ORIGIN_TRUSTED_APP,
+    #[default]
+    UNKNOWN,
+}
+
+impl From<ErrorOrigin> for u32 {
+    fn from(origin: ErrorOrigin) -> u32 {
+        origin as u32
+    }
+}
+
+impl From<u32> for ErrorOrigin {
+    fn from(code: u32) -> ErrorOrigin {
+        match code {
+            raw::TEE_ORIGIN_API => ErrorOrigin::API,
+            raw::TEE_ORIGIN_COMMS => ErrorOrigin::COMMS,
+            raw::TEE_ORIGIN_TEE => ErrorOrigin::TEE,
+            raw::TEE_ORIGIN_TRUSTED_APP => ErrorOrigin::TA,
+            _ => ErrorOrigin::UNKNOWN,
+        }
     }
 }
