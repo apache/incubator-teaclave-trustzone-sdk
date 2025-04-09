@@ -19,37 +19,25 @@
 
 set -xe
 
-pushd ../tests
+# Include base script
+source setup.sh
 
-./test_hello_world.sh
-./test_random.sh
-./test_secure_storage.sh
-./test_aes.sh
-./test_hotp.sh
-./test_acipher.sh
-./test_big_int.sh
-./test_diffie_hellman.sh
-./test_digest.sh
-./test_authentication.sh
-./test_time.sh
-./test_signature_verification.sh
-./test_supp_plugin.sh
-./test_error_handling.sh
-./test_tcp_client.sh
-./test_udp_socket.sh
-./test_client_pool.sh
-./test_inter_ta.sh
+# Copy hello_world-rs TA for testing
+cp ../examples/hello_world-rs/ta/target/$TARGET_TA/release/*.ta shared
+# Copy TA and host binary
+cp ../examples/inter_ta-rs/host/target/$TARGET_HOST/release/inter_ta-rs shared
+cp ../examples/inter_ta-rs/ta/target/$TARGET_TA/release/*.ta shared
 
-# Run std only tests
-if [ "$STD" ]; then
-    ./test_serde.sh
-    ./test_message_passing_interface.sh
-    ./test_tls_client.sh
-    ./test_tls_server.sh
-    ./test_eth_wallet.sh
-    ./test_secure_db_abstraction.sh
-else
-    ./test_mnist_rs.sh
-fi
+# Run script specific commands in QEMU
+run_in_qemu "cp *.ta /lib/optee_armtz/\n"
+run_in_qemu "./inter_ta-rs\n"
+run_in_qemu "^C"
 
-popd
+# Script specific checks
+{
+    grep -q "Success" screenlog.0
+} || {
+    cat -v screenlog.0
+    cat -v /tmp/serial.log
+    false
+}
