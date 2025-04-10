@@ -29,4 +29,5 @@ optee-utee-sys = { path = "../optee-utee-sys" }
 libc = "0.2.59"
 
 [build-dependencies]
-ctest = "0.2"
+ctest = "0.4"
+cc = "1.2.19"

@@ -29,8 +29,8 @@ cargo +stable install xargo
 
 ##########################################
 # initialize submodules: rust / libc
-RUST_COMMIT_ID=7ee181c5199b0769414f0d0fd13f5e959ef84c27
-LIBC_COMMIT_ID=4fa30318ed3175f6ebe22da8f167f9f9b34567c3
+RUST_BRANCH=optee-xargo
+LIBC_BRANCH=optee
 
 if [ -d rust/ ]
 then
@@ -39,14 +39,11 @@ fi
 
 mkdir rust && cd rust
 
-git clone https://github.com/DemesneGH/rust.git && \
+git clone --depth=1 -b $RUST_BRANCH https://github.com/DemesneGH/rust.git && \
 	(cd rust && \
-	git checkout "$RUST_COMMIT_ID" && \
 	git submodule update --init library/stdarch && \
 	git submodule update --init library/backtrace)
 
-git clone https://github.com/DemesneGH/libc.git && \
-	(cd libc && \
-	git checkout "$LIBC_COMMIT_ID")
+git clone --depth=1 -b $LIBC_BRANCH https://github.com/DemesneGH/libc.git
 
 echo "Rust submodules initialized"

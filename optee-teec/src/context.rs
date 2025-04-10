@@ -56,12 +56,9 @@ impl Context {
     /// # }
     /// ```
     pub fn new() -> Result<Context> {
-        // define an empty TEEC_Context
-        let mut raw_ctx = raw::TEEC_Context {
-            fd: 0,
-            reg_mem: false,
-            memref_null: false,
-        };
+        // SAFETY:
+        // raw_ctx is a C struct(TEEC_Context), which zero value is valid.
+        let mut raw_ctx = unsafe { std::mem::zeroed() };
         match unsafe { raw::TEEC_InitializeContext(ptr::null_mut(), &mut raw_ctx) } {
             raw::TEEC_SUCCESS => Ok(Self {
                 raw: Rc::new(RefCell::new(InnerContext(raw_ctx))),
