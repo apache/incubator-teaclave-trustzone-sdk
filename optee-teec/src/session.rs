@@ -58,11 +58,9 @@ impl Session {
         uuid: Uuid,
         operation: Option<&mut Operation<A, B, C, D>>,
     ) -> Result<Self> {
-        // define an empty TEEC_Session
-        let mut raw_session = raw::TEEC_Session {
-            ctx: ptr::null_mut(),
-            session_id: 0,
-        };
+        // SAFETY:
+        // raw_session is a C struct(TEEC_Session), which zero value is valid.
+        let mut raw_session = unsafe { std::mem::zeroed() };
         // define all parameters for raw::TEEC_OpenSession outside of the unsafe
         // block to maximize Rust's safety checks and leverage the compiler's
         // validation.

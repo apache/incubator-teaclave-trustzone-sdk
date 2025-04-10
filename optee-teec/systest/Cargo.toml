@@ -29,4 +29,4 @@ optee-teec-sys = { path = "../optee-teec-sys" }
 libc = "0.2"
 
 [build-dependencies]
-ctest = "0.2"
+ctest = "0.4"

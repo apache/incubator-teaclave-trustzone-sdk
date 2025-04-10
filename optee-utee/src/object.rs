@@ -1369,7 +1369,7 @@ impl PersistentObject {
     /// 2) If the Implementation detects any other error associated with this function which is not
     ///    explicitly associated with a defined return code for this function.
     pub fn seek(&self, offset: i32, whence: Whence) -> Result<()> {
-        match unsafe { raw::TEE_SeekObjectData(self.handle(), offset, whence.into()) } {
+        match unsafe { raw::TEE_SeekObjectData(self.handle(), offset.into(), whence.into()) } {
             raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
         }

@@ -22,6 +22,8 @@ defaults:
     shell: bash
 
 jobs:
+  # Cross-compile for ARM64 on an AMD64 host and run unit-tests of (optee-utee
+  # and optee-teec) on AMD64 host.
   build-utee-teec:
     runs-on: ubuntu-latest
     container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
@@ -50,6 +52,15 @@ jobs:
           (cd optee-utee && cargo build --target aarch64-unknown-linux-gnu -vv)
           (cd optee-teec && cargo build --target aarch64-unknown-linux-gnu -vv)
 
+  # Cross-compile on AMD64 and run tests in QEMU
+  #
+  # Cross-compile target pairs:
+  # - (arm32 host, arm32 ta)
+  # - (arm32 host, arm64 ta)
+  # - (arm64 host, arm32 ta)
+  # - (arm64 host, arm64 ta)
+  #
+  # Run tests target: (arm64 host, arm64 ta)
   build-and-test-examples:
     runs-on: ubuntu-latest
     container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
@@ -93,6 +104,8 @@ jobs:
         run: |
           source environment
           (cd ci && ./ci.sh)
+
+  # Cross-compile for ARM64 on AMD64 and run tests in QEMU
   build-and-test-examples-for-64bit-std-TAs:
     runs-on: ubuntu-latest
     container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
@@ -126,6 +139,8 @@ jobs:
           export STD=y
           source environment
           (cd ci && ./ci.sh)
+
+  # Cross-compile for ARM32 on AMD64 and run tests in QEMU
   build-and-test-examples-for-32bit-std-TAs:
     runs-on: ubuntu-latest
     container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
@@ -161,6 +176,9 @@ jobs:
           export STD=y
           source environment
           (cd ci && ./ci.sh)
+
+  # Cross-compile for ARM64 on AMD64 and run tests in QEMU, use the check script
+  # in OP-TEE repo.
   OPTEE-repo-build-and-run-examples-64bit-TAs:
     runs-on: ubuntu-latest
     container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
@@ -186,6 +204,8 @@ jobs:
           make -j3 toolchains &&
           make -j`nproc` RUST_ENABLE=y check
 
+  # Cross-compile for ARM32 on AMD64 and run tests in QEMU, use the check script
+  # in OP-TEE repo.
   OPTEE-repo-build-and-run-examples-32bit-TAs:
     runs-on: ubuntu-latest
     container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
@@ -210,6 +230,29 @@ jobs:
           cd build &&
           make -j3 toolchains &&
           make -j`nproc` RUST_ENABLE=y COMPILE_S_USER=32 check
+
+  # Run systest of optee_teec and build systest of optee_utee on ARM64
+  systest:
+    runs-on: ubuntu-24.04-arm
+    container: ghcr.io/ivila/teaclave-trustzone-sdk-ci-runner:ubuntu-24.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare Environment
+        run: |
+          # Setup Rust and toolchains
+          ./setup.sh
+          source "$HOME/.cargo/env"
+          # Build optee_os and optee_client for qemu_v8
+          ./build_optee_libraries.sh $HOME
+          # Setup environment
+          export OPTEE_DIR=$HOME
+          source environment
+          # Run systest
+          export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$OPTEE_DIR/optee_client/export_arm64/usr/lib
+          (cd optee-teec && cargo run -p systest)
+          (cd optee-utee && cargo build -p systest)
 
   license:
     runs-on: ubuntu-latest

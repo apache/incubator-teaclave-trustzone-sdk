@@ -22,7 +22,7 @@ pub type TEE_tcpSocket_Setup = TEE_tcpSocket_Setup_s;
 #[repr(C)]
 pub struct TEE_tcpSocket_Setup_s {
     pub ipVersion: TEE_ipSocket_ipVersion,
-    pub server_addr: *const c_char,
+    pub server_addr: *mut c_char,
     pub server_port: u16,
 }
 

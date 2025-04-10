@@ -16,6 +16,7 @@
 // under the License.
 
 use super::*;
+use crate::libc_compat::{intmax_t, size_t};
 use core::ffi::*;
 
 extern "C" {
@@ -111,13 +112,9 @@ extern "C" {
     pub fn TEE_Malloc(size: usize, hint: u32) -> *mut c_void;
     pub fn TEE_Realloc(buffer: *mut c_void, newSize: usize) -> *mut c_void;
     pub fn TEE_Free(buffer: *mut c_void);
-    pub fn TEE_MemMove(dest: *mut c_void, src: *const c_void, size: usize) -> *mut c_void;
-    pub fn TEE_MemCompare(
-        buffer1: *const c_void,
-        buffer2: *const c_void,
-        size: usize,
-    ) -> i32;
-    pub fn TEE_MemFill(buff: *mut c_void, x: u32, size: usize) -> *mut c_void;
+    pub fn TEE_MemMove(dest: *mut c_void, src: *const c_void, size: usize);
+    pub fn TEE_MemCompare(buffer1: *const c_void, buffer2: *const c_void, size: usize) -> i32;
+    pub fn TEE_MemFill(buff: *mut c_void, x: u32, size: usize);
 
     // Data and Key Storage API  - Generic Object Functions
 
@@ -241,7 +238,7 @@ extern "C" {
     pub fn TEE_TruncateObjectData(object: TEE_ObjectHandle, size: usize) -> TEE_Result;
     pub fn TEE_SeekObjectData(
         object: TEE_ObjectHandle,
-        offset: i32, //intmax_t
+        offset: intmax_t,
         whence: TEE_Whence,
     ) -> TEE_Result;
 
@@ -275,10 +272,7 @@ extern "C" {
         dstOperation: TEE_OperationHandle,
         srcOperation: TEE_OperationHandle,
     ) -> c_void;
-    pub fn TEE_IsAlgorithmSupported(
-        algId: u32,
-        element: u32, 
-    ) -> TEE_Result;
+    pub fn TEE_IsAlgorithmSupported(algId: u32, element: u32) -> TEE_Result;
 
     // Cryptographic Operations API - Message Digest Functions
 
@@ -319,11 +313,7 @@ extern "C" {
 
     // Cryptographic Operations API - MAC Functions
 
-    pub fn TEE_MACInit(
-        operation: TEE_OperationHandle,
-        IV: *const c_void,
-        IVLen: usize,
-    ) -> c_void;
+    pub fn TEE_MACInit(operation: TEE_OperationHandle, IV: *const c_void, IVLen: usize) -> c_void;
     pub fn TEE_MACUpdate(
         operation: TEE_OperationHandle,
         chunk: *const c_void,
@@ -483,11 +473,11 @@ extern "C" {
     pub fn TEE_BigIntShiftRight(
         dest: *mut TEE_BigInt,
         op: *const TEE_BigInt,
-        bits: c_size_t,
+        bits: size_t,
     ) -> c_void;
     pub fn TEE_BigIntGetBit(src: *const TEE_BigInt, bitIndex: u32) -> bool;
     pub fn TEE_BigIntGetBitCount(src: *const TEE_BigInt) -> u32;
-    pub fn TEE_BigIntSetBit(src: *const TEE_BigInt, bitIndex: u32, value: bool) -> TEE_Result;
+    pub fn TEE_BigIntSetBit(src: *mut TEE_BigInt, bitIndex: u32, value: bool) -> TEE_Result;
     pub fn TEE_BigIntAssign(dest: *mut TEE_BigInt, src: *const TEE_BigInt) -> TEE_Result;
     pub fn TEE_BigIntAbs(dest: *mut TEE_BigInt, src: *const TEE_BigInt) -> TEE_Result;
     pub fn TEE_BigIntAdd(

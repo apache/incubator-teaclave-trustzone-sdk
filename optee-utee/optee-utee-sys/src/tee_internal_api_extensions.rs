@@ -31,7 +31,7 @@ extern "C" {
         uuid: *const TEE_UUID,
         cmd: u32,
         sub_cmd: u32,
-        buf: *mut c_char,
+        buf: *mut c_void,
         len: usize,
         outlen: *mut usize,
     ) -> TEE_Result; 

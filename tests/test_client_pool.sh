@@ -28,8 +28,8 @@ cp ../examples/client_pool-rs/host/target/$TARGET_HOST/release/client_pool-rs sh
 
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"
-run_in_qemu "./client_pool-rs thread -p 2 -c 2\n"
-run_in_qemu "./client_pool-rs async -p 2 -c 2\n"
+run_in_qemu "./client_pool-rs thread -p 2 -c 2 -t 500 -e 2000\n"
+run_in_qemu "./client_pool-rs async -p 2 -c 2 -t 500 -e 2000\n"
 run_in_qemu "^C"
 
 # Script specific checks
