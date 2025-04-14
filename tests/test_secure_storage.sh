@@ -28,7 +28,8 @@ cp ../examples/secure_storage-rs/host/target/$TARGET_HOST/release/secure_storage
 
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"
-run_in_qemu "./secure_storage-rs\n"
+# IO could be much slower than expected
+run_in_qemu_with_timeout_secs "./secure_storage-rs\n" 10
 run_in_qemu "^C"
 
 # Script specific checks
