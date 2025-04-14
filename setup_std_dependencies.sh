@@ -24,8 +24,8 @@ set -xe
 cd "$(dirname "$0")"
 
 ##########################################
-# install Xargo
-cargo +stable install xargo
+# install Xargo if not exist
+which xargo || cargo +stable install xargo
 
 ##########################################
 # initialize submodules: rust / libc

@@ -23,7 +23,7 @@ set -xe
 : ${NEED_EXPANDED_MEM:=false}
 
 # Define IMG_VERSION
-IMG_VERSION="optee-qemuv8-4.2.0-ubuntu-24.04"
+IMG_VERSION="$(uname -m)-optee-qemuv8-ubuntu-24.04"
 
 # Set IMG based on NEED_EXPANDED_MEM
 if [ "$NEED_EXPANDED_MEM" = true ]; then
@@ -39,12 +39,12 @@ download_image() {
 
 # Functions for running commands in QEMU screen
 run_in_qemu() {
-    screen -S qemu_screen -p 0 -X stuff "$1\n"
+    (screen -S qemu_screen -p 0 -X stuff "$1\n") || (echo "run_in_qemu '$1' failed" && cat /tmp/serial.log)
     sleep 5
 }
 
 run_in_qemu_with_timeout_secs() {
-    screen -S qemu_screen -p 0 -X stuff "$1\n"
+    (screen -S qemu_screen -p 0 -X stuff "$1\n") || (echo "run_in_qemu '$1' failed" && cat /tmp/serial.log)
     sleep $2
 }
 

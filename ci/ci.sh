@@ -21,6 +21,20 @@ set -xe
 
 pushd ../tests
 
+# Prioritize running specialized test suites first, as they have a higher
+# probability of detecting failures early in the pipeline.
+# Run std only tests
+if [ "$STD" ]; then
+    ./test_serde.sh
+    ./test_message_passing_interface.sh
+    ./test_tls_client.sh
+    ./test_tls_server.sh
+    ./test_eth_wallet.sh
+    ./test_secure_db_abstraction.sh
+else
+    ./test_mnist_rs.sh
+fi
+
 ./test_hello_world.sh
 ./test_random.sh
 ./test_secure_storage.sh
@@ -39,16 +53,5 @@ pushd ../tests
 ./test_udp_socket.sh
 ./test_client_pool.sh
 
-# Run std only tests
-if [ "$STD" ]; then
-    ./test_serde.sh
-    ./test_message_passing_interface.sh
-    ./test_tls_client.sh
-    ./test_tls_server.sh
-    ./test_eth_wallet.sh
-    ./test_secure_db_abstraction.sh
-else
-    ./test_mnist_rs.sh
-fi
 
 popd

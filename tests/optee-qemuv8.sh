@@ -22,13 +22,14 @@ cd $1 && ./qemu-system-aarch64 \
     -nographic \
     -serial stdio -serial file:/tmp/serial.log \
     -smp 2 \
-    -s -machine virt,secure=on,gic-version=3 -cpu cortex-a57 \
+    -s -machine virt,secure=on,acpi=off,gic-version=3 \
+    -cpu cortex-a57 \
     -d unimp -semihosting-config enable=on,target=native \
     -m 1057 \
     -bios bl1.bin \
     -initrd rootfs.cpio.gz \
-    -append 'console=ttyAMA0,38400 keep_bootcon root=/dev/vda2' \
-    -kernel Image -no-acpi \
+    -append 'console=ttyAMA0,115200 keep_bootcon root=/dev/vda2' \
+    -kernel Image \
     -fsdev local,id=fsdev0,path=$(pwd)/../shared,security_model=none \
     -device virtio-9p-device,fsdev=fsdev0,mount_tag=host \
     -netdev user,id=vmnic,hostfwd=:127.0.0.1:54433-:4433 \
