@@ -54,6 +54,7 @@ fi
 ./test_udp_socket.sh
 ./test_client_pool.sh
 ./test_inter_ta.sh
+./test_property.sh
 
 
 popd

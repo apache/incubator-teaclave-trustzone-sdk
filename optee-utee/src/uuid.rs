@@ -79,7 +79,7 @@ impl Uuid {
         ))
     }
 
-    /// Crates a raw TEE client uuid object with specified parameters.
+    /// Creates a raw TEE client uuid object with specified parameters.
     pub fn new_raw(
         time_low: u32,
         time_mid: u16,
@@ -112,6 +112,12 @@ impl fmt::Display for Uuid {
             hex::encode(&self.raw.clockSeqAndNode[0..2]),
             hex::encode(&self.raw.clockSeqAndNode[2..8]),
         )
+    }
+}
+
+impl From<raw::TEE_UUID> for Uuid {
+    fn from(raw: raw::TEE_UUID) -> Self {
+        Uuid { raw }
     }
 }
 
