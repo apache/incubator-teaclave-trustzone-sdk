@@ -32,6 +32,7 @@ pub struct TEE_UUID {
     pub clockSeqAndNode: [u8; 8],
 }
 
+#[derive(Copy, Clone)]
 #[repr(C)]
 pub struct TEE_Identity {
     pub login: u32,
