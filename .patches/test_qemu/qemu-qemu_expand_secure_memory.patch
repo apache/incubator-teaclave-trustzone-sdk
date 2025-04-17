@@ -15,11 +15,16 @@
 # specific language governing permissions and limitations
 # under the License.
 
-FROM ubuntu:24.04
-MAINTAINER Teaclave Contributors <dev@teaclave.apache.org>
-LABEL org.opencontainers.image.description "Github CI Runner"
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install dependencies for building OP-TEE
-COPY setup_optee_dependencies.sh /tmp/setup_optee_dependencies.sh
-RUN /tmp/setup_optee_dependencies.sh
+diff --git a/hw/arm/virt.c b/hw/arm/virt.c
+index 1a381e9..7062583 100644
+--- a/hw/arm/virt.c
++++ b/hw/arm/virt.c
+@@ -184,7 +184,7 @@ static const MemMapEntry base_memmap[] = {
+     [VIRT_MMIO] =               { 0x0a000000, 0x00000200 },
+     /* ...repeating for a total of NUM_VIRTIO_TRANSPORTS, each of that size */
+     [VIRT_PLATFORM_BUS] =       { 0x0c000000, 0x02000000 },
+-    [VIRT_SECURE_MEM] =         { 0x0e000000, 0x01000000 },
++    [VIRT_SECURE_MEM] =         { 0x0e000000, 0x02000000 },
+     [VIRT_PCIE_MMIO] =          { 0x10000000, 0x2eff0000 },
+     [VIRT_PCIE_PIO] =           { 0x3eff0000, 0x00010000 },
+     [VIRT_PCIE_ECAM] =          { 0x3f000000, 0x01000000 },

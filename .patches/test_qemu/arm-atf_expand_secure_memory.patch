@@ -15,11 +15,16 @@
 # specific language governing permissions and limitations
 # under the License.
 
-FROM ubuntu:24.04
-MAINTAINER Teaclave Contributors <dev@teaclave.apache.org>
-LABEL org.opencontainers.image.description "Github CI Runner"
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install dependencies for building OP-TEE
-COPY setup_optee_dependencies.sh /tmp/setup_optee_dependencies.sh
-RUN /tmp/setup_optee_dependencies.sh
+diff --git a/plat/qemu/qemu/include/platform_def.h b/plat/qemu/qemu/include/platform_def.h
+index 0c85b1e..0a35ffb 100644
+--- a/plat/qemu/qemu/include/platform_def.h
++++ b/plat/qemu/qemu/include/platform_def.h
+@@ -86,7 +86,7 @@
+ #define SEC_SRAM_SIZE			0x00100000
+ 
+ #define SEC_DRAM_BASE			0x0e100000
+-#define SEC_DRAM_SIZE			0x00f00000
++#define SEC_DRAM_SIZE			0x02f00000
+ 
+ #define SECURE_GPIO_BASE		0x090b0000
+ #define SECURE_GPIO_SIZE		0x00001000

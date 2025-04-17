@@ -15,11 +15,15 @@
 # specific language governing permissions and limitations
 # under the License.
 
-FROM ubuntu:24.04
-MAINTAINER Teaclave Contributors <dev@teaclave.apache.org>
-LABEL org.opencontainers.image.description "Github CI Runner"
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Install dependencies for building OP-TEE
-COPY setup_optee_dependencies.sh /tmp/setup_optee_dependencies.sh
-RUN /tmp/setup_optee_dependencies.sh
+diff --git a/qemu_v8.mk b/qemu_v8.mk
+index 91370b5..c98dcb7 100644
+--- a/qemu_v8.mk
++++ b/qemu_v8.mk
+@@ -387,6 +387,7 @@ endif
+ # OP-TEE
+ ################################################################################
+ OPTEE_OS_COMMON_FLAGS += DEBUG=$(DEBUG) CFG_ARM_GICV3=$(GICV3)
++OPTEE_OS_COMMON_FLAGS += CFG_NOTIF_TEST_WD=n
+ OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_1 = CFG_CORE_SEL1_SPMC=y
+ OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 = CFG_CORE_SEL2_SPMC=y
+ OPTEE_OS_COMMON_FLAGS_SPMC_AT_EL_2 += CFG_ARM_GICV3=n CFG_CORE_HAFNIUM_INTC=y
