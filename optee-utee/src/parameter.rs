@@ -15,8 +15,8 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use core::{marker, slice};
 use crate::{Error, ErrorKind, Result};
+use core::{marker, slice};
 use optee_utee_sys as raw;
 
 pub struct Parameters(pub Parameter, pub Parameter, pub Parameter, pub Parameter);
@@ -87,7 +87,7 @@ impl<'parameter> ParamMemref<'parameter> {
     }
 
     pub fn set_updated_size(&mut self, size: usize) {
-        unsafe { (*self.raw).size = size};
+        unsafe { (*self.raw).size = size };
     }
 }
 
@@ -135,9 +135,20 @@ impl Parameter {
     }
 }
 
+#[derive(Copy, Clone)]
 pub struct ParamTypes(u32);
 
 impl ParamTypes {
+    pub fn new(f0: ParamType, f1: ParamType, f2: ParamType, f3: ParamType) -> Self {
+        let mut param_types = 0u32;
+        param_types |= (f0 as u32) & 0x000fu32;
+        param_types |= ((f1 as u32) & 0x000fu32) << 4;
+        param_types |= ((f2 as u32) & 0x000fu32) << 8;
+        param_types |= ((f3 as u32) & 0x000fu32) << 12;
+
+        ParamTypes(param_types)
+    }
+
     pub fn into_flags(&self) -> (ParamType, ParamType, ParamType, ParamType) {
         (
             (0x000fu32 & self.0).into(),
@@ -151,6 +162,12 @@ impl ParamTypes {
 impl From<u32> for ParamTypes {
     fn from(value: u32) -> Self {
         ParamTypes(value)
+    }
+}
+
+impl From<ParamTypes> for u32 {
+    fn from(value: ParamTypes) -> Self {
+        value.0
     }
 }
 
