@@ -21,9 +21,6 @@ on:
       runs-on:
         required: true
         type: string
-      container:
-        required: true
-        type: string
       output-name:
         required: true
         type: string
@@ -38,15 +35,22 @@ defaults:
 
 env:
   QEMUV8_BUILD_FOLDER: /tmp/qemuv8
-  OUTPUT_FOLDER: /tmp/${{ inputs.output-name }}
 
 jobs:
   build:
     runs-on: ${{ inputs.runs-on }}
-    container: ${{ inputs.container }}
+    container: ubuntu:24.04
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Get Output Name
+        id: output_name
+        run: echo "name=$(uname -m)-optee-qemuv8-ubuntu-24.04${{ inputs.expand-memory && '-expand-memory' || ''}}" > $GITHUB_OUTPUT
+
+      - name: Install OP-TEE dependencies
+        run: |
+          ./setup_optee_dependencies.sh
           
       - name: Checkout OP-TEE repository
         run: |
@@ -57,8 +61,6 @@ jobs:
 
       - name: Apply patches for IPV6 support
         run: |
-          ls -lh $GITHUB_WORKSPACE &&
-          ls -lh $GITHUB_WORKSPACE/.patches/test_qemu &&
           (cd ${{ env.QEMUV8_BUILD_FOLDER }}/build && git apply $GITHUB_WORKSPACE/.patches/test_qemu/optee-build_ipv6_support.patch)
 
       - name: Apply patches to expand memory
@@ -68,7 +70,11 @@ jobs:
           (cd ${{ env.QEMUV8_BUILD_FOLDER }}/qemu && git apply $GITHUB_WORKSPACE/.patches/test_qemu/qemu-qemu_expand_secure_memory.patch)
           (cd ${{ env.QEMUV8_BUILD_FOLDER }}/trusted-firmware-a && git apply $GITHUB_WORKSPACE/.patches/test_qemu/arm-atf_expand_secure_memory.patch)
 
+      # cd to the output folder first to avoid extra path in the tar file.
       - name: Build And Pack
+        env:
+          OUTPUT_NAME: ${{ steps.output_name.outputs.name }}
+          OUTPUT_FOLDER: /tmp/${{ steps.output_name.outputs.name }}
         run: |
           cd ${{ env.QEMUV8_BUILD_FOLDER }} &&
           cd build &&
@@ -82,12 +88,12 @@ jobs:
           mkdir -p $GITHUB_WORKSPACE/out &&
           cd ${{ env.OUTPUT_FOLDER }} &&
           cd .. &&
-          tar -czvf $GITHUB_WORKSPACE/out/${{ inputs.output-name }}.tar.gz ${{ inputs.output-name }}
+          tar -czvf $GITHUB_WORKSPACE/out/${{ env.OUTPUT_NAME }}.tar.gz ${{ env.OUTPUT_NAME }}
 
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.output-name }}
+          name: ${{ steps.output_name.outputs.name }}
           path: |
             out/*
           if-no-files-found: error
