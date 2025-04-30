@@ -29,6 +29,7 @@ libc = { path = "../../../../rust/libc" }
 proto = { path = "../proto" }
 optee-utee-sys = { path = "../../../../optee-utee/optee-utee-sys" }
 optee-utee = { path = "../../../../optee-utee" }
+secure_db = { path = "../../../../crates/secure_db" }
 
 anyhow = "1.0"
 uuid = { version = "1.8", default-features = false }

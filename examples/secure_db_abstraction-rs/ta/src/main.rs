@@ -17,8 +17,6 @@
 
 #![no_main]
 
-mod secure_db;
-
 extern crate alloc;
 
 use alloc::vec;
@@ -80,7 +78,7 @@ pub struct ExampleData {
 
 // Any structure that implements Storable can be stored in the secure db.
 // Any Key type can be used as unique id as long as it implements
-// TryFrom<String> + Into<String> + Clone
+// TryFrom<String> + ToString
 impl Storable for ExampleData {
     type Key = String;
 

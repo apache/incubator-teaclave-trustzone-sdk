@@ -15,10 +15,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use crate::secure_db::SecureStorageDb;
+use crate::SecureStorageDb;
 use crate::Storable;
 use anyhow::{anyhow, Result};
 use std::{
+    string::ToString,
     collections::HashMap,
     convert::TryFrom,
     hash::Hash,
@@ -42,9 +43,9 @@ impl SecureStorageClient {
     pub fn get<V>(&self, key: &V::Key) -> Result<V>
     where
         V: Storable + serde::de::DeserializeOwned,
-        V::Key: Into<String> + Clone,
+        V::Key: ToString,
     {
-        let key: String = key.clone().into();
+        let key = key.to_string();
         let storage_key = V::concat_key(&key);
         let value = self
             .db
@@ -70,9 +71,9 @@ impl SecureStorageClient {
     pub fn delete_entry<V>(&self, key: &V::Key) -> Result<()>
     where
         V: Storable,
-        V::Key: Into<String> + Clone,
+        V::Key: ToString,
     {
-        let key: String = key.clone().into();
+        let key = key.to_string();
         let storage_key = V::concat_key(&key);
         self.db
             .write()
