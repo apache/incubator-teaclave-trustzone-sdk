@@ -18,22 +18,20 @@
 #![no_main]
 
 mod hash;
-mod secure_storage;
 mod wallet;
 
-use crate::secure_storage::{
-    delete_from_secure_storage, load_from_secure_storage, save_in_secure_storage,
-};
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{Error, ErrorKind, Parameters};
 use proto::Command;
+use secure_db::SecureStorageClient;
 
 use anyhow::{anyhow, bail, Result};
-use std::convert::TryInto;
 use std::io::Write;
 use wallet::Wallet;
+
+const DB_NAME: &str = "eth_wallet_db";
 
 #[ta_create]
 fn create() -> optee_utee::Result<()> {
@@ -73,8 +71,8 @@ fn create_wallet(_input: &proto::CreateWalletInput) -> Result<proto::CreateWalle
     let mnemonic = wallet.get_mnemonic()?;
     dbg_println!("[+] Wallet ID: {:?}", wallet_id);
 
-    let secure_object: Vec<u8> = wallet.try_into()?;
-    save_in_secure_storage(wallet_id.as_bytes(), &secure_object)?;
+    let db_client = SecureStorageClient::open(DB_NAME)?;
+    db_client.put(&wallet)?;
     dbg_println!("[+] Wallet saved in secure storage");
 
     Ok(proto::CreateWalletOutput {
@@ -86,18 +84,20 @@ fn create_wallet(_input: &proto::CreateWalletInput) -> Result<proto::CreateWalle
 fn remove_wallet(input: &proto::RemoveWalletInput) -> Result<proto::RemoveWalletOutput> {
     dbg_println!("[+] Removing wallet: {:?}", input.wallet_id);
 
-    delete_from_secure_storage(input.wallet_id.as_bytes())?;
+    let db_client = SecureStorageClient::open(DB_NAME)?;
+    db_client.delete_entry::<Wallet>(&input.wallet_id)?;
     dbg_println!("[+] Wallet removed");
 
     Ok(proto::RemoveWalletOutput {})
 }
 
 fn derive_address(input: &proto::DeriveAddressInput) -> Result<proto::DeriveAddressOutput> {
-    let secure_object = load_from_secure_storage(input.wallet_id.as_bytes())
+    let db_client = SecureStorageClient::open(DB_NAME)?;
+    let wallet = db_client
+        .get::<Wallet>(&input.wallet_id)
         .map_err(|e| anyhow!("[+] Deriving address: error: wallet not found: {:?}", e))?;
-    dbg_println!("[+] Deriving address: secure object loaded");
+    dbg_println!("[+] Deriving address: wallet loaded");
 
-    let wallet: Wallet = secure_object.try_into()?;
     let (address, public_key) = wallet.derive_address(&input.hd_path)?;
     dbg_println!("[+] Deriving address: address: {:?}", address);
     dbg_println!("[+] Deriving address: public key: {:?}", public_key);
@@ -109,11 +109,12 @@ fn derive_address(input: &proto::DeriveAddressInput) -> Result<proto::DeriveAddr
 }
 
 fn sign_transaction(input: &proto::SignTransactionInput) -> Result<proto::SignTransactionOutput> {
-    let secure_object = load_from_secure_storage(input.wallet_id.as_bytes())
+    let db_client = SecureStorageClient::open(DB_NAME)?;
+    let wallet = db_client
+        .get::<Wallet>(&input.wallet_id)
         .map_err(|e| anyhow!("[+] Sign transaction: error: wallet not found: {:?}", e))?;
-    dbg_println!("[+] Sign transaction: secure object loaded");
+    dbg_println!("[+] Sign transaction: wallet loaded");
 
-    let wallet: Wallet = secure_object.try_into()?;
     let signature = wallet.sign_transaction(&input.hd_path, &input.transaction)?;
     dbg_println!("[+] Sign transaction: signature: {:?}", signature);
 
