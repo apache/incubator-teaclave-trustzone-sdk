@@ -27,3 +27,7 @@ links = "teec"
 
 [dependencies]
 libc = "0.2.48" 
+
+[features]
+default=[]
+no_link=[]
