@@ -1,0 +1,112 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        required: true
+        type: string
+      expand-memory:
+        required: true
+        type: boolean
+        default: false
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  QEMUV8_BUILD_FOLDER: /tmp/qemuv8
+
+jobs:
+  build:
+    runs-on: ${{ inputs.runs-on }}
+    container: ubuntu:24.04
+    steps:
+      - name: Restore build cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/ccache
+            # cache build tool cache, helpful on arm64 host
+            ${{ env.QEMUV8_BUILD_FOLDER }}/out-aarch64-sdk
+            ${{ env.QEMUV8_BUILD_FOLDER }}/toolchains
+          key: builds-cache-${{ runner.arch }}${{ inputs.expand-memory && '-expand-ta-memory' || ''}}-${{ github.sha }}
+          restore-keys: |
+            builds-cache-${{ runner.arch }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get Output Name
+        id: output_name
+        run: echo "name=$(uname -m)-optee-qemuv8-ubuntu-24.04${{ inputs.expand-memory && '-expand-ta-memory' || ''}}" > $GITHUB_OUTPUT
+
+      - name: Install OP-TEE dependencies
+        run: |
+          ./setup_optee_dependencies.sh
+          
+      - name: Checkout OP-TEE repository
+        run: |
+          mkdir -p ${{ env.QEMUV8_BUILD_FOLDER }} && 
+          cd ${{ env.QEMUV8_BUILD_FOLDER }} &&
+          repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml &&
+          repo sync -j4 --no-clone-bundle
+
+      - name: Apply patches for Disabling WatchDog Test
+        run: |
+          (cd ${{ env.QEMUV8_BUILD_FOLDER }}/build && git apply $GITHUB_WORKSPACE/.patches/test_qemu/optee-build_disable_wd_test.patch)
+
+      - name: Apply patches for IPV6 support
+        run: |
+          (cd ${{ env.QEMUV8_BUILD_FOLDER }}/build && git apply $GITHUB_WORKSPACE/.patches/test_qemu/optee-build_ipv6_support.patch)
+
+      - name: Apply patches to expand memory
+        if: ${{ inputs.expand-memory == true }}
+        run: |
+          (cd ${{ env.QEMUV8_BUILD_FOLDER }}/build && git apply $GITHUB_WORKSPACE/.patches/test_qemu/optee-build_expand_memory.patch)
+          (cd ${{ env.QEMUV8_BUILD_FOLDER }}/qemu && git apply $GITHUB_WORKSPACE/.patches/test_qemu/qemu-qemu_expand_secure_memory.patch)
+          (cd ${{ env.QEMUV8_BUILD_FOLDER }}/trusted-firmware-a && git apply $GITHUB_WORKSPACE/.patches/test_qemu/arm-atf_expand_secure_memory.patch)
+
+      # cd to the output folder first to avoid extra path in the tar file.
+      - name: Build And Pack
+        env:
+          OUTPUT_NAME: ${{ steps.output_name.outputs.name }}
+          OUTPUT_FOLDER: /tmp/${{ steps.output_name.outputs.name }}
+        run: |
+          cd ${{ env.QEMUV8_BUILD_FOLDER }} &&
+          cd build &&
+          make toolchains -j$(nproc) &&
+          make all -j$(nproc) &&
+
+          mkdir -p ${{ env.OUTPUT_FOLDER }} &&
+          cp ${{ env.QEMUV8_BUILD_FOLDER }}/out/bin/* ${{ env.OUTPUT_FOLDER }} &&
+          cp ${{ env.QEMUV8_BUILD_FOLDER }}/qemu/build/qemu-system-aarch64 ${{ env.OUTPUT_FOLDER }} &&
+
+          mkdir -p $GITHUB_WORKSPACE/out &&
+          cd ${{ env.OUTPUT_FOLDER }} &&
+          cd .. &&
+          tar -czvf $GITHUB_WORKSPACE/out/${{ env.OUTPUT_NAME }}.tar.gz ${{ env.OUTPUT_NAME }}
+
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.output_name.outputs.name }}
+          path: |
+            out/*
+          if-no-files-found: error
