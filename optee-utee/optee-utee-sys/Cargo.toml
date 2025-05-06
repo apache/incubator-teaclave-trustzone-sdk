@@ -27,3 +27,7 @@ links = "utee"
 
 [dependencies]
 libc = "0.2"
+
+[features]
+default=[]
+no_link=[]

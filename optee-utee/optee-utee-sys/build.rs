@@ -15,26 +15,29 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use std::env;
+use std::env::{self, VarError};
 use std::path::Path;
 
-fn main() {
-    const ENV_SYS_BUILD_TYPE: &str = "SYS_BUILD_TYPE";
-    println!("cargo:rerun-if-env-changed={}", ENV_SYS_BUILD_TYPE);
+fn main() -> Result<(), VarError> {
+    if !is_feature_enable("no_link")? {
+        link();
+    }
+    Ok(())
+}
 
-    let build_type = env::var(ENV_SYS_BUILD_TYPE).unwrap_or(String::from("")).to_lowercase();
-    match build_type.as_str() {
-        "unit_test" => unit_test_build(),
-        _ => production_build(),
+// Check if feature enabled.
+// Refer to: https://doc.rust-lang.org/cargo/reference/features.html#build-scripts
+fn is_feature_enable(feature: &str) -> Result<bool, VarError> {
+    let feature_env = format!("CARGO_FEATURE_{}", feature.to_uppercase().replace("-", "_"));
+
+    match env::var(feature_env) {
+        Err(VarError::NotPresent) => Ok(false),
+        Ok(_) => Ok(true),
+        Err(err) => Err(err),
     }
 }
 
-// this allow developers to run unit tests in host machine by
-// SYS_BUILD_TYPE=unit_test cargo test --lib --features no_panic_handler
-fn unit_test_build() {
-}
-
-fn production_build() {
+fn link() {
     let optee_os_dir = env::var("TA_DEV_KIT_DIR").unwrap();
     let search_path = Path::new(&optee_os_dir).join("lib");
 
