@@ -84,7 +84,7 @@ branch (`main`), please refer to the
 - **`no-std`**: Excludes `test_serde`, `test_message_passing_interface`,
   `test_tls_client`, `test_tls_server`, `test_secure_db_abstraction`.
 
-- **`std`**: Excludes `test_mnist_rs`.
+- **`std`**: Excludes `test_mnist_rs`, `test_build_with_optee_utee_sys`.
 
 
 ## Quick Start with the OP-TEE Repo for QEMUv8

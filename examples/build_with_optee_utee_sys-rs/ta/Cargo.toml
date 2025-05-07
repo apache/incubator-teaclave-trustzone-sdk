@@ -1,0 +1,50 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+[package]
+name = "ta"
+version = "0.4.0"
+authors = ["Teaclave Contributors <dev@teaclave.apache.org>"]
+license = "Apache-2.0"
+repository = "https://github.com/apache/incubator-teaclave-trustzone-sdk.git"
+description = "An example of Rust OP-TEE TrustZone SDK."
+edition = "2021"
+
+[dependencies]
+proto = { path = "../proto" }
+optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys" }
+optee-utee = { path = "../../../optee-utee" }
+
+[build-dependencies]
+proto = { path = "../proto" }
+optee-utee-build = { path = "../../../optee-utee-build" }
+optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys", features = ["no_link"] }
+
+[profile.release]
+panic = "abort"
+lto = true
+opt-level = 1
+
+[workspace]
+# We are using Rust edition 2018 and specify optee-utee-sys in both dependencies
+# and build-dependencies, so we must set workspace.resolver = "2" to prevent
+# feature unification.
+
+# For reference:
+# 1. resolver version 2: https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2
+# 2. resolver versions: https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
+resolver = "2"
