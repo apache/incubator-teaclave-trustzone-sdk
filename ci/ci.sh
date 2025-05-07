@@ -33,6 +33,7 @@ if [ "$STD" ]; then
     ./test_secure_db_abstraction.sh
 else
     ./test_mnist_rs.sh
+    ./test_build_with_optee_utee_sys.sh
 fi
 
 ./test_hello_world.sh
