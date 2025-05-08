@@ -33,7 +33,7 @@ jobs:
     uses: ./.github/workflows/reuse_test.yml
     with:
       runs-on: ubuntu-latest
-      container: yuanz0/teaclave-trustzone-sdk:ubuntu-24.04
+      container: ghcr.io/ivila/teaclave-trustzone-sdk-ci-runner:ubuntu-24.04
 
   # Run test on ARM64 host
   test-on-arm64-host:

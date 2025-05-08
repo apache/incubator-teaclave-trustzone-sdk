@@ -17,6 +17,7 @@
 
 FROM ubuntu:24.04
 MAINTAINER Teaclave Contributors <dev@teaclave.apache.org>
+LABEL org.opencontainers.image.description "Github CI Runner"
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies for building OP-TEE
@@ -76,4 +77,5 @@ RUN apt-get update && \
     libvdeplug-dev \
     libsdl2-dev \
     pip \
-    ca-certificates
+    ca-certificates \
+    libgnutls28-dev
