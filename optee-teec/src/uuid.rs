@@ -149,9 +149,9 @@ mod tests {
             "11173366-2aca-19bc-beb7-10c975e6131e", // random uuid
         ];
         for origin in uuids.iter() {
-            let uuid = Uuid::parse_str(origin).unwrap();
-            let formatted = uuid.to_string();
-            assert_eq!(origin, &formatted);
+            let uuid = Uuid::parse_str(origin);
+            let formatted = uuid.map(|x| x.to_string());
+            assert_eq!(Ok(origin.to_string()), formatted);
         }
     }
 }
