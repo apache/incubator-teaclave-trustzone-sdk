@@ -25,7 +25,9 @@ description = "An example of Rust OP-TEE TrustZone SDK."
 edition = "2018"
 
 [dependencies]
-url = "2.5.0"
+# url 2.5.4 requires rustc 1.82, temporarily downgrade it. Remove the limitation
+# once we upgrade our STD rustc.
+url = "=2.5.0"
 proto = { path = "../proto" }
 optee-teec = { path = "../../../optee-teec" }
 
