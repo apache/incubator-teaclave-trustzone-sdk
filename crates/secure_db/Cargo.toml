@@ -16,28 +16,14 @@
 # under the License.
 
 [package]
-name = "ta"
+name = "secure_db"
 version = "0.1.0"
-authors = ["Teaclave Contributors <dev@teaclave.apache.org>"]
-license = "Apache-2.0"
-repository = "https://github.com/apache/incubator-teaclave-trustzone-sdk.git"
-description = "An example of Rust OP-TEE TrustZone SDK."
-edition = "2018"
+edition = "2021"
 
 [dependencies]
-proto = { path = "../proto" }
-optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys" }
-optee-utee = { path = "../../../optee-utee" }
-secure_db = { path = "../../../crates/secure_db" }
+optee-utee-sys = { path = "../../optee-utee/optee-utee-sys" }
+optee-utee = { path = "../../optee-utee" }
 
-anyhow = "1.0"
+bincode = "1.0"
+anyhow = "1.0" 
 serde = { version = "1.0", features = ["derive"] }
-
-[build-dependencies]
-proto = { path = "../proto" }
-optee-utee-build = { path = "../../../optee-utee-build" }
-
-[profile.release]
-panic = "abort"
-lto = true
-opt-level = 1

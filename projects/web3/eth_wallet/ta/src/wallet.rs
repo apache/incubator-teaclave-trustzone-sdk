@@ -25,11 +25,20 @@ use crate::hash::keccak_hash_to_bytes;
 use ethereum_tx_sign::Transaction;
 use optee_utee::Random;
 use proto::EthTransaction;
+use secure_db::Storable;
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 pub struct Wallet {
     id: Uuid,
     entropy: Vec<u8>,
+}
+
+impl Storable for Wallet {
+    type Key = Uuid;
+
+    fn unique_id(&self) -> Self::Key {
+        self.id
+    }
 }
 
 impl Wallet {

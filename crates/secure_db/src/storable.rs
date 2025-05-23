@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use std::{convert::TryFrom, hash::Hash};
+use std::hash::Hash;
 
 // For each key-value data, the storage key is "$TABLE_NAME#$KEY"
 // For example, if we store the Data whose type is Structure named
@@ -25,7 +25,7 @@ use std::{convert::TryFrom, hash::Hash};
 const CONCAT: &str = "#";
 
 pub trait Storable {
-    type Key: Into<String> + Clone + TryFrom<String> + Eq + Hash; // Associated type `Key`
+    type Key: ToString + Eq + Hash; // Associated type `Key`
 
     fn unique_id(&self) -> Self::Key;
 
@@ -42,7 +42,7 @@ pub trait Storable {
             "{}{}{}",
             Self::table_name(),
             CONCAT,
-            Into::<String>::into(self.unique_id())
+            self.unique_id().to_string()
         )
     }
 

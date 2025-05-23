@@ -18,22 +18,45 @@
 #![no_main]
 
 mod hash;
-mod secure_storage;
 mod wallet;
 
-use crate::secure_storage::{
-    delete_from_secure_storage, load_from_secure_storage, save_in_secure_storage,
-};
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{Error, ErrorKind, Parameters};
 use proto::Command;
+use secure_db::SecureStorageClient;
 
 use anyhow::{anyhow, bail, Result};
-use std::convert::TryInto;
 use std::io::Write;
 use wallet::Wallet;
+
+const DB_NAME: &str = "eth_wallet_db";
+
+/// Represents the session context for the Ethereum wallet Trusted Application (TA).
+///
+/// The `WalletSession` struct manages session-specific data and provides access
+/// to the secure storage client (`SecureStorageClient`) for database operations.
+pub struct WalletSession {
+    db_client: SecureStorageClient,
+}
+
+impl WalletSession {
+    pub fn new() -> Result<Self> {
+        let db_client = SecureStorageClient::open(DB_NAME)
+            .map_err(|e| anyhow!("Failed to create SecureStorageClient: {:?}", e))?;
+        Ok(Self { db_client })
+    }
+}
+
+impl Default for WalletSession {
+    fn default() -> Self {
+        Self::new().unwrap_or_else(|e| {
+            trace_println!("Error initializing WalletSession: {:?}", e);
+            panic!("Failed to initialize WalletSession");
+        })
+    }
+}
 
 #[ta_create]
 fn create() -> optee_utee::Result<()> {
@@ -42,13 +65,19 @@ fn create() -> optee_utee::Result<()> {
 }
 
 #[ta_open_session]
-fn open_session(_params: &mut Parameters) -> optee_utee::Result<()> {
+// The _sess_ctx: &mut WalletSession is explicitly defined here to fit into the
+// macros definition (optee-utee/macros/src/lib.rs), meaning that we have a
+// context for the session which would be initialized in the open_session() method.
+// The context is initialized automatically by calling WalletSession::default()
+// in the macro.
+fn open_session(_params: &mut Parameters, _sess_ctx: &mut WalletSession) -> optee_utee::Result<()> {
     trace_println!("[+] TA open session");
+
     Ok(())
 }
 
 #[ta_close_session]
-fn close_session() {
+fn close_session(_sess_ctx: &mut WalletSession) {
     trace_println!("[+] TA close session");
 }
 
@@ -67,14 +96,16 @@ macro_rules! dbg_println {
     ($($arg:tt)*) => {};
 }
 
-fn create_wallet(_input: &proto::CreateWalletInput) -> Result<proto::CreateWalletOutput> {
+fn create_wallet(
+    db_client: &SecureStorageClient,
+    _input: &proto::CreateWalletInput,
+) -> Result<proto::CreateWalletOutput> {
     let wallet = Wallet::new()?;
     let wallet_id = wallet.get_id();
     let mnemonic = wallet.get_mnemonic()?;
     dbg_println!("[+] Wallet ID: {:?}", wallet_id);
 
-    let secure_object: Vec<u8> = wallet.try_into()?;
-    save_in_secure_storage(wallet_id.as_bytes(), &secure_object)?;
+    db_client.put(&wallet)?;
     dbg_println!("[+] Wallet saved in secure storage");
 
     Ok(proto::CreateWalletOutput {
@@ -83,21 +114,27 @@ fn create_wallet(_input: &proto::CreateWalletInput) -> Result<proto::CreateWalle
     })
 }
 
-fn remove_wallet(input: &proto::RemoveWalletInput) -> Result<proto::RemoveWalletOutput> {
+fn remove_wallet(
+    db_client: &SecureStorageClient,
+    input: &proto::RemoveWalletInput,
+) -> Result<proto::RemoveWalletOutput> {
     dbg_println!("[+] Removing wallet: {:?}", input.wallet_id);
 
-    delete_from_secure_storage(input.wallet_id.as_bytes())?;
+    db_client.delete_entry::<Wallet>(&input.wallet_id)?;
     dbg_println!("[+] Wallet removed");
 
     Ok(proto::RemoveWalletOutput {})
 }
 
-fn derive_address(input: &proto::DeriveAddressInput) -> Result<proto::DeriveAddressOutput> {
-    let secure_object = load_from_secure_storage(input.wallet_id.as_bytes())
+fn derive_address(
+    db_client: &SecureStorageClient,
+    input: &proto::DeriveAddressInput,
+) -> Result<proto::DeriveAddressOutput> {
+    let wallet = db_client
+        .get::<Wallet>(&input.wallet_id)
         .map_err(|e| anyhow!("[+] Deriving address: error: wallet not found: {:?}", e))?;
-    dbg_println!("[+] Deriving address: secure object loaded");
+    dbg_println!("[+] Deriving address: wallet loaded");
 
-    let wallet: Wallet = secure_object.try_into()?;
     let (address, public_key) = wallet.derive_address(&input.hd_path)?;
     dbg_println!("[+] Deriving address: address: {:?}", address);
     dbg_println!("[+] Deriving address: public key: {:?}", public_key);
@@ -108,46 +145,62 @@ fn derive_address(input: &proto::DeriveAddressInput) -> Result<proto::DeriveAddr
     })
 }
 
-fn sign_transaction(input: &proto::SignTransactionInput) -> Result<proto::SignTransactionOutput> {
-    let secure_object = load_from_secure_storage(input.wallet_id.as_bytes())
+fn sign_transaction(
+    db_client: &SecureStorageClient,
+    input: &proto::SignTransactionInput,
+) -> Result<proto::SignTransactionOutput> {
+    let wallet = db_client
+        .get::<Wallet>(&input.wallet_id)
         .map_err(|e| anyhow!("[+] Sign transaction: error: wallet not found: {:?}", e))?;
-    dbg_println!("[+] Sign transaction: secure object loaded");
+    dbg_println!("[+] Sign transaction: wallet loaded");
 
-    let wallet: Wallet = secure_object.try_into()?;
     let signature = wallet.sign_transaction(&input.hd_path, &input.transaction)?;
     dbg_println!("[+] Sign transaction: signature: {:?}", signature);
 
     Ok(proto::SignTransactionOutput { signature })
 }
 
-fn handle_invoke(command: Command, serialized_input: &[u8]) -> Result<Vec<u8>> {
-    fn process<T: serde::de::DeserializeOwned, U: serde::Serialize, F: Fn(&T) -> Result<U>>(
+fn handle_invoke(
+    db_client: &SecureStorageClient,
+    command: Command,
+    serialized_input: &[u8],
+) -> Result<Vec<u8>> {
+    fn process<
+        T: serde::de::DeserializeOwned,
+        U: serde::Serialize,
+        F: Fn(&SecureStorageClient, &T) -> Result<U>,
+    >(
+        db_client: &SecureStorageClient,
         serialized_input: &[u8],
         handler: F,
     ) -> Result<Vec<u8>> {
         let input: T = bincode::deserialize(serialized_input)?;
-        let output = handler(&input)?;
+        let output = handler(db_client, &input)?;
         let serialized_output = bincode::serialize(&output)?;
         Ok(serialized_output)
     }
 
     match command {
-        Command::CreateWallet => process(serialized_input, create_wallet),
-        Command::RemoveWallet => process(serialized_input, remove_wallet),
-        Command::DeriveAddress => process(serialized_input, derive_address),
-        Command::SignTransaction => process(serialized_input, sign_transaction),
+        Command::CreateWallet => process(db_client, serialized_input, create_wallet),
+        Command::RemoveWallet => process(db_client, serialized_input, remove_wallet),
+        Command::DeriveAddress => process(db_client, serialized_input, derive_address),
+        Command::SignTransaction => process(db_client, serialized_input, sign_transaction),
         _ => bail!("Unsupported command"),
     }
 }
 
 #[ta_invoke_command]
-fn invoke_command(cmd_id: u32, params: &mut Parameters) -> optee_utee::Result<()> {
+fn invoke_command(
+    sess_ctx: &mut WalletSession,
+    cmd_id: u32,
+    params: &mut Parameters,
+) -> optee_utee::Result<()> {
     dbg_println!("[+] TA invoke command");
     let mut p0 = unsafe { params.0.as_memref()? };
     let mut p1 = unsafe { params.1.as_memref()? };
     let mut p2 = unsafe { params.2.as_value()? };
 
-    let output_vec = match handle_invoke(Command::from(cmd_id), p0.buffer()) {
+    let output_vec = match handle_invoke(&sess_ctx.db_client, Command::from(cmd_id), p0.buffer()) {
         Ok(output) => output,
         Err(e) => {
             let err_message = format!("{:?}", e).as_bytes().to_vec();
