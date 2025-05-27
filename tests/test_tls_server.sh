@@ -24,8 +24,8 @@ NEED_EXPANDED_MEM=true
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/tls_server-rs/ta/target/$TARGET_TA/release/*.ta shared
-cp ../examples/tls_server-rs/host/target/$TARGET_HOST/release/tls_server-rs shared
+cp ../examples/tls_server-rs/ta/target/$TARGET_TA/release/*.ta$QEMU_HOST_SHARE_DIR
+cp ../examples/tls_server-rs/host/target/$TARGET_HOST/release/tls_server-rs$QEMU_HOST_SHARE_DIR
 
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"

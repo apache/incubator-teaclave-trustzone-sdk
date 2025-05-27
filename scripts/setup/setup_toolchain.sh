@@ -47,3 +47,13 @@ if [[ "$(uname -m)" == "aarch64" ]]; then
 else
     apt update && apt -y install gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
 fi
+
+##########################################
+# Create QEMU shared dir if it does not exist, it used for sharing CA and TA between host and QEMU emulator.
+export QEMU_HOST_SHARE_DIR=${TEACLAVE_PREBUILT_DIR}/shared
+if [ -d "$QEMU_HOST_SHARE_DIR" ]; then
+    echo "QEMU shared directory already exists: $QEMU_HOST_SHARE_DIR"
+else
+    echo "Creating QEMU shared directory: $QEMU_HOST_SHARE_DIR"
+    mkdir -p "$QEMU_HOST_SHARE_DIR"
+fi

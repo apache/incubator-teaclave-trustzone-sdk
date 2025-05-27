@@ -23,8 +23,8 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../projects/web3/eth_wallet/ta/target/$TARGET_TA/release/*.ta shared
-cp ../projects/web3/eth_wallet/host/target/$TARGET_HOST/release/eth_wallet-rs shared
+cp ../projects/web3/eth_wallet/ta/target/$TARGET_TA/release/*.ta$QEMU_HOST_SHARE_DIR
+cp ../projects/web3/eth_wallet/host/target/$TARGET_HOST/release/eth_wallet-rs$QEMU_HOST_SHARE_DIR
 
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"

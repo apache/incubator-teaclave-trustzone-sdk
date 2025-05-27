@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -17,29 +15,17 @@
 # specific language governing permissions and limitations
 # under the License.
 
-set -xe
+# This script sets up the environment for building applications.
 
-# Include base script
-source setup.sh
+# Check if TEACLAVE_PREBUILT_DIR is set, if not, return an error
+if [ -z "$TEACLAVE_PREBUILT_DIR" ]; then
+    echo "TEACLAVE_PREBUILT_DIR is not set. Please set it to the directory containing prebuilt files."
+    exit 1
+fi
 
-# Copy TA and host binary
-cp ../examples/random-rs/ta/target/$TARGET_TA/release/*.ta$QEMU_HOST_SHARE_DIR
-cp ../examples/random-rs/host/target/$TARGET_HOST/release/random-rs$QEMU_HOST_SHARE_DIR
+export OPTEE_DIR=${TEACLAVE_PREBUILT_DIR}/optee
+export RUST_STD_DIR=${TEACLAVE_PREBUILT_DIR}/rust
+export QEMU_HOST_SHARE_DIR=${TEACLAVE_PREBUILT_DIR}/shared
 
-# Run script specific commands in QEMU
-run_in_qemu "cp *.ta /lib/optee_armtz/\n"
-run_in_qemu "./random-rs\n"
-run_in_qemu "^C"
-
-# Script specific checks
-{
-    grep -q "Invoking TA to generate random UUID" screenlog.0 &&
-    grep -q "Generate random UUID: [a-z0-9]*-[a-z0-9]*-[a-z0-9]*-[a-z0-9]*" screenlog.0 &&
-    grep -q "Success" screenlog.0
-} || {
-        cat -v screenlog.0
-        cat -v /tmp/serial.log
-        false
-}
-
-rm screenlog.0
+# This is used for building OP-TEE OS and Client libraries, can be parameterized later
+export OPTEE_VERSION=4.5.0

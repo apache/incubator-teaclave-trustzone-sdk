@@ -18,109 +18,22 @@
 FROM ubuntu:24.04
 
 # Base environment
-ENV TEACLAVE_BASE_DIR=/root/teaclave_sdk_prebuilt
+ENV TEACLAVE_PREBUILT_DIR=/root/teaclave_sdk_prebuilt
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Derived paths from TEACLAVE_BASE_DIR
-ENV OPTEE_DIR=${TEACLAVE_BASE_DIR}/optee \
-    RUST_STD_DIR=${TEACLAVE_BASE_DIR}/rust \
-    QEMU_HOST_SHARE_DIR=${TEACLAVE_BASE_DIR}/shared \
-    OPTEE_VERSION=4.5.0 \
-    DEBIAN_FRONTEND=noninteractive \
-    CARGO_NET_GIT_FETCH_WITH_CLI=true
+# Copy from current build context (the same directory as Dockerfile)
+COPY scripts/setup /tmp/scripts/setup
 
-WORKDIR ${TEACLAVE_BASE_DIR}
+# Use bash shell to allow sourcing, and run all setup steps in a single RUN to persist `env`
+SHELL ["/bin/bash", "-c"]
 
-# Install OP-TEE build dependencies and gcc toolchains
-RUN apt-get update && apt-get install -y \
-    git \
-    android-tools-adb \
-    android-tools-fastboot \
-    autoconf \
-    automake \
-    bc \
-    bison \
-    build-essential \
-    ccache \
-    cscope \
-    curl \
-    device-tree-compiler \
-    expect \
-    flex \
-    ftp-upload \
-    gdisk \
-    iasl \
-    libattr1-dev \
-    libcap-dev \
-    libfdt-dev \
-    libftdi-dev \
-    libglib2.0-dev \
-    libgmp-dev \
-    libhidapi-dev \
-    libmpc-dev \
-    libncurses5-dev \
-    libpixman-1-dev \
-    libssl-dev \
-    libtool \
-    make \
-    mtools \
-    ninja-build \
-    python3 \
-    python3-pycryptodome \
-    python3-pyelftools \
-    python3-serial \
-    python3-cryptography \
-    python3-tomli \
-    rsync \
-    repo \
-    unzip \
-    uuid-dev \
-    xdg-utils \
-    xterm \
-    xz-utils \
-    zlib1g-dev \
-    wget \
-    cpio \
-    libcap-ng-dev \
-    libslirp-dev \
-    screen \
-    libvdeplug-dev \
-    libsdl2-dev \
-    python3-pip \
-    ca-certificates \
-    libgnutls28-dev \
-    gcc \
-    gcc-aarch64-linux-gnu \
-    gcc-arm-linux-gnueabihf
+# Run setup scripts and persist env variables for interactive shells
+RUN cd /tmp/scripts/setup && \
+    source setup_env && \
+    bash setup_optee_dependencies.sh && \
+    bash setup_toolchain.sh && \
+    bash build_optee_libraries.sh && \
+    echo "source /tmp/scripts/setup/setup_env" >> /root/.bashrc
 
-# Install Rust with rustup
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | \
-    sh -s -- -y && \
-    . "$HOME/.cargo/env" && \
-    rustup self update && \
-    rustup uninstall stable && \
-    rustup install stable
-
-ENV PATH="/root/.cargo/bin:${PATH}"
-
-# Clone OP-TEE repo
-RUN mkdir -p ${OPTEE_DIR} && cd ${OPTEE_DIR} && \
-    git config --global user.name "docker" && \
-    git config --global user.email "docker@localhost" && \
-    repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml -b ${OPTEE_VERSION} && \
-    repo sync -j4
-
-# Set environment for cross-compilation of OP-TEE exported libs for TA linking
-ENV CROSS_COMPILE32=arm-linux-gnueabihf-
-ENV CROSS_COMPILE64=aarch64-linux-gnu-
-
-RUN cd $OPTEE_DIR/optee_os && make PLATFORM=vexpress-qemu_armv8a && \
-    cd $OPTEE_DIR/optee_client && \
-    make WITH_TEEACL=0 DESTDIR=$PWD/export_arm32 CROSS_COMPILE=$CROSS_COMPILE32 && \
-    make clean && \
-    make WITH_TEEACL=0 DESTDIR=$PWD/export_arm64 CROSS_COMPILE=$CROSS_COMPILE64
-
-# Create shared directory for CA and TA copying to QEMU guest
-RUN mkdir -p ${QEMU_HOST_SHARE_DIR}
-
+# Start interactive shell
 CMD ["/bin/bash"]
-

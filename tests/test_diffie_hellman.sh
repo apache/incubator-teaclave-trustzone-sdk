@@ -23,8 +23,8 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/diffie_hellman-rs/ta/target/$TARGET_TA/release/*.ta shared
-cp ../examples/diffie_hellman-rs/host/target/$TARGET_HOST/release/diffie_hellman-rs shared
+cp ../examples/diffie_hellman-rs/ta/target/$TARGET_TA/release/*.ta$QEMU_HOST_SHARE_DIR
+cp ../examples/diffie_hellman-rs/host/target/$TARGET_HOST/release/diffie_hellman-rs$QEMU_HOST_SHARE_DIR
 
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"

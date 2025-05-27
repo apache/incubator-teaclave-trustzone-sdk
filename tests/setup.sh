@@ -19,24 +19,6 @@
 
 set -xe
 
-# Default value for NEED_EXPANDED_MEM
-: ${NEED_EXPANDED_MEM:=false}
-
-# Define IMG_VERSION
-IMG_VERSION="$(uname -m)-optee-qemuv8-ubuntu-24.04"
-
-# Set IMG based on NEED_EXPANDED_MEM
-if [ "$NEED_EXPANDED_MEM" = true ]; then
-    IMG="${IMG_VERSION}-expand-ta-memory"
-else
-    IMG="$IMG_VERSION"
-fi
-
-# Function to download image
-download_image() {
-    curl "https://nightlies.apache.org/teaclave/teaclave-trustzone-sdk/${IMG}.tar.gz" | tar zxv
-}
-
 # Functions for running commands in QEMU screen
 run_in_qemu() {
     (screen -S qemu_screen -p 0 -X stuff "$1\n") || (echo "run_in_qemu '$1' failed" && cat /tmp/serial.log)
@@ -48,18 +30,8 @@ run_in_qemu_with_timeout_secs() {
     sleep $2
 }
 
-# Check if the image file exists locally
-if [ ! -d "${IMG}" ]; then
-    echo "Image file '${IMG}' not found locally. Downloading from network."
-    download_image
-else
-    echo "Image file '${IMG}' found locally."
-fi
-
-mkdir -p shared
-
 # Start QEMU screen
-screen -L -d -m -S qemu_screen ./optee-qemuv8.sh $IMG
+screen -L -d -m -S qemu_screen $TEACLAVE_SRC_DIR/scripts/emulator/optee-qemuv8.sh
 sleep 30
 run_in_qemu "root"
 run_in_qemu "mkdir -p shared && mount -t 9p -o trans=virtio host shared && cd shared"

@@ -23,8 +23,8 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/message_passing_interface-rs/ta/target/$TARGET_TA/release/*.ta shared
-cp ../examples/message_passing_interface-rs/host/target/$TARGET_HOST/release/message_passing_interface-rs shared
+cp ../examples/message_passing_interface-rs/ta/target/$TARGET_TA/release/*.ta$QEMU_HOST_SHARE_DIR
+cp ../examples/message_passing_interface-rs/host/target/$TARGET_HOST/release/message_passing_interface-rs$QEMU_HOST_SHARE_DIR
 
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"

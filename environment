@@ -15,15 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
+export TEACLAVE_SRC_DIR="$(pwd)"
 export PATH=$PATH:$HOME/.cargo/bin
 # for std: specify the target json file
 export RUST_TARGET_PATH="$(pwd)"
-
-if [ -z "$OPTEE_DIR" ]
-then
-  echo -e "OPTEE_DIR has not set, use $PWD/optee/ as default\n"
-  export OPTEE_DIR=$PWD/optee
-fi
 
 export OPTEE_OS_DIR="$OPTEE_DIR/optee_os"
 export OPTEE_CLIENT_DIR="$OPTEE_DIR/optee_client"

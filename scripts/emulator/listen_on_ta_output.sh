@@ -17,20 +17,11 @@
 # specific language governing permissions and limitations
 # under the License.
 
-cd $1 && ./qemu-system-aarch64 \
-    -nodefaults \
-    -nographic \
-    -serial stdio -serial file:/tmp/serial.log \
-    -smp 2 \
-    -s -machine virt,secure=on,acpi=off,gic-version=3 \
-    -cpu cortex-a57 \
-    -d unimp -semihosting-config enable=on,target=native \
-    -m 1057 \
-    -bios bl1.bin \
-    -initrd rootfs.cpio.gz \
-    -append 'console=ttyAMA0,115200 keep_bootcon root=/dev/vda2' \
-    -kernel Image \
-    -fsdev local,id=fsdev0,path=$(pwd)/../shared,security_model=none \
-    -device virtio-9p-device,fsdev=fsdev0,mount_tag=host \
-    -netdev user,id=vmnic,hostfwd=:127.0.0.1:54433-:4433 \
-    -device virtio-net-device,netdev=vmnic
+# This script listens on TCP port 54321 for output from the Trusted Application (TA) running in the OP-TEE emulator.
+
+set -e
+
+echo "Listening on TCP port 54321 for TA output..."
+
+# Listen on TCP 54321, output data to stdout
+socat TCP-LISTEN:54321,reuseaddr,fork -,raw,echo=0

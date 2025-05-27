@@ -23,10 +23,10 @@ set -xe
 source setup.sh
 
 # Copy hello_world-rs TA for testing
-cp ../examples/hello_world-rs/ta/target/$TARGET_TA/release/*.ta shared
+cp ../examples/hello_world-rs/ta/target/$TARGET_TA/release/*.ta$QEMU_HOST_SHARE_DIR
 # Copy TA and host binary
-cp ../examples/inter_ta-rs/host/target/$TARGET_HOST/release/inter_ta-rs shared
-cp ../examples/inter_ta-rs/ta/target/$TARGET_TA/release/*.ta shared
+cp ../examples/inter_ta-rs/host/target/$TARGET_HOST/release/inter_ta-rs$QEMU_HOST_SHARE_DIR
+cp ../examples/inter_ta-rs/ta/target/$TARGET_TA/release/*.ta$QEMU_HOST_SHARE_DIR
 
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"

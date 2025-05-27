@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/expect -f
 
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -17,29 +17,24 @@
 # specific language governing permissions and limitations
 # under the License.
 
-set -xe
+# This script helps to listen on the guest vm terminal and automatically mount the shared folder.
 
-# Include base script
-source setup.sh
+set timeout -1
 
-# Copy TA and host binary
-cp ../examples/random-rs/ta/target/$TARGET_TA/release/*.ta$QEMU_HOST_SHARE_DIR
-cp ../examples/random-rs/host/target/$TARGET_HOST/release/random-rs$QEMU_HOST_SHARE_DIR
+spawn socat TCP-LISTEN:54320,reuseaddr,fork -,raw,echo=0
+send_user "Listening on TCP port 54320 for guest vm output...\n"
 
-# Run script specific commands in QEMU
-run_in_qemu "cp *.ta /lib/optee_armtz/\n"
-run_in_qemu "./random-rs\n"
-run_in_qemu "^C"
-
-# Script specific checks
-{
-    grep -q "Invoking TA to generate random UUID" screenlog.0 &&
-    grep -q "Generate random UUID: [a-z0-9]*-[a-z0-9]*-[a-z0-9]*-[a-z0-9]*" screenlog.0 &&
-    grep -q "Success" screenlog.0
-} || {
-        cat -v screenlog.0
-        cat -v /tmp/serial.log
-        false
+expect {
+    -re "buildroot login:" {
+        send "root\r"
+        exp_continue
+    }
+    -re "# $" {
+        send "mkdir shared && mount -t 9p -o trans=virtio host shared && cd shared\r"
+        interact
+    }
+    timeout {
+        puts "Timeout waiting for login prompt"
+        exit 1
+    }
 }
-
-rm screenlog.0

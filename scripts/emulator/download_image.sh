@@ -17,7 +17,19 @@
 # specific language governing permissions and limitations
 # under the License.
 
+# This script downloads an image file to a specified directory if it does not already exist.
+
 set -xe
 
-rm -rf screenlog.0 shared
-rm -rf optee-qemuv8-*
+IMG_DIRECTORY=$1
+IMG_NAME=$2
+IMG="${IMG_DIRECTORY}/${IMG_NAME}"
+
+# Check if the image file exists locally
+if [ ! -d "${IMG}" ]; then
+    echo "Image file '${IMG}' not found locally. Downloading from network."
+    curl "https://nightlies.apache.org/teaclave/teaclave-trustzone-sdk/${IMG_NAME}.tar.gz" | tar zxv -C "$IMG_DIRECTORY"
+
+else
+    echo "Image file '${IMG}' found locally."
+fi
