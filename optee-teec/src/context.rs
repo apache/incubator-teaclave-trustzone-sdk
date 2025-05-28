@@ -15,7 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use crate::{raw, Error, Operation, Param, ParamNone, Result, Session, Uuid};
+use crate::{raw, ConnectionMethods, Error, Operation, Param, ParamNone, Result, Session, Uuid};
 use std::{cell::RefCell, ptr, rc::Rc};
 
 pub struct InnerContext(pub raw::TEEC_Context);
@@ -90,6 +90,20 @@ impl Context {
         Session::new(
             self,
             uuid,
+            ConnectionMethods::LoginPublic,
+            None::<&mut Operation<ParamNone, ParamNone, ParamNone, ParamNone>>,
+        )
+    }
+
+    pub fn open_session_with_login(
+        &mut self,
+        uuid: Uuid,
+        login: ConnectionMethods,
+    ) -> Result<Session> {
+        Session::new(
+            self,
+            uuid,
+            login,
             None::<&mut Operation<ParamNone, ParamNone, ParamNone, ParamNone>>,
         )
     }
@@ -121,7 +135,7 @@ impl Context {
         uuid: Uuid,
         operation: &mut Operation<A, B, C, D>,
     ) -> Result<Session> {
-        Session::new(self, uuid, Some(operation))
+        Session::new(self, uuid, ConnectionMethods::LoginPublic, Some(operation))
     }
 }
 

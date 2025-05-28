@@ -56,6 +56,7 @@ impl Session {
     pub fn new<A: Param, B: Param, C: Param, D: Param>(
         context: &mut Context,
         uuid: Uuid,
+        login: ConnectionMethods,
         operation: Option<&mut Operation<A, B, C, D>>,
     ) -> Result<Self> {
         // SAFETY:
@@ -78,7 +79,7 @@ impl Session {
                 raw_ctx,
                 &mut raw_session,
                 raw_uuid,
-                ConnectionMethods::LoginPublic as u32,
+                login as u32,
                 ptr::null(),
                 raw_operation,
                 &mut err_origin,
