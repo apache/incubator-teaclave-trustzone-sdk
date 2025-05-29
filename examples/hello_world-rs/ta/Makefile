@@ -41,5 +41,13 @@ sign: strip
 	@$(SIGN) --uuid $(UUID) --key $(TA_SIGN_KEY) --in $(OUT_DIR)/stripped_ta --out $(OUT_DIR)/$(UUID).ta
 	@echo "SIGN =>  ${UUID}"
 
+install:
+ifndef DESTDIR
+	$(error DESTDIR is not set. Please run 'make install DESTDIR=/your/path')
+endif
+	@echo "Installing TA to $(DESTDIR)"
+	@mkdir -p $(DESTDIR)
+	@cp $(OUT_DIR)/$(UUID).ta $(DESTDIR)/
+
 clean:
 	@cargo clean

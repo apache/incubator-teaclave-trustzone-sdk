@@ -17,6 +17,9 @@
 
 # This script sets up the environment for building applications.
 
+# TODO: This is used for building OP-TEE OS and Client libraries, can be parameterized later
+export OPTEE_VERSION=4.5.0
+
 # Check if TEACLAVE_PREBUILT_DIR is set, if not, return an error
 if [ -z "$TEACLAVE_PREBUILT_DIR" ]; then
     echo "TEACLAVE_PREBUILT_DIR is not set. Please set it to the directory containing prebuilt files."
@@ -24,8 +27,24 @@ if [ -z "$TEACLAVE_PREBUILT_DIR" ]; then
 fi
 
 export OPTEE_DIR=${TEACLAVE_PREBUILT_DIR}/optee
-export RUST_STD_DIR=${TEACLAVE_PREBUILT_DIR}/rust
-export QEMU_HOST_SHARE_DIR=${TEACLAVE_PREBUILT_DIR}/shared
+export OPTEE_OS_DIR=${OPTEE_DIR}/optee_os
+export OPTEE_CLIENT_DIR=${OPTEE_DIR}/optee_client
 
-# This is used for building OP-TEE OS and Client libraries, can be parameterized later
-export OPTEE_VERSION=4.5.0
+export RUST_STD_DIR=${TEACLAVE_PREBUILT_DIR}/rust
+export RUST_TARGET_PATH=${TEACLAVE_PREBUILT_DIR}/scripts/std
+export PATH=$PATH:$HOME/.cargo/bin
+
+export QEMU_HOST_SHARE_DIR=${TEACLAVE_PREBUILT_DIR}/shared
+export IMG_VERSION="$(uname -m)-optee-qemuv8-ubuntu-24.04"
+export IMG_DIRECTORY=${TEACLAVE_PREBUILT_DIR}/images
+export NEED_EXPANDED_MEM=true
+# Set IMG based on NEED_EXPANDED_MEM
+
+if [ "$NEED_EXPANDED_MEM" = true ]; then
+    export IMG_NAME="${IMG_VERSION}-expand-ta-memory"
+else
+    export IMG_NAME="$IMG_VERSION"
+fi
+
+export CROSS_COMPILE32="arm-linux-gnueabihf-"
+export CROSS_COMPILE64="aarch64-linux-gnu-"

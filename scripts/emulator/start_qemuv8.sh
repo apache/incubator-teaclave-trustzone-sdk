@@ -19,21 +19,25 @@
 
 set -xe
 
-# Define IMG_VERSION
-IMG_VERSION="$(uname -m)-optee-qemuv8-ubuntu-24.04"
-IMG_DIRECTORY=${TEACLAVE_PREBUILT_DIR}/images
-# Default value for NEED_EXPANDED_MEM
-: ${NEED_EXPANDED_MEM:=false}
-
-# Set IMG based on NEED_EXPANDED_MEM
-if [ "$NEED_EXPANDED_MEM" = true ]; then
-    IMG_NAME="${IMG_VERSION}-expand-ta-memory"
-else
-    IMG_NAME="$IMG_VERSION"
+# Check if IMG_DIRECTORY and IMG_NAME are provided
+if [ -z "$IMG_DIRECTORY" ] || [ -z "$IMG_NAME" ]; then
+    echo "IMG_DIRECTORY or IMG_NAME is not set. Please set them before running this script."
+    exit 1
 fi
 
-mkdir -p "${IMG_DIRECTORY}"
-${TEACLAVE_SRC_DIR}/scripts/emulator/download_image.sh "$IMG_DIRECTORY" "$IMG_NAME"
+IMG="${IMG_DIRECTORY}/${IMG_NAME}"
+# Check if the image file exists locally
+if [ ! -d "${IMG}" ]; then
+    echo "Image file '${IMG}' not found locally. Please run 'prepare_emulator_images.sh' first."
+    exit 1
+else
+    echo "Image file '${IMG}' found locally."
+fi
+# check if QEMU_HOST_SHARE_DIR is set, if not, exit
+if [ -z "${QEMU_HOST_SHARE_DIR}" ]; then
+    echo "QEMU_HOST_SHARE_DIR is not set. Please set it to the directory you want to share with the QEMU guest."
+    exit 1
+fi
 
 # if DEBUG is set, use this serial commands: -serial tcp:localhost:54320 -serial tcp:localhost:54321
 # e.g. DEBUG=1 ./optee-qemuv8.sh
@@ -48,8 +52,6 @@ else
     # Guest vm output is in standard output, and TA serial log is saved to /tmp/serial.log
     SERIAL_CMDS="-serial stdio -serial file:/tmp/serial.log"
 fi
-
-IMG="${IMG_DIRECTORY}/${IMG_NAME}"
 
 cd ${IMG} && ./qemu-system-aarch64 \
     -nodefaults \

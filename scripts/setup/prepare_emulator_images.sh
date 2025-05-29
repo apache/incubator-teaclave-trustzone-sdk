@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,25 +17,22 @@
 # specific language governing permissions and limitations
 # under the License.
 
-FROM ubuntu:24.04
+set -xe
 
-# Base environment
-ENV TEACLAVE_PREBUILT_DIR=/root/teaclave_sdk_prebuilt
-ENV DEBIAN_FRONTEND=noninteractive
+# Check if IMG_DIRECTORY and IMG_NAME are provided
+if [ -z "$IMG_DIRECTORY" ]; then
+    echo "IMG_DIRECTORY is not set. Please set it before running this script."
+    exit 1
+fi
+if [ -z "$IMG_DIRECTORY" ] || [ -z "$IMG_NAME" ]; then
+    echo "Usage: $0 <img_directory> <img_name>"
+    exit 1
+fi
+# Check if the image directory exists
+if [ ! -d "$IMG_DIRECTORY" ]; then
+    echo "Image directory does not exist: $IMG_DIRECTORY"
+    echo "Creating directory: $IMG_DIRECTORY"
+    mkdir -p "$IMG_DIRECTORY"
+fi
 
-# Copy from current build context (the same directory as Dockerfile)
-COPY scripts/setup /tmp/scripts/setup
-
-# Use bash shell to allow sourcing, and run all setup steps in a single RUN to persist `env`
-SHELL ["/bin/bash", "-c"]
-
-# Run setup scripts and persist env variables for interactive shells
-RUN cd /tmp/scripts/setup && \
-    source setup_env && \
-    bash setup_optee_dependencies.sh && \
-    bash setup_toolchain.sh && \
-    bash build_optee_libraries.sh && \
-    echo "source /tmp/scripts/setup/setup_env" >> /root/.bashrc
-
-# Start interactive shell
-CMD ["/bin/bash"]
+${TEACLAVE_PREBUILT_DIR}/scripts/setup/download_image.sh "$IMG_DIRECTORY" "$IMG_NAME"

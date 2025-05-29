@@ -30,7 +30,12 @@ expect {
         exp_continue
     }
     -re "# $" {
-        send "mkdir shared && mount -t 9p -o trans=virtio host shared && cd shared\r"
+        send -- "mkdir -p shared && mount -t 9p -o trans=virtio host shared && cd shared\r"
+        expect "# $"
+        send -- "mount --bind ta/ /lib/optee_armtz\r"
+        expect "# $"
+        send -- "mount --bind plugin/ /usr/lib/tee-supplicant/plugins/\r"
+        expect "# $"
         interact
     }
     timeout {

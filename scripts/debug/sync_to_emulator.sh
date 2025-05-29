@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,32 +17,30 @@
 # specific language governing permissions and limitations
 # under the License.
 
-NAME := hello_world-rs
+# sync.sh <project_path>: copy the built project files to the QEMU share folder for futher emulating
 
-TARGET ?= aarch64-unknown-linux-gnu
-CROSS_COMPILE ?= aarch64-linux-gnu-
-OBJCOPY := $(CROSS_COMPILE)objcopy
-LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)gcc\"
+set -xe
 
-OUT_DIR := $(CURDIR)/target/$(TARGET)/release
+# Check if the project path is provided
+if [ -z "$1" ]; then
+    echo "Usage: $0 <project_path>"
+    exit 1
+fi
+PROJECT_PATH="$1"
 
-.PHONY: all host strip clean install
+# Check if the $QEMU_HOST_SHARE_DIR is existed
+if [ -z "$QEMU_HOST_SHARE_DIR" ]; then
+    echo "QEMU_HOST_SHARE_DIR is not set. Please set it before running this script."
+    exit 1
+fi
+if [ ! -d "$QEMU_HOST_SHARE_DIR" ]; then
+    echo "QEMU_HOST_SHARE_DIR does not exist: $QEMU_HOST_SHARE_DIR"
+    exit 1
+fi
 
-all: host strip
-
-host:
-	@cargo build --target $(TARGET) --release --config $(LINKER_CFG)
-
-strip: host
-	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/$(NAME) $(OUT_DIR)/$(NAME)
-
-install:
-	@echo "Installing $(NAME) to $(DESTDIR)"
-ifndef DESTDIR
-	$(error DESTDIR is not set. Please run 'make install DESTDIR=/your/path')
-endif
-	@mkdir -p $(DESTDIR)
-	@cp $(OUT_DIR)/$(NAME) $(DESTDIR)/
-
-clean:
-	@cargo clean
+make -C "$PROJECT_PATH" install DESTDIR="$QEMU_HOST_SHARE_DIR"
+if [ $? -ne 0 ]; then
+    echo "Make install failed in $PROJECT_PATH"
+    exit 1
+fi
+echo "Successfully synced project to $QEMU_HOST_SHARE_DIR"

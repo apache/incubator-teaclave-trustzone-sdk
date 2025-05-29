@@ -15,16 +15,13 @@
 # specific language governing permissions and limitations
 # under the License.
 
-export TEACLAVE_SRC_DIR="$(pwd)"
-export PATH=$PATH:$HOME/.cargo/bin
-# for std: specify the target json file
-export RUST_TARGET_PATH="$(pwd)"
-
-export OPTEE_OS_DIR="$OPTEE_DIR/optee_os"
-export OPTEE_CLIENT_DIR="$OPTEE_DIR/optee_client"
-
-export CROSS_COMPILE32="arm-linux-gnueabihf-"
-export CROSS_COMPILE64="aarch64-linux-gnu-"
+# This script is written into .bashrc to set up toolchains when enter the docker, like:
+# docker run -it \
+#   -e TA_ARCH=aarch64 \
+#   -e CA_ARCH=arm \
+#   -e STD=y \
+#   teaclave-dev bash
+#
 
 if [ "$ARCH_TA" = "arm" ]
 then
@@ -88,3 +85,5 @@ else
   echo -e "Error: OPTEE_CLIENT_EXPORT=$OPTEE_CLIENT_EXPORT does not exist, please set the correct OPTEE_CLIENT_EXPORT or run \"$ ./build_optee_libraries.sh optee/\" then try again\n"
   unset OPTEE_DIR
 fi
+
+echo "[env] Configured Successfully for building OP-TEE applications."

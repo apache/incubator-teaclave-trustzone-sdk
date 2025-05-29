@@ -22,7 +22,7 @@ CROSS_COMPILE_TA ?= aarch64-linux-gnu-
 TARGET_HOST ?= aarch64-unknown-linux-gnu
 TARGET_TA ?= aarch64-unknown-linux-gnu
 
-.PHONY: host ta all clean
+.PHONY: all host ta clean install
 
 all: host ta
 
@@ -33,6 +33,13 @@ host:
 ta:
 	$(q)make -C ta TARGET=$(TARGET_TA) \
 		CROSS_COMPILE=$(CROSS_COMPILE_TA)
+
+install:
+ifndef DESTDIR
+	$(error DESTDIR is not set. Please run 'make install DESTDIR=/your/path')
+endif
+	$(q)make -C host install DESTDIR=$(DESTDIR)/host TARGET=$(TARGET_HOST)
+	$(q)make -C ta install DESTDIR=$(DESTDIR)/ta TARGET=$(TARGET_TA)
 
 clean:
 	$(q)make -C host clean

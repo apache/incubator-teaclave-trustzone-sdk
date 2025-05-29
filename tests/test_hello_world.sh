@@ -23,8 +23,7 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/hello_world-rs/ta/target/$TARGET_TA/release/*.ta $QEMU_HOST_SHARE_DIR
-cp ../examples/hello_world-rs/host/target/$TARGET_HOST/release/hello_world-rs $QEMU_HOST_SHARE_DIR
+../scripts/debug/sync.sh ../examples/hello_world-rs/
 
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"
