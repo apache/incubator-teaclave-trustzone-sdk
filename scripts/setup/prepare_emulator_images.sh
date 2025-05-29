@@ -19,28 +19,20 @@
 
 set -xe
 
-# Include base script
-source setup.sh
+# Check if IMG_DIRECTORY and IMG_NAME are provided
+if [ -z "$IMG_DIRECTORY" ]; then
+    echo "IMG_DIRECTORY is not set. Please set it before running this script."
+    exit 1
+fi
+if [ -z "$IMG_DIRECTORY" ] || [ -z "$IMG_NAME" ]; then
+    echo "Usage: $0 <img_directory> <img_name>"
+    exit 1
+fi
+# Check if the image directory exists
+if [ ! -d "$IMG_DIRECTORY" ]; then
+    echo "Image directory does not exist: $IMG_DIRECTORY"
+    echo "Creating directory: $IMG_DIRECTORY"
+    mkdir -p "$IMG_DIRECTORY"
+fi
 
-# Copy TA and host binary
-cp ../examples/serde-rs/ta/target/$TARGET_TA/release/*.ta $QEMU_HOST_SHARE_DIR
-cp ../examples/serde-rs/host/target/$TARGET_HOST/release/serde-rs $QEMU_HOST_SHARE_DIR
-
-# Run script specific commands in QEMU
-run_in_qemu "cp *.ta /lib/optee_armtz/\n"
-run_in_qemu "./serde-rs\n"
-run_in_qemu "^C"
-
-# Script specific checks
-{
-	grep -q "Success" screenlog.0 &&
-	grep -q "Point { x: 1, y: 2 }" screenlog.0 &&
-	grep -q "serialized = " /tmp/serial.log &&
-	grep -q "deserialized = " /tmp/serial.log
-} || {
-        cat -v screenlog.0
-        cat -v /tmp/serial.log
-        false
-}
-
-rm screenlog.0
+${TEACLAVE_PREBUILT_DIR}/scripts/setup/download_image.sh "$IMG_DIRECTORY" "$IMG_NAME"

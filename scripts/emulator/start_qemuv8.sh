@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+set -xe
+
+# Check if IMG_DIRECTORY and IMG_NAME are provided
+if [ -z "$IMG_DIRECTORY" ] || [ -z "$IMG_NAME" ]; then
+    echo "IMG_DIRECTORY or IMG_NAME is not set. Please set them before running this script."
+    exit 1
+fi
+
+IMG="${IMG_DIRECTORY}/${IMG_NAME}"
+# Check if the image file exists locally
+if [ ! -d "${IMG}" ]; then
+    echo "Image file '${IMG}' not found locally. Please run 'prepare_emulator_images.sh' first."
+    exit 1
+else
+    echo "Image file '${IMG}' found locally."
+fi
+# check if QEMU_HOST_SHARE_DIR is set, if not, exit
+if [ -z "${QEMU_HOST_SHARE_DIR}" ]; then
+    echo "QEMU_HOST_SHARE_DIR is not set. Please set it to the directory you want to share with the QEMU guest."
+    exit 1
+fi
+
+# if DEBUG is set, use this serial commands: -serial tcp:localhost:54320 -serial tcp:localhost:54321
+# e.g. DEBUG=1 ./optee-qemuv8.sh
+SERIAL_CMDS=""
+if [ -n "$DEBUG" ]; then
+    # before running this script, run the following commands in two separate terminals for listening to the serial output:
+    # docker exec -it elegant_hertz /teaclave/scripts/emulator/boot_guest_rootfs.exp
+    # docker exec -it elegant_hertz /teaclave/scripts/emulator/listen_on_ta_output.sh
+    SERIAL_CMDS="-serial tcp:localhost:54320 -serial tcp:localhost:54321"
+else
+    # Default serial commands for non-debug mode
+    # Guest vm output is in standard output, and TA serial log is saved to /tmp/serial.log
+    SERIAL_CMDS="-serial stdio -serial file:/tmp/serial.log"
+fi
+
+cd ${IMG} && ./qemu-system-aarch64 \
+    -nodefaults \
+    -nographic \
+    $SERIAL_CMDS \
+    -smp 2 \
+    -s -machine virt,secure=on,acpi=off,gic-version=3 \
+    -cpu cortex-a57 \
+    -d unimp -semihosting-config enable=on,target=native \
+    -m 1057 \
+    -bios bl1.bin \
+    -initrd rootfs.cpio.gz \
+    -append 'console=ttyAMA0,115200 keep_bootcon root=/dev/vda2' \
+    -kernel Image \
+    -fsdev local,id=fsdev0,path=${QEMU_HOST_SHARE_DIR},security_model=none \
+    -device virtio-9p-device,fsdev=fsdev0,mount_tag=host \
+    -netdev user,id=vmnic,hostfwd=:127.0.0.1:54433-:4433 \
+    -device virtio-net-device,netdev=vmnic

@@ -17,30 +17,11 @@
 # specific language governing permissions and limitations
 # under the License.
 
-set -xe
+# This script listens on TCP port 54321 for output from the Trusted Application (TA) running in the OP-TEE emulator.
 
-# Include base script
-source setup.sh
+set -e
 
-# Copy TA and host binary
-cp ../examples/serde-rs/ta/target/$TARGET_TA/release/*.ta $QEMU_HOST_SHARE_DIR
-cp ../examples/serde-rs/host/target/$TARGET_HOST/release/serde-rs $QEMU_HOST_SHARE_DIR
+echo "Listening on TCP port 54321 for TA output..."
 
-# Run script specific commands in QEMU
-run_in_qemu "cp *.ta /lib/optee_armtz/\n"
-run_in_qemu "./serde-rs\n"
-run_in_qemu "^C"
-
-# Script specific checks
-{
-	grep -q "Success" screenlog.0 &&
-	grep -q "Point { x: 1, y: 2 }" screenlog.0 &&
-	grep -q "serialized = " /tmp/serial.log &&
-	grep -q "deserialized = " /tmp/serial.log
-} || {
-        cat -v screenlog.0
-        cat -v /tmp/serial.log
-        false
-}
-
-rm screenlog.0
+# Listen on TCP 54321, output data to stdout
+socat TCP-LISTEN:54321,reuseaddr,fork -,raw,echo=0

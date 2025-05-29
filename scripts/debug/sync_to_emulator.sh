@@ -17,30 +17,30 @@
 # specific language governing permissions and limitations
 # under the License.
 
+# sync.sh <project_path>: copy the built project files to the QEMU share folder for futher emulating
+
 set -xe
 
-# Include base script
-source setup.sh
+# Check if the project path is provided
+if [ -z "$1" ]; then
+    echo "Usage: $0 <project_path>"
+    exit 1
+fi
+PROJECT_PATH="$1"
 
-# Copy TA and host binary
-cp ../examples/serde-rs/ta/target/$TARGET_TA/release/*.ta $QEMU_HOST_SHARE_DIR
-cp ../examples/serde-rs/host/target/$TARGET_HOST/release/serde-rs $QEMU_HOST_SHARE_DIR
+# Check if the $QEMU_HOST_SHARE_DIR is existed
+if [ -z "$QEMU_HOST_SHARE_DIR" ]; then
+    echo "QEMU_HOST_SHARE_DIR is not set. Please set it before running this script."
+    exit 1
+fi
+if [ ! -d "$QEMU_HOST_SHARE_DIR" ]; then
+    echo "QEMU_HOST_SHARE_DIR does not exist: $QEMU_HOST_SHARE_DIR"
+    exit 1
+fi
 
-# Run script specific commands in QEMU
-run_in_qemu "cp *.ta /lib/optee_armtz/\n"
-run_in_qemu "./serde-rs\n"
-run_in_qemu "^C"
-
-# Script specific checks
-{
-	grep -q "Success" screenlog.0 &&
-	grep -q "Point { x: 1, y: 2 }" screenlog.0 &&
-	grep -q "serialized = " /tmp/serial.log &&
-	grep -q "deserialized = " /tmp/serial.log
-} || {
-        cat -v screenlog.0
-        cat -v /tmp/serial.log
-        false
-}
-
-rm screenlog.0
+make -C "$PROJECT_PATH" install DESTDIR="$QEMU_HOST_SHARE_DIR"
+if [ $? -ne 0 ]; then
+    echo "Make install failed in $PROJECT_PATH"
+    exit 1
+fi
+echo "Successfully synced project to $QEMU_HOST_SHARE_DIR"

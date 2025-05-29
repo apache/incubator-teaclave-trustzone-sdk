@@ -31,8 +31,9 @@ branch (`main`), please refer to the
 - [TA Development Modes](#ta-development-modes)
   - [Comparison](#comparison)
   - [Supported Examples](#supported-examples)
-- [Quick Start with the OP-TEE Repo for QEMUv8](#quick-start-with-the-op-tee-repo-for-qemuv8)
-- [Getting Started](#getting-started)
+- [🚀 Quick & Easy Start: Hello World in Minutes](#-quick--easy-start-hello-world-in-minutes)
+- [Use the SDK as submodule in OP-TEE Repo](#use-the-sdk-as-submodule-in-op-tee-repo)
+- [Advanced Setup: Customize Your Build Environment](#advanced-setup-customize-your-build-environment)
   - [Platforms](#platforms)
     - [Develop with QEMUv8](#develop-with-qemuv8)
     - [Develop on Other Platforms](#develop-on-other-platforms)
@@ -86,8 +87,57 @@ branch (`main`), please refer to the
 
 - **`std`**: Excludes `test_mnist_rs`, `test_build_with_optee_utee_sys`.
 
+## 🚀 Quick & Easy Start: Hello World in Minutes
 
-## Quick Start with the OP-TEE Repo for QEMUv8
+Follow these steps to quickly set up the environment and build the Hello 
+World example using Docker.
+
+Note: This setup uses the default build options: both CA and TA target `aarch64`, 
+with no-std support. If this is your first time trying the SDK, we recommend 
+starting with these defaults.
+
+### 1. Clone the SDK Repository
+
+```bash
+$ git clone https://github.com/apache/incubator-teaclave-trustzone-sdk.git \
+  && cd incubator-teaclave-trustzone-sdk
+````
+
+### 2. Build the Docker Image (or pull it after it's published)
+
+```bash
+$ docker build -f Dockerfile.quickstart \
+  -t teaclave-trustzone-sdk-quickstart .
+```
+
+### 3. Launch the Docker Container
+
+```bash
+$ docker run -it --rm \
+  -v $(pwd):/root/teaclave_sdk_src \
+  -w /root/teaclave_sdk_src \
+  teaclave-trustzone-sdk-quickstart bash
+```
+
+### 4. Build the Hello World Example
+
+Inside the container:
+
+```bash
+$ source environment
+$ make -C examples/hello_world-rs/
+```
+
+### 5. Run the Hello World TA (on Prebuilt QEMU Images)
+
+```bash
+$ cd tests/
+$ ./test_hello_world.sh
+```
+
+That’s it — you're up and running in just a few steps! 🎉
+
+## Use the SDK as submodule in OP-TEE Repo
 
 Teaclave TrustZone SDK has been integrated into the OP-TEE Repo since OP-TEE
 Release 3.15.0 (18/Oct/21). The aarch64 Rust examples are built and installed
@@ -98,7 +148,7 @@ to set up the OP-TEE repo and try the Rust examples!
 UPDATES: The `no-std` TA has replaced the original `std` TAs since OP-TEE 
 Release 4.1.0 (19/Jan/24).
 
-## Getting Started
+## Advanced Setup: Customize Your Build Environment
 
 ### Platforms
 

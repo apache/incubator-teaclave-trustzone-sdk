@@ -47,3 +47,21 @@ if [[ "$(uname -m)" == "aarch64" ]]; then
 else
     apt update && apt -y install gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf
 fi
+
+##########################################
+# Check if the environment variable QEMU_HOST_SHARE_DIR is set
+if [ -z "$QEMU_HOST_SHARE_DIR" ]; then
+    echo "QEMU_HOST_SHARE_DIR is not set. Please set it before running this script."
+    exit 1
+fi
+
+# Create QEMU shared dir if it does not exist, it used for sharing CA and TA between host and QEMU emulator.
+if [ -d "$QEMU_HOST_SHARE_DIR" ]; then
+    echo "QEMU shared directory already exists: $QEMU_HOST_SHARE_DIR"
+else
+    echo "Creating QEMU shared directory: $QEMU_HOST_SHARE_DIR"
+    mkdir -p "$QEMU_HOST_SHARE_DIR"
+    mkdir -p "$QEMU_HOST_SHARE_DIR/host"
+    mkdir -p "$QEMU_HOST_SHARE_DIR/ta"
+    mkdir -p "$QEMU_HOST_SHARE_DIR/plugin"
+fi

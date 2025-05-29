@@ -77,4 +77,5 @@ apt-get update && \
     libsdl2-dev \
     pip \
     ca-certificates \
-    libgnutls28-dev
+    libgnutls28-dev \
+    socat

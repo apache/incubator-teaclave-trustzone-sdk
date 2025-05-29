@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/expect -f
 
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
@@ -17,20 +17,29 @@
 # specific language governing permissions and limitations
 # under the License.
 
-cd $1 && ./qemu-system-aarch64 \
-    -nodefaults \
-    -nographic \
-    -serial stdio -serial file:/tmp/serial.log \
-    -smp 2 \
-    -s -machine virt,secure=on,acpi=off,gic-version=3 \
-    -cpu cortex-a57 \
-    -d unimp -semihosting-config enable=on,target=native \
-    -m 1057 \
-    -bios bl1.bin \
-    -initrd rootfs.cpio.gz \
-    -append 'console=ttyAMA0,115200 keep_bootcon root=/dev/vda2' \
-    -kernel Image \
-    -fsdev local,id=fsdev0,path=$(pwd)/../shared,security_model=none \
-    -device virtio-9p-device,fsdev=fsdev0,mount_tag=host \
-    -netdev user,id=vmnic,hostfwd=:127.0.0.1:54433-:4433 \
-    -device virtio-net-device,netdev=vmnic
+# This script helps to listen on the guest vm terminal and automatically mount the shared folder.
+
+set timeout -1
+
+spawn socat TCP-LISTEN:54320,reuseaddr,fork -,raw,echo=0
+send_user "Listening on TCP port 54320 for guest vm output...\n"
+
+expect {
+    -re "buildroot login:" {
+        send "root\r"
+        exp_continue
+    }
+    -re "# $" {
+        send -- "mkdir -p shared && mount -t 9p -o trans=virtio host shared && cd shared\r"
+        expect "# $"
+        send -- "mount --bind ta/ /lib/optee_armtz\r"
+        expect "# $"
+        send -- "mount --bind plugin/ /usr/lib/tee-supplicant/plugins/\r"
+        expect "# $"
+        interact
+    }
+    timeout {
+        puts "Timeout waiting for login prompt"
+        exit 1
+    }
+}

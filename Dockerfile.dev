@@ -1,0 +1,52 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+FROM ubuntu:24.04
+
+# Base environment
+ENV TEACLAVE_PREBUILT_DIR=/root/teaclave_sdk_prebuilt
+ENV TEACLAVE_SCRIPTS_DIR=${TEACLAVE_PREBUILT_DIR}/scripts
+ENV SCRIPTS_EMULATOR_DIR=${TEACLAVE_SCRIPTS_DIR}/emulator
+ENV SCRIPTS_DEBUG_DIR=${TEACLAVE_SCRIPTS_DIR}/debug
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Copy scripts into image
+COPY scripts/ ${TEACLAVE_SCRIPTS_DIR}/
+
+# Use bash shell for sourcing
+SHELL ["/bin/bash", "-c"]
+
+# Run setup scripts
+RUN cd ${TEACLAVE_SCRIPTS_DIR}/setup && \
+    source env_for_docker_build && \
+    bash setup_optee_dependencies.sh && \
+    bash setup_toolchain.sh && \
+    bash build_optee_libraries.sh && \
+    bash prepare_emulator_images.sh
+
+# Set up shell environment and link useful scripts
+RUN echo "source ${TEACLAVE_SCRIPTS_DIR}/setup/env_for_docker_build" >> /root/.bashrc && \
+    echo "source ${TEACLAVE_SCRIPTS_DIR}/setup/env_for_docker_run" >> /root/.bashrc && \
+    ln -s ${SCRIPTS_EMULATOR_DIR}/listen_on_guest_vm_shell.exp /usr/local/bin/listen_on_guest_vm_shell && \
+    ln -s ${SCRIPTS_EMULATOR_DIR}/listen_on_ta_output.sh /usr/local/bin/listen_on_ta_output && \
+    ln -s ${SCRIPTS_EMULATOR_DIR}/start_qemuv8.sh /usr/local/bin/start_qemuv8 && \
+    ln -s ${SCRIPTS_DEBUG_DIR}/sync_to_emulator.sh /usr/local/bin/sync_to_emulator && \
+    chmod +x ${SCRIPTS_EMULATOR_DIR}/* && \
+    chmod +x ${SCRIPTS_DEBUG_DIR}/*
+
+# Default interactive shell
+CMD ["/bin/bash"]

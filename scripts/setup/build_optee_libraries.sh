@@ -19,18 +19,6 @@
 
 set -e
 
-OPTEE_VERSION=4.5.0
-OPTEE_DIR=$1
-
-# check arguments
-if [ -z "$OPTEE_DIR" ]; then
-    echo "Usage: $0 <optee_root_path>"
-    exit 1
-else
-    export OPTEE_DIR=$OPTEE_DIR
-    echo "OPTEE_DIR=$OPTEE_DIR"
-fi
-
 if [ ! -d $OPTEE_DIR ]; then
     mkdir -p $OPTEE_DIR
 fi
