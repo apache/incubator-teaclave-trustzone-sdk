@@ -23,8 +23,8 @@ set -xe
 source setup.sh
 
 # Copy TA and host binary
-cp ../examples/mnist-rs/ta/target/$TARGET_TA/release/*.ta$QEMU_HOST_SHARE_DIR
-cp ../examples/mnist-rs/host/target/$TARGET_HOST/release/mnist-rs$QEMU_HOST_SHARE_DIR
+cp ../examples/mnist-rs/ta/target/$TARGET_TA/release/*.ta $QEMU_HOST_SHARE_DIR
+cp ../examples/mnist-rs/host/target/$TARGET_HOST/release/mnist-rs $QEMU_HOST_SHARE_DIR
 # Copy samples files
 cp -r ../examples/mnist-rs/host/samples$QEMU_HOST_SHARE_DIR
 
