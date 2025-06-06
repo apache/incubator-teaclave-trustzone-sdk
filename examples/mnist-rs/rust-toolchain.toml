@@ -15,11 +15,10 @@
 # specific language governing permissions and limitations
 # under the License.
 
-# Toolchain override, burn currently requires Rust 1.83 and will soon require
-# Rust 1.85.
+# Toolchain override, burn currently requires Rust channel current and prev.
 
 [toolchain]
-channel = "nightly-2025-01-16"
+channel = "nightly-2025-05-16"
 components = [ "rust-src" ]
 targets = ["aarch64-unknown-linux-gnu", "arm-unknown-linux-gnueabihf"]
 # minimal profile: install rustc, cargo, and rust-std
