@@ -1,0 +1,47 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+FROM ubuntu:24.04 
+
+# Base environment
+ENV TEACLAVE_TOOLCHAIN_BASE=/opt/teaclave
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Copy scripts into image
+COPY scripts/setup ${TEACLAVE_TOOLCHAIN_BASE}/setup
+
+WORKDIR ${TEACLAVE_TOOLCHAIN_BASE}/setup
+
+RUN ./install_dependencies.sh 
+RUN . ./environment && ./prepare_emulator_images.sh 
+RUN . ./environment && ./setup_toolchain.sh 
+RUN . ./environment && ./build_optee_libraries.sh 
+
+# Set up shell environment and link useful scripts
+COPY scripts/runtime/bin ${TEACLAVE_TOOLCHAIN_BASE}/bin
+COPY scripts/runtime/environment ${TEACLAVE_TOOLCHAIN_BASE}/environment
+
+RUN chmod +x ${TEACLAVE_TOOLCHAIN_BASE}/bin/* 
+RUN echo "source ${HOME}/.cargo/env" >> "${HOME}/.profile" && \
+    echo "source ${TEACLAVE_TOOLCHAIN_BASE}/setup/environment" >> "${HOME}/.profile" && \
+    echo "source ${TEACLAVE_TOOLCHAIN_BASE}/environment" >> "${HOME}/.profile" && \
+    echo "export PATH=${TEACLAVE_TOOLCHAIN_BASE}/bin:\$PATH" >> "${HOME}/.profile"
+
+WORKDIR "/root"
+
+# Default interactive shell, use bash -l to load the environment variables
+CMD ["/bin/bash", "-l"]

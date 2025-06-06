@@ -15,29 +15,21 @@
 # specific language governing permissions and limitations
 # under the License.
 
-# If _HOST or _TA specific compiler/target are not specified, then use common
-# compiler/target for both
-CROSS_COMPILE_HOST ?= aarch64-linux-gnu-
-CROSS_COMPILE_TA ?= aarch64-linux-gnu-
-TARGET_HOST ?= aarch64-unknown-linux-gnu
-TARGET_TA ?= aarch64-unknown-linux-gnu
+export TEACLAVE_TOOLCHAIN_BASE=${TEACLAVE_TOOLCHAIN_BASE:-/opt/teaclave}
 
-.PHONY: all host ta clean emulate
+export OPTEE_DIR=${TEACLAVE_TOOLCHAIN_BASE}/optee
+export OPTEE_VERSION="${OPTEE_VERSION:-4.5.0}"
 
-all: host ta
+export OPTEE_OS_DIR=${OPTEE_DIR}/optee_os
+export OPTEE_CLIENT_DIR=${OPTEE_DIR}/optee_client
 
-host:
-	$(q)make -C host TARGET=$(TARGET_HOST) \
-		CROSS_COMPILE=$(CROSS_COMPILE_HOST)
+export IMG_DIRECTORY=${TEACLAVE_TOOLCHAIN_BASE}/images
 
-ta:
-	$(q)make -C ta TARGET=$(TARGET_TA) \
-		CROSS_COMPILE=$(CROSS_COMPILE_TA)
+export IMG_VERSION="$(uname -m)-optee-qemuv8-ubuntu-24.04"
+export NEED_EXPANDED_MEM="${NEED_EXPANDED_MEM:-true}"
 
-emulate:
-	$(q)make -C host emulate 
-	$(q)make -C ta emulate 
-
-clean:
-	$(q)make -C host clean
-	$(q)make -C ta clean
+if [ "$NEED_EXPANDED_MEM" = true ]; then
+    export IMG_NAME="${IMG_VERSION}-expand-ta-memory"
+else
+    export IMG_NAME="$IMG_VERSION"
+fi
