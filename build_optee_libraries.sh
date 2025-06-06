@@ -19,7 +19,7 @@
 
 set -e
 
-OPTEE_VERSION=4.5.0
+OPTEE_VERSION=4.6.0
 OPTEE_DIR=$1
 
 # check arguments
