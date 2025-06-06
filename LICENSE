@@ -205,5 +205,8 @@
 This product includes the following third-party code: 
 The code in `examples/tls_client-rs/ta/src/main.rs` is modified based on 
 Rustls (Apache License, Version 2.0).
+The code in `examples/mnist-rs/ta/train/src/trainer.rs` and 
+`examples/mnist-rs/ta/common/src/model.rs` is either copied from or inspired by
+the Burn library (Apache License, Version 2.0).
 
 For the full text of the licenses, see the `licenses/` directory.

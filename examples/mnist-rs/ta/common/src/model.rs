@@ -55,6 +55,10 @@ impl<B: Backend> Model<B> {
 }
 
 impl<B: Backend> Model<B> {
+
+    // Originally inspired by the burn/examples/mnist-inference-web package. You
+    // may refer to https://github.com/tracel-ai/burn/blob/v0.16.0/examples/mnist-inference-web/src/web.rs
+    // for details.
     pub fn image_to_tensor(device: &B::Device, image: &Image) -> Tensor<B, 2> {
         let tensor = TensorData::from(image.as_slice()).convert::<B::FloatElem>();
         let tensor = Tensor::<B, 1>::from_data(tensor, device);
