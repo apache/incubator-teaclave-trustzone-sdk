@@ -1,3 +1,5 @@
+#!/usr/bin/expect -f
+
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,29 +17,29 @@
 # specific language governing permissions and limitations
 # under the License.
 
-# If _HOST or _TA specific compiler/target are not specified, then use common
-# compiler/target for both
-CROSS_COMPILE_HOST ?= aarch64-linux-gnu-
-CROSS_COMPILE_TA ?= aarch64-linux-gnu-
-TARGET_HOST ?= aarch64-unknown-linux-gnu
-TARGET_TA ?= aarch64-unknown-linux-gnu
+# This script helps to listen on the guest vm terminal and automatically mount the shared folder.
 
-.PHONY: all host ta clean emulate
+set timeout -1
 
-all: host ta
+spawn socat TCP-LISTEN:54320,reuseaddr,fork -,raw,echo=0
+send_user "Listening on TCP port 54320 for guest vm output...\n"
 
-host:
-	$(q)make -C host TARGET=$(TARGET_HOST) \
-		CROSS_COMPILE=$(CROSS_COMPILE_HOST)
-
-ta:
-	$(q)make -C ta TARGET=$(TARGET_TA) \
-		CROSS_COMPILE=$(CROSS_COMPILE_TA)
-
-emulate:
-	$(q)make -C host emulate 
-	$(q)make -C ta emulate 
-
-clean:
-	$(q)make -C host clean
-	$(q)make -C ta clean
+expect {
+    -re "buildroot login:" {
+        send "root\r"
+        exp_continue
+    }
+    -re "# $" {
+        send -- "mkdir -p shared && mount -t 9p -o trans=virtio host shared && cd shared\r"
+        expect "# $"
+        send -- "mount --bind ta/ /lib/optee_armtz\r"
+        expect "# $"
+        send -- "mount --bind plugin/ /usr/lib/tee-supplicant/plugins/\r"
+        expect "# $"
+        interact
+    }
+    timeout {
+        puts "Timeout waiting for login prompt"
+        exit 1
+    }
+}
