@@ -40,15 +40,12 @@ if [ -z "${QEMU_HOST_SHARE_DIR}" ]; then
 fi
 
 # if DEBUG is set, use this serial commands: -serial tcp:localhost:54320 -serial tcp:localhost:54321
-# e.g. DEBUG=1 ./optee-qemuv8.sh
 SERIAL_CMDS=""
-if [ -n "$DEBUG" ]; then
+if [ "$LISTEN_MODE" = "1" ] || [ "$LISTEN_MODE" = "ON" ]; then
     # before running this script, run the following commands in two separate terminals for listening to the serial output:
-    # docker exec -it elegant_hertz /teaclave/scripts/emulator/boot_guest_rootfs.exp
-    # docker exec -it elegant_hertz /teaclave/scripts/emulator/listen_on_ta_output.sh
     SERIAL_CMDS="-serial tcp:localhost:54320 -serial tcp:localhost:54321"
 else
-    # Default serial commands for non-debug mode
+    # Default serial commands for non-interaction mode
     # Guest vm output is in standard output, and TA serial log is saved to /tmp/serial.log
     SERIAL_CMDS="-serial stdio -serial file:/tmp/serial.log"
 fi
