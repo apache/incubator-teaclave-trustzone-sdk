@@ -34,7 +34,7 @@ host:
 strip: host
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/$(NAME) $(OUT_DIR)/$(NAME)
 
-emulate:
+emulate: all
 	@sync_to_emulator --host $(OUT_DIR)/$(NAME)
 
 clean:

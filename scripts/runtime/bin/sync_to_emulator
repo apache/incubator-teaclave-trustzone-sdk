@@ -16,17 +16,46 @@
 # KIND, either express or implied.  See the License for the
 # specific language governing permissions and limitations
 # under the License.
-#!/bin/bash
-# sync.sh: copy files/directories to QEMU share folder for emulation
-# Usage: sync.sh [--ta|--host|--plugin|--dir] <files...>
 
 set -e
+
+help() {
+    cat << EOF
+Usage: $0 [--ta|--host|--plugin|--dir] <files...>
+
+Options:
+  --ta       Sync files to the TA (Trusted Application) directory inside the
+             emulator. Use this for Trusted Application binaries (*.ta).
+
+  --host     Sync files to the Host Application directory inside the emulator.
+             Use this for client or host-side binaries.
+
+  --plugin   Sync files to the Plugin directory inside the emulator. Use this
+             for any plugin binaries or related files.
+
+  --dir      Sync files directly to the root shared directory inside the emulator.
+             Use this for syncing arbitrary files or directories not covered above.
+
+Arguments:
+  <files...> One or more files or directories to sync to the target directory.
+
+Example:
+  $0 --ta ta/target/release/myapp.ta
+  $0 --host host/target/release/myhostapp
+
+Environment:
+  QEMU_HOST_SHARE_DIR must be set and point to the shared directory used by the
+  emulator to access synced files.
+
+EOF
+}
+
 
 # Validate required environment variables
 : "${QEMU_HOST_SHARE_DIR:?QEMU_HOST_SHARE_DIR must be set}"
 
 # Check arguments
-[ $# -ge 2 ] || { echo "Usage: $0 [--ta|--host|--plugin|--dir] <files...>"; exit 1; }
+[ $# -ge 2 ] || { help; exit 1; }
 
 # Determine target directory
 case "$1" in
@@ -34,7 +63,8 @@ case "$1" in
     --host)   TARGET="$QEMU_HOST_SHARE_DIR/host" ;;
     --plugin) TARGET="$QEMU_HOST_SHARE_DIR/plugin" ;;
     --dir)    TARGET="$QEMU_HOST_SHARE_DIR" ;;
-    *) echo "Error: Use --ta, --host, --plugin, or --dir"; exit 1 ;;
+    --help|-h) help; exit 0 ;;
+    *) echo "Error: Invalid option '$1'. Use --help for usage."; exit 1 ;;
 esac
 
 shift

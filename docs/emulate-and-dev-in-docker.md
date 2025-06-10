@@ -12,7 +12,7 @@ the entire Trusted Application (TA) development workflow. The image allows
 developers to build TAs and emulate a guest virtual machine (VM) that includes
 both the Normal World and Secure World environments.
 
-### 1. Pull Development Docker Image
+## 1. Pull Development Docker Image
 
 **Terminal A** (Main development terminal):
 ```bash
@@ -27,10 +27,11 @@ $ git clone https://github.com/apache/incubator-teaclave-trustzone-sdk.git && \
 $ docker run -it --rm \
   --name teaclave_dev_env \
   -v $(pwd):/root/teaclave_sdk_src \
+  -w /root/teaclave_sdk_src \
   teaclave-trustzone-emulator-nostd-optee-4.5.0-expand-memory:latest
 ```
 
-### 2. Build the Hello World Example
+## 2. Build the Hello World Example
 
 **Still in Terminal A** (inside the Docker container):
 ```bash
@@ -38,14 +39,14 @@ $ docker run -it --rm \
 make -C examples/hello_world-rs/
 ```
 Under the hood, the Makefile builds both the Trusted Application (TA) and the
-Host Application separately. After a successful build, you’ll find the
+Host Application separately. After a successful build, you'll find the
 resulting binaries in the `hello_world-rs` directory:
 ```bash
 TA=ta/target/aarch64-unknown-linux-gnu/release/133af0ca-bdab-11eb-9130-43bf7873bf67.ta
-Host_APP=host/target/aarch64-unknown-linux-gnu/release/hello_world-rs
+HOST_APP=host/target/aarch64-unknown-linux-gnu/release/hello_world-rs
 ```
 
-### 3. Make the Artifacts Accessible to the Emulator
+## 3. Make the Artifacts Accessible to the Emulator
 After building the Hello World example, the next step is to make the compiled
 artifacts accessible to the emulator.
 
@@ -59,19 +60,18 @@ We provide a helper command called `sync_to_emulator`, which simplifies the
 process of syncing the build outputs to the emulation environment.
 Run the following commands inside the container:
 ```bash
-sync_to_emulator -ta $TA
-sync_to_emulator -host $HOST_APP
+sync_to_emulator --ta $TA
+sync_to_emulator --host $HOST_APP
 ```
-Run sync_to_emulator -h for more usage options.
+Run `sync_to_emulator -h` for more usage options.
 
-#### Option 2: Use the Makefile's `emulate` Target
-For convenience during daily development, this syncing step is integrated into
-the Makefile under the `emulate` target. This will automatically build the
-artifacts and sync them to the emulator in one step:
+#### Option 2: Integrate sync with TA's Makefile
+For convenience during daily development, the sync invocation can be integrated into
+the Makefile. In the `hello_world-rs` example, an `emulate` target is provided. 
+This helps automatically build the artifacts and sync them to the emulator in one step:
 ```bash
 make -C examples/hello_world-rs/ emulate
 ```
-We recommend using this approach for a streamlined development workflow.
 
 ## 4. Multi-Terminal Execution
 
@@ -105,7 +105,7 @@ $ docker exec -it teaclave_dev_env bash -l -c listen_on_secure_world_log
 $ docker exec -it teaclave_dev_env /opt/teaclave/bin/listen_on_secure_world_log
 ```
 
-### 5. Start the Emulation
+## 5. Start the Emulation
 
 After the listeners are set up, we can start the QEMU emulator.
 
@@ -123,10 +123,14 @@ After QEMU in Terminal D successfully launches, switch to Terminal B, which
 provides shell access to the guest VM's normal world.
 
 **Terminal B** (Inside Guest VM):
-From this shell, you’ll notice that the artifacts synced in **Step 3** are
-already available in the current working directory. This shared directory is
-mounted between the host and the guest VM, so any changes made—either inside
-or outside QEMU—are immediately reflected on both sides.
+From this shell, you'll find that the artifacts synced in **Step 3** are already
+available in the current working directory. Additionally, the `ta/` and
+`plugin/` subdirectories are automatically mounted to be used by TEE OS during
+TA execution and plugin loading.
+
+For more details on the mount configuration, refer to the
+`listen_on_guest_vm_shell` command in the development environment.
+
 ```bash
 # tree
 .
@@ -147,6 +151,13 @@ Now we are ready to interact with the TA from normal world shell.
 $ ./host/hello_world-rs
 ```
 The secure world logs, including TA debug messages, are displayed in **Terminal C**.
+
+## 6. Iterative Development with Frequent Code Updates and Execution
+During active development and debugging, you can leave Terminals B, C, and D open to 
+avoid restarting them each time. Simply return to Terminal A, and repeat Step 2 (build) 
+and Step 3 (sync) to rebuild and update the artifacts. Once synced, switch to 
+Terminal B to re-run the client application. This setup streamlines iterative 
+development and testing.
 
 ## Summary
 By following this guide, you can emulate and debug Trusted Applications using our

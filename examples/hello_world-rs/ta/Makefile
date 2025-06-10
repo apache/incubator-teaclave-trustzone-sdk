@@ -41,7 +41,7 @@ sign: strip
 	@$(SIGN) --uuid $(UUID) --key $(TA_SIGN_KEY) --in $(OUT_DIR)/stripped_ta --out $(OUT_DIR)/$(UUID).ta
 	@echo "SIGN =>  ${UUID}"
 
-emulate:
+emulate: all
 	@sync_to_emulator --ta $(OUT_DIR)/$(UUID).ta
 
 clean:
