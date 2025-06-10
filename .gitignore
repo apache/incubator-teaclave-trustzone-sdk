@@ -21,3 +21,11 @@ target/
 /optee/toolchains
 /out
 Cargo.lock
+
+# Allow tracking Cargo.lock in std examples
+!examples/message_passing_interface-rs/ta/Cargo.lock
+!examples/secure_db_abstraction-rs/ta/Cargo.lock
+!examples/serde-rs/ta/Cargo.lock
+!examples/tls_client-rs/ta/Cargo.lock
+!examples/tls_server-rs/ta/Cargo.lock
+!projects/web3/eth_wallet/ta/Cargo.lock
