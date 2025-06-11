@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Licensed to the Apache Software Foundation (ASF) under one
 # or more contributor license agreements.  See the NOTICE file
 # distributed with this work for additional information
@@ -15,29 +17,22 @@
 # specific language governing permissions and limitations
 # under the License.
 
-# If _HOST or _TA specific compiler/target are not specified, then use common
-# compiler/target for both
-CROSS_COMPILE_HOST ?= aarch64-linux-gnu-
-CROSS_COMPILE_TA ?= aarch64-linux-gnu-
-TARGET_HOST ?= aarch64-unknown-linux-gnu
-TARGET_TA ?= aarch64-unknown-linux-gnu
+set -xe
 
-.PHONY: all host ta clean emulate
+# Validate required environment variables
+: "${IMG_DIRECTORY:?IMG_DIRECTORY must be set - directory where images will be stored}"
+: "${IMG_NAME:?IMG_NAME must be set - name of the image to download}"
 
-all: host ta
+# Create image directory if it doesn't exist
+mkdir -p "$IMG_DIRECTORY"
 
-host:
-	$(q)make -C host TARGET=$(TARGET_HOST) \
-		CROSS_COMPILE=$(CROSS_COMPILE_HOST)
+# Construct full image path
+IMG="${IMG_DIRECTORY}/${IMG_NAME}"
 
-ta:
-	$(q)make -C ta TARGET=$(TARGET_TA) \
-		CROSS_COMPILE=$(CROSS_COMPILE_TA)
-
-emulate: all
-	$(q)make -C host emulate 
-	$(q)make -C ta emulate 
-
-clean:
-	$(q)make -C host clean
-	$(q)make -C ta clean
+# Check if the image directory exists locally
+if [ ! -d "$IMG" ]; then
+    echo "Image directory '$IMG' not found locally. Downloading from network."
+    curl "https://nightlies.apache.org/teaclave/teaclave-trustzone-sdk/${IMG_NAME}.tar.gz" | tar zxv -C "$IMG_DIRECTORY"
+else
+    echo "Image directory '$IMG' found locally."
+fi

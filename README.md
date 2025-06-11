@@ -31,8 +31,9 @@ branch (`main`), please refer to the
 - [TA Development Modes](#ta-development-modes)
   - [Comparison](#comparison)
   - [Supported Examples](#supported-examples)
-- [Quick Start with the OP-TEE Repo for QEMUv8](#quick-start-with-the-op-tee-repo-for-qemuv8)
-- [Getting Started](#getting-started)
+- [🚀 Quick & Easy Start: Hello World in Minutes](#-quick--easy-start-hello-world-in-minutes)
+- [Use the SDK as submodule in OP-TEE Repo](#use-the-sdk-as-submodule-in-op-tee-repo)
+- [Advanced Setup: Customize Your Build Environment](#advanced-setup-customize-your-build-environment)
   - [Platforms](#platforms)
     - [Develop with QEMUv8](#develop-with-qemuv8)
     - [Develop on Other Platforms](#develop-on-other-platforms)
@@ -86,8 +87,16 @@ branch (`main`), please refer to the
 
 - **`std`**: Excludes `test_mnist_rs`, `test_build_with_optee_utee_sys`.
 
+## 🚀 Quick & Easy Start: Hello World in Minutes
+We've streamlined the entire development workflow into a Docker-based solution 
+that handles all the complex setup automatically. This approach gives you a 
+complete TrustZone development environment with QEMU emulation, pre-built toolchains,
+and monitoring tools - no manual configuration required.
 
-## Quick Start with the OP-TEE Repo for QEMUv8
+We highly recommend starting here for the fastest and most reliable setup experience.
+- 🚀 [Quick Emulation And Development in Docker](emulate-and-dev-in-docker.md)
+
+## Use the SDK as submodule in OP-TEE Repo
 
 Teaclave TrustZone SDK has been integrated into the OP-TEE Repo since OP-TEE
 Release 3.15.0 (18/Oct/21). The aarch64 Rust examples are built and installed
@@ -98,7 +107,7 @@ to set up the OP-TEE repo and try the Rust examples!
 UPDATES: The `no-std` TA has replaced the original `std` TAs since OP-TEE 
 Release 4.1.0 (19/Jan/24).
 
-## Getting Started
+## Advanced Setup: Customize Your Build Environment
 
 ### Platforms
 

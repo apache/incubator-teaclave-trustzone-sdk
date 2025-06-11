@@ -24,14 +24,18 @@ LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)gcc\"
 
 OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 
+.PHONY: all host strip clean emulate
 
 all: host strip
 
 host:
-	@cargo build --target $(TARGET_HOST) --release --config $(LINKER_CFG)
+	@cargo build --target $(TARGET) --release --config $(LINKER_CFG)
 
 strip: host
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/$(NAME) $(OUT_DIR)/$(NAME)
+
+emulate: all
+	@sync_to_emulator --host $(OUT_DIR)/$(NAME)
 
 clean:
 	@cargo clean
