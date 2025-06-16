@@ -192,6 +192,11 @@ impl ObjectInfo {
     pub fn object_size(&self) -> usize {
         self.raw.objectSize as usize
     }
+
+    /// Return the `objectType` field of the raw structure `TEE_ObjectInfo`.
+    pub fn object_type(&self) -> u32 {
+        self.raw.objectType
+    }
 }
 
 /// Indicate the possible start offset when moving a data position in the data stream associated with a [PersistentObject](PersistentObject).
