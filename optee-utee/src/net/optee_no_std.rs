@@ -20,8 +20,8 @@ use super::{Setup, Socket, SocketAdapter, SocketError};
 /// with the std version (with the only difference being the return error type).
 ///
 /// Take TcpStream as example:
-/// ```no_run
-/// use optee_utee::net::TcpStream;
+/// ``` rust,no_run
+/// use optee_utee::net::{Setup, TcpStream, SocketError};
 ///
 /// fn connect_without_compact_trait(host: &str, port: u16) -> Result<TcpStream, SocketError> {
 ///     let setup = Setup::new_v4(host, port)?;
@@ -46,12 +46,12 @@ pub trait StdCompatConnect: Sized {
 /// with the std version (with the only difference being the return error type).
 ///
 /// Take TcpStream as example:
-/// ```no_run
-/// use optee_utee::net::TcpStream;
+/// ``` rust,no_run
+/// use optee_utee::net::{TcpStream, SocketError};
 ///
-/// fn write_without_compact_trait(stream: &mut Stream, mut buf: &[u8]) -> Result<usize, SocketError> {
+/// fn write_without_compact_trait(stream: &mut TcpStream, mut buf: &[u8]) -> Result<(), SocketError> {
 ///     use optee_utee::ErrorKind;
-///
+///     
 ///     while !buf.is_empty() {
 ///         match stream.send(buf) {
 ///             Ok(0) => return Err(SocketError::Tee(ErrorKind::Generic)),
@@ -62,7 +62,7 @@ pub trait StdCompatConnect: Sized {
 ///     Ok(())
 /// }
 ///
-/// fn write_with_compact_trait(stream: &mut Stream, buf: &[u8]) -> Result<usize, SocketError> {
+/// fn write_with_compact_trait(stream: &mut TcpStream, buf: &[u8]) -> Result<(), SocketError> {
 ///     use optee_utee::net::StdCompatWrite;
 ///
 ///     stream.write_all(buf)
@@ -85,15 +85,15 @@ pub trait StdCompatWrite {
 /// with the std version (with the only difference being the return error type).
 ///
 /// Take TcpStream as example:
-/// ```no_run
-/// use optee_utee::net::TcpStream;
+/// ``` rust,no_run
+/// use optee_utee::net::{TcpStream, SocketError};
 ///
-/// fn read_without_compact_trait(stream: &mut Stream, mut buf: &mut [u8]) -> Result<usize, SocketError> {
+/// fn read_without_compact_trait(stream: &mut TcpStream, mut buf: &mut [u8]) -> Result<(), SocketError> {
 ///     use optee_utee::ErrorKind;
 ///
 ///     while !buf.is_empty() {
 ///         match stream.recv(buf) {
-///             Ok(0) => break;
+///             Ok(0) => break,
 ///             Ok(n) => buf = &mut buf[n..],
 ///             Err(e) => return Err(e),
 ///         }
@@ -104,7 +104,7 @@ pub trait StdCompatWrite {
 ///     Ok(())
 /// }
 ///
-/// fn read_with_compact_trait(stream: &mut Stream, buf: &mut [u8]) -> Result<usize, SocketError> {
+/// fn read_with_compact_trait(stream: &mut TcpStream, buf: &mut [u8]) -> Result<(), SocketError> {
 ///     use optee_utee::net::StdCompatRead;
 ///
 ///     stream.read_exact(buf)

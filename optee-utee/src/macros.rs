@@ -22,15 +22,17 @@
 ///
 /// # Examples
 ///
-/// ``` no_run
-/// trace_print!("this ")
-/// trace_print!("will ")
-/// trace_print!("be ")
-/// trace_print!("on ")
-/// trace_print!("the ")
-/// trace_print!("same ")
-/// trace_print!("line ")
-/// print!("this string has a newline, why not choose println! instead?\n");
+/// ``` rust,no_run
+/// # use optee_utee::trace_print;
+///
+/// trace_print!("this ");
+/// trace_print!("will ");
+/// trace_print!("be ");
+/// trace_print!("on ");
+/// trace_print!("the ");
+/// trace_print!("same ");
+/// trace_print!("line ");
+/// trace_print!("this string has a newline, why not choose println! instead?\n");
 /// ```
 #[macro_export]
 macro_rules! trace_print {
@@ -43,7 +45,8 @@ macro_rules! trace_print {
 ///
 /// # Examples
 ///
-/// ``` no_run
+/// ``` rust,no_run
+/// # use optee_utee::trace_println;
 /// trace_println!("Hello, World!");
 /// trace_println!("format {} arguments", "some");
 /// ```

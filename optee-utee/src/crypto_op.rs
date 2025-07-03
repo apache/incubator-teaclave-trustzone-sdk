@@ -293,15 +293,17 @@ impl Digest {
     ///
     /// # Example
     ///
-    /// ```no_run
-    /// let chunk = [0u8;8];
-    /// let chunk = [1u8;8];
-    /// let hash = [0u8;32];
+    /// ``` rust,no_run
+    /// # use optee_utee::{Digest, AlgorithmId};
+    /// # fn main() -> optee_utee::Result<()> {
+    /// let chunk1 = [0u8;8];
+    /// let chunk2 = [1u8;8];
+    /// let mut hash = [0u8;32];
     /// match Digest::allocate(AlgorithmId::Sha256) {
     ///     Ok(operation) =>
     ///     {
     ///         operation.update(&chunk1);
-    ///         match operation.do_final(&chunk2, hash) {
+    ///         match operation.do_final(&chunk2, &mut hash) {
     ///             Ok(hash_len) => {
     ///                 // ...
     ///                 Ok(())
@@ -311,6 +313,7 @@ impl Digest {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -355,7 +358,9 @@ impl Digest {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{Digest, AlgorithmId};
+    /// # fn main() -> optee_utee::Result<()> {
     /// match Digest::allocate(AlgorithmId::Sha256) {
     ///     Ok(operation) =>
     ///     {
@@ -364,6 +369,7 @@ impl Digest {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -386,8 +392,10 @@ impl Digest {
     ///
     /// # Example
     ///
-    /// ```no_run
-    /// match Digest::allocate(AlgorithmId::Md5, 128) {
+    /// ``` rust,no_run
+    /// # use optee_utee::{Digest, AlgorithmId};
+    /// # fn main() -> optee_utee::Result<()> {
+    /// match Digest::allocate(AlgorithmId::Md5) {
     ///     Ok(operation) =>
     ///     {
     ///         let info = operation.info();
@@ -395,6 +403,7 @@ impl Digest {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Panics
@@ -414,11 +423,13 @@ impl Digest {
     ///
     /// # Example
     ///
-    /// ```no_run
-    /// match Digest::allocate(AlgorithmId::Md5, 128) {
+    /// ``` rust,no_run
+    /// # use optee_utee::{Digest, AlgorithmId};
+    /// # fn main() -> optee_utee::Result<()> {
+    /// match Digest::allocate(AlgorithmId::Md5) {
     ///     Ok(operation) =>
     ///     {
-    ///         let mut buffer = [0u32, 12];
+    ///         let mut buffer = [0u8, 12];
     ///         match operation.info_multiple(&mut buffer) {
     ///             Ok(info_multiple) => {
     ///                 // ...
@@ -429,6 +440,7 @@ impl Digest {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors:
@@ -472,22 +484,25 @@ impl Digest {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{Digest, AlgorithmId};
+    /// # fn main() -> optee_utee::Result<()> {
     /// match Digest::allocate(AlgorithmId::Sha256) {
-    ///     Ok(operation) =>
+    ///     Ok(mut operation) =>
     ///     {
     ///         match Digest::allocate(AlgorithmId::Sha256) {
     ///             Ok(operation2) =>
     ///             {
     ///                 // ...
-    ///                 operation.copy(operation2);
+    ///                 operation.copy(&operation2);
     ///                 Ok(())
-    ///             }
+    ///             },
     ///             Err(e) => Err(e),
     ///         }
-    ///     }
+    ///     },
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Panics
@@ -555,16 +570,19 @@ impl Cipher {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{Cipher, AlgorithmId, TransientObject, TransientObjectType};
+    /// # use optee_utee::{AttributeMemref, AttributeId, OperationMode};
+    /// # fn main() -> optee_utee::Result<()> {
     /// let iv = [0u8, 16];
     /// let key = [0u8, 16];
     /// let src = [1u8; 4096];
     /// let mut dest = [0u8; 4096];
-    /// match Cipher::allocate(AlgorithmId::AesCtr, 128) {
+    /// match Cipher::allocate(AlgorithmId::AesCtr, OperationMode::Encrypt, 128) {
     ///     Ok(operation) =>
     ///     {
     ///         match TransientObject::allocate(TransientObjectType::Aes, 128) {
-    ///             Ok(object) =>
+    ///             Ok(mut object) =>
     ///             {
     ///                 let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &key);
     ///                 object.populate(&[attr.into()])?;
@@ -578,6 +596,7 @@ impl Cipher {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -802,7 +821,17 @@ impl Mac {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{
+    ///     TransientObject,
+    ///     TransientObjectType,
+    ///     Attribute,
+    ///     AttributeMemref,
+    ///     AttributeId,
+    ///     Mac,
+    ///     AlgorithmId,
+    /// };
+    /// # fn main() -> optee_utee::Result<()> {
     /// let mut key: [u8; 20] = [
     /// 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35,
     /// 0x36, 0x37, 0x38, 0x39, 0x30,];
@@ -811,17 +840,20 @@ impl Mac {
     ///     Err(e) => return Err(e),
     ///     Ok(mac) => {
     ///         match TransientObject::allocate(TransientObjectType::HmacSha1, key.len() * 8) {
-    ///         Err(e) => return Err(e),
-    ///         Ok(mut key_object) => {
-    ///             let attr = Attribute::from_ref(AttributeId::SecretValue, &key);
-    ///             key_object.populate(&[attr.into()])?;
-    ///             mac.set_key(&key_object)?;
+    ///             Err(e) => return Err(e),
+    ///             Ok(mut key_object) => {
+    ///                 let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &key);
+    ///                 key_object.populate(&[attr.into()])?;
+    ///                 mac.set_key(&key_object)?;
+    ///             }
     ///         }
+    ///         mac.init(&[0u8; 0]);
+    ///         mac.update(&[0u8; 8]);
+    ///         mac.compute_final(&[0u8; 0], &mut out)?;
+    ///         Ok(())
     ///     }
-    ///     mac.init(&[0u8; 0]);
-    ///     mac.update(&[0u8; 8]);
-    ///     mac.compute_final(&[0u8; 0], &mut out)?;
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -1057,7 +1089,10 @@ impl AE {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{AE, AlgorithmId, OperationMode, AttributeMemref, AttributeId};
+    /// # use optee_utee::{TransientObject, TransientObjectType};
+    /// # fn main() -> optee_utee::Result<()> {
     /// let key = [0xa5u8; 16];
     /// let nonce = [0x00u8; 16];
     /// let aad = [0xffu8; 16];
@@ -1069,24 +1104,27 @@ impl AE {
     /// match AE::allocate(AlgorithmId::AesCcm, OperationMode::Encrypt, 128) {
     ///     Ok(operation) => {
     ///         match TransientObject::allocate(TransientObjectType::Aes, 128) {
-    ///             Ok(key_object) => {
-    ///                 let attr = Attributememref::from_ref(Attributeid::SecretValue, &key);
-    ///                 key_object.populat(&[attr.into()])?;
+    ///             Ok(mut key_object) => {
+    ///                 let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &key);
+    ///                 key_object.populate(&[attr.into()])?;
     ///                 operation.set_key(&key_object)?;
     ///                 operation.init(&nonce, 128, 16, 32)?;
     ///                 operation.update_aad(&aad);
     ///                 operation.update(&clear1, &mut ciph1)?;
-    ///                 match operation.encrypt_final(&clear2, &mut ciph2) {
+    ///                 match operation.encrypt_final(&clear2, &mut ciph2, &mut tag) {
     ///                     Ok((_ciph_len, _tag_len)) => {
     ///                         // ...
-    ///                         Ok(()),
-    ///                     }
+    ///                         Ok(())
+    ///                     },
     ///                     Err(e) => Err(e),
     ///                 }
+    ///             },
     ///             Err(e) => Err(e),
     ///         }
+    ///     },
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -1229,7 +1267,10 @@ impl Asymmetric {
     /// 2) `src`: Input plaintext buffer.
     ///
     /// # Example
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{TransientObject, TransientObjectType, Asymmetric};
+    /// # use optee_utee::{AlgorithmId, OperationMode};
+    /// # fn main() -> optee_utee::Result<()> {
     /// let clear = [1u8; 8];
     /// match TransientObject::allocate(TransientObjectType::RsaKeypair, 256) {
     ///     Ok(key) => {
@@ -1254,6 +1295,7 @@ impl Asymmetric {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -1485,17 +1527,26 @@ impl DeriveKey {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{AttributeMemref, AttributeId, TransientObject, TransientObjectType};
+    /// # use optee_utee::{DeriveKey, AlgorithmId};
+    /// # fn example1() -> optee_utee::Result<()> {
+    ///
     /// let attr_prime = AttributeMemref::from_ref(AttributeId::DhPrime, &[23u8]);
     /// let attr_base = AttributeMemref::from_ref(AttributeId::DhBase, &[5u8]);
     /// let mut public_1 = [0u8; 32];
     /// match TransientObject::allocate(TransientObjectType::DhKeypair, 256) {
     ///     Ok(key_pair_1) => {
     ///         key_pair_1.generate_key(256, &[attr_prime.into(), attr_base.into()])?;
-    ///         key_pair_1.ref_attribute(aTTRIBUTEiD::DhPublicValue, &mut public_1)?;
-    ///     }
+    ///         key_pair_1.ref_attribute(AttributeId::DhPublicValue, &mut public_1)?;
+    ///         Ok(())
+    ///     },
     ///     Err(e) => Err(e),
     /// }
+    /// # }
+    ///
+    /// # fn example2() -> optee_utee::Result<()> {
+    /// # let mut public_1 = [0u8; 32];
     ///
     /// let attr_prime = AttributeMemref::from_ref(AttributeId::DhPrime, &[23u8]);
     /// let attr_base = AttributeMemref::from_ref(AttributeId::DhBase, &[5u8]);
@@ -1505,10 +1556,9 @@ impl DeriveKey {
     ///         match DeriveKey::allocate(AlgorithmId::DhDeriveSharedSecret, 256) {
     ///             Ok(operation) => {
     ///                 operation.set_key(&key_pair_2)?;
-    ///                 match TransientObject::allocate(TransientObjectType::GenericSecret,
-    ///                 256) {
+    ///                 match TransientObject::allocate(TransientObjectType::GenericSecret, 256) {
     ///                     // Derived key is saved as an transient object
-    ///                     Ok(derived_key) => {
+    ///                     Ok(mut derived_key) => {
     ///                         let attr_public = AttributeMemref::from_ref(AttributeId::DhPublicValue, &public_1);
     ///                         operation.derive(&[attr_public.into()], &mut derived_key);
     ///                         // ...
@@ -1522,6 +1572,7 @@ impl DeriveKey {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Panics
@@ -1597,7 +1648,8 @@ impl Random {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::Random;
     /// let mut res = [0u8;16];
     /// Random::generate(&mut res);
     /// ```
