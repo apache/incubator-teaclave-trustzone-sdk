@@ -38,8 +38,17 @@ impl LoadablePlugin {
         Self { uuid: uuid.to_owned() }
     }
     /// Invoke plugin with given request data, use when you want to post something into REE.
-    /// ```no_run
-    /// let result = plugin.invoke(command_id, subcommand_id, request_data)?;
+    /// ``` rust,no_run
+    /// # use optee_utee::{LoadablePlugin, Uuid};
+    /// # fn main() -> optee_utee::Result<()> {
+    /// # let uuid = Uuid::parse_str("").unwrap();
+    /// # let command_id = 0;
+    /// # let subcommand_id = 0;
+    /// # let request_data = [0_u8; 0];
+    /// let plugin = LoadablePlugin::new(&uuid);
+    /// let result = plugin.invoke(command_id, subcommand_id, &request_data)?;
+    /// # Ok(())
+    /// # }
     /// ```
     /// Caution: the size of the shared buffer is set to the len of data, you could get a 
     ///          ShortBuffer error if Plugin return more data than shared buffer, in that case,
@@ -52,13 +61,29 @@ impl LoadablePlugin {
     /// Construct a command with shared buffer up to capacity size, write the buffer and call it
     /// manually, use when you need to control details of the invoking process.
     /// ```no_run
+    /// # use optee_utee::{Uuid, LoadablePlugin};
+    /// # fn main() -> optee_utee::Result<()> {
+    /// # let plugin = LoadablePlugin::new(&Uuid::parse_str("").unwrap());
+    /// # let request_data = [0_u8; 0];
+    /// # let command_id = 0;
+    /// # let sub_command_id = 0;
+    /// # let capacity = 0;
     /// let mut cmd = plugin.invoke_with_capacity(command_id, sub_command_id, capacity);
-    /// cmd.write(request_data);
+    /// cmd.write_body(&request_data);
     /// let result = cmd.call()?;
+    /// # Ok(())
+    /// # }
     /// ```
     /// You can also imply a wrapper for performance, for example, imply a std::io::Write so
     /// serde_json can write to the buffer directly.
     /// ```no_run
+    /// # use optee_utee::{LoadablePluginCommand, Uuid, LoadablePlugin, trace_println};
+    /// # use optee_utee::ErrorKind;
+    /// # fn main() -> optee_utee::Result<()> { 
+    /// # let command_id = 0;
+    /// # let subcommand_id = 0;
+    /// # let capacity = 0;
+    /// # let plugin = LoadablePlugin::new(&Uuid::parse_str("").unwrap());
     /// struct Wrapper<'a, 'b>(&'b mut LoadablePluginCommand<'a>);
     /// impl<'a, 'b> std::io::Write for Wrapper<'a, 'b> {
     ///     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
@@ -75,8 +100,14 @@ impl LoadablePlugin {
     ///     "name": "name"
     /// });
     /// let mut cmd = plugin.invoke_with_capacity(command_id, subcommand_id, capacity);
-    /// serde_json::to_writer(Wrapper(&mut plugin_cmd), &request_data)?;
+    /// serde_json::to_writer(Wrapper(&mut cmd), &request_data).map_err(|err| {
+    ///     trace_println!("serde error: {:?}", err);
+    ///     ErrorKind::Unknown
+    /// })?;
     /// let result = cmd.call()?;
+    ///
+    /// # Ok(())
+    /// # }
     /// ```
     /// Notice: the shared buffer could grow to fit the request data automatically.
     pub fn invoke_with_capacity<'a>(

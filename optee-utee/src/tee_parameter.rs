@@ -232,7 +232,11 @@ impl<'a> TeeParams<'a> {
     /// - `with_value_inout`: Sets a value inout parameter.
     ///
     /// Example usage:
-    /// ``` no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{TeeParams, ParamIndex};
+    /// # let input_buffer = [0_u8; 0];
+    /// # let mut output_buffer = [0_u8; 0];
+    ///
     /// let params = TeeParams::new()
     ///     .with_memref_in(ParamIndex::Arg0, &input_buffer)
     ///     .with_memref_out(ParamIndex::Arg1, &mut output_buffer)
@@ -272,7 +276,11 @@ impl<'a> TeeParams<'a> {
     /// These methods allow the user to set the content at a specific index.
     ///
     /// Example usage:
-    /// ``` no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{TeeParams, ParamIndex};
+    /// # let input_buffer = [0_u8; 0];
+    /// # let mut output_buffer = [0_u8; 0];
+    ///
     /// let mut params = TeeParams::new();
     /// params.set_memref_in(ParamIndex::Arg0, &input_buffer);
     /// params.set_memref_out(ParamIndex::Arg1, &mut output_buffer);

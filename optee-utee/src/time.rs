@@ -44,9 +44,10 @@ impl Time {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::Time;
     /// let mut time = Time::new();
-    /// time.system_time()?;
+    /// time.system_time();
     /// ```
     ///
     /// # Panics
@@ -67,8 +68,12 @@ impl Time {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{Time, Result};
+    /// # fn main() -> Result<()> {
     /// Time::wait(1000)?;
+    /// # Ok(())
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -93,11 +98,15 @@ impl Time {
     ///
     /// # Example
     ///
-    /// ```no_run
-    /// let mut time = Time()?;
-    /// time.system_time()?;
+    /// ``` rust,no_run
+    /// # use optee_utee::{Time, Result};
+    /// # fn main() -> Result<()> {
+    /// let mut time = Time::new();
+    /// time.system_time();
     /// time.set_ta_time()?;
     /// time.ta_time()?;
+    /// # Ok(())
+    /// # }
     /// ```
     ///
     /// # Errors

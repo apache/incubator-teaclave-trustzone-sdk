@@ -89,7 +89,8 @@ impl<'attrref> AttributeMemref<'attrref> {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{AttributeMemref, AttributeId};
     /// let mut attr = AttributeMemref::from_ref(AttributeId::SecretValue, &mut [0u8;1]);
     /// ```
     pub fn from_ref(id: AttributeId, buffer: &'attrref [u8]) -> Self {
@@ -136,7 +137,8 @@ impl AttributeValue {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{AttributeValue, AttributeId};
     /// let mut attr = AttributeValue::from_value(AttributeId::SecretValue, 0, 0);
     /// ```
     pub fn from_value(id: AttributeId, a: u32, b: u32) -> Self {
@@ -550,7 +552,9 @@ impl TransientObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{TransientObject, TransientObjectType};
+    /// # fn main() -> optee_utee::Result<()> {
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
     ///     Ok(object) =>
     ///     {
@@ -559,6 +563,7 @@ impl TransientObject {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -603,16 +608,24 @@ impl TransientObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{
+    /// #     TransientObject,
+    /// #     TransientObjectType,
+    /// #     AttributeMemref,
+    /// #     AttributeId,
+    /// # };
+    /// # fn main() -> optee_utee::Result<()> {
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
-    ///     Ok(object) =>
+    ///     Ok(mut object) =>
     ///     {
-    ///         let attrs = [AttributeMemref::from_ref(AttributeId::SecretValue, &[0u8;1])];
+    ///         let attrs = [AttributeMemref::from_ref(AttributeId::SecretValue, &[0u8;1]).into()];
     ///         object.populate(&attrs);
     ///         Ok(())
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -642,7 +655,9 @@ impl TransientObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{TransientObject, TransientObjectType};
+    /// # fn main() -> optee_utee::Result<()> {
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
     ///     Ok(object) => {
     ///         match object.info() {
@@ -650,10 +665,12 @@ impl TransientObject {
     ///                 // ...
     ///                 Ok(())
     ///             }
-    ///         Err(e) => Err(e),
+    ///             Err(e) => Err(e),
+    ///         }
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Panics
@@ -675,15 +692,18 @@ impl TransientObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{TransientObject, TransientObjectType, UsageFlag};
+    /// # fn main() -> optee_utee::Result<()> {
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
-    ///     Ok(object) =>
+    ///     Ok(mut object) =>
     ///     {
     ///         object.restrict_usage(UsageFlag::ENCRYPT)?;
     ///         Ok(())
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Panics
@@ -704,7 +724,10 @@ impl TransientObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{TransientObject, TransientObjectType, AttributeId};
+    /// # fn main() -> optee_utee::Result<()> {
+    /// # let id = AttributeId::SecretValue;
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
     ///     Ok(object) => {
     ///         let mut attr = [0u8; 16];
@@ -718,6 +741,7 @@ impl TransientObject {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -743,11 +767,14 @@ impl TransientObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{TransientObject, TransientObjectType};
+    /// # fn main() -> optee_utee::Result<()> {
+    /// # let id = 0_u32;
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
     ///     Ok(object) => {
     ///         match object.value_attribute(id) {
-    ///             Ok(a,b) => {
+    ///             Ok((a,b)) => {
     ///                 // ...
     ///                 Ok(())
     ///             }
@@ -756,6 +783,7 @@ impl TransientObject {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -783,13 +811,15 @@ impl TransientObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{TransientObject, TransientObjectType};
+    /// # fn main() -> optee_utee::Result<()> {
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
-    ///     Ok(object1) =>
+    ///     Ok(mut object1) =>
     ///     {
     ///         match TransientObject::allocate(TransientObjectType::Aes, 256) {
     ///             Ok(object2) => {
-    ///                 object1.copy_attribute_from(object2);
+    ///                 object1.copy_attribute_from(&object2);
     ///                 Ok(())
     ///             }
     ///             Err(e) => Err(e),
@@ -797,6 +827,7 @@ impl TransientObject {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -828,7 +859,9 @@ impl TransientObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{TransientObject, TransientObjectType};
+    /// # fn main() -> optee_utee::Result<()> {
     /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
     ///     Ok(object) =>
     ///     {
@@ -837,6 +870,7 @@ impl TransientObject {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -912,9 +946,11 @@ impl PersistentObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{PersistentObject, ObjectStorageConstants, DataFlag};
+    /// # fn main() -> optee_utee::Result<()> {
     /// let obj_id = [1u8;1];
-    /// match PersistentObject::open (
+    /// match PersistentObject::open(
     ///         ObjectStorageConstants::Private,
     ///         &obj_id,
     ///         DataFlag::ACCESS_READ) {
@@ -925,6 +961,7 @@ impl PersistentObject {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -986,13 +1023,15 @@ impl PersistentObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{PersistentObject, ObjectStorageConstants, DataFlag};
+    /// # fn main() -> optee_utee::Result<()> {
     /// let obj_id = [1u8;1];
     /// let mut init_data: [u8; 0] = [0; 0];
-    /// match PersistentObject::open (
+    /// match PersistentObject::create(
     ///         ObjectStorageConstants::Private,
     ///         &obj_id,
-    ///         DataFlag::ACCESS_READ | DataFlag::ACCESS_WRITE
+    ///         DataFlag::ACCESS_READ | DataFlag::ACCESS_WRITE,
     ///         None,
     ///         &mut init_data) {
     ///     Ok(object) =>
@@ -1002,6 +1041,7 @@ impl PersistentObject {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -1063,13 +1103,15 @@ impl PersistentObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{PersistentObject, ObjectStorageConstants, DataFlag};
+    /// # fn main() -> optee_utee::Result<()> {
     /// let obj_id = [1u8;1];
     /// match PersistentObject::open (
     ///         ObjectStorageConstants::Private,
     ///         &obj_id,
     ///         DataFlag::ACCESS_READ) {
-    ///     Ok(object) =>
+    ///     Ok(mut object) =>
     ///     {
     ///         object.close_and_delete()?;
     ///         std::mem::forget(object);
@@ -1077,6 +1119,7 @@ impl PersistentObject {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -1108,20 +1151,23 @@ impl PersistentObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{PersistentObject, ObjectStorageConstants, DataFlag};
+    /// # fn main() -> optee_utee::Result<()> {
     /// let obj_id = [1u8;1];
     /// let new_obj_id = [2u8;1];
     /// match PersistentObject::open (
     ///         ObjectStorageConstants::Private,
     ///         &obj_id,
     ///         DataFlag::ACCESS_WRITE_META) {
-    ///     Ok(object) =>
+    ///     Ok(mut object) =>
     ///     {
     ///         object.rename(&new_obj_id)?;
     ///         Ok(())
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -1207,7 +1253,9 @@ impl PersistentObject {
     /// 2) `count`: The returned value contains the number of bytes read.
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{PersistentObject, ObjectStorageConstants, DataFlag};
+    /// # fn main() -> optee_utee::Result<()> {
     /// let obj_id = [1u8;1];
     /// match PersistentObject::open (
     ///         ObjectStorageConstants::Private,
@@ -1215,12 +1263,13 @@ impl PersistentObject {
     ///         DataFlag::ACCESS_READ) {
     ///     Ok(object) =>
     ///     {
-    ///         let read_buf = [0u8;16];
+    ///         let mut read_buf = [0u8;16];
     ///         object.read(&mut read_buf)?;
     ///         Ok(())
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -1257,13 +1306,15 @@ impl PersistentObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{PersistentObject, ObjectStorageConstants, DataFlag};
+    /// # fn main() -> optee_utee::Result<()> {
     /// let obj_id = [1u8;1];
     /// match PersistentObject::open (
     ///         ObjectStorageConstants::Private,
     ///         &obj_id,
     ///         DataFlag::ACCESS_WRITE) {
-    ///     Ok(object) =>
+    ///     Ok(mut object) =>
     ///     {
     ///         let write_buf = [1u8;16];
     ///         object.write(& write_buf)?;
@@ -1271,6 +1322,7 @@ impl PersistentObject {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -1301,7 +1353,9 @@ impl PersistentObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{PersistentObject, ObjectStorageConstants, DataFlag};
+    /// # fn main() -> optee_utee::Result<()> {
     /// let obj_id = [1u8;1];
     /// match PersistentObject::open (
     ///         ObjectStorageConstants::Private,
@@ -1314,6 +1368,7 @@ impl PersistentObject {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
@@ -1345,7 +1400,9 @@ impl PersistentObject {
     ///
     /// # Example
     ///
-    /// ```no_run
+    /// ``` rust,no_run
+    /// # use optee_utee::{PersistentObject, ObjectStorageConstants, DataFlag, Whence};
+    /// # fn main() -> optee_utee::Result<()> {
     /// let obj_id = [1u8;1];
     /// match PersistentObject::open(
     ///         ObjectStorageConstants::Private,
@@ -1358,6 +1415,7 @@ impl PersistentObject {
     ///     }
     ///     Err(e) => Err(e),
     /// }
+    /// # }
     /// ```
     ///
     /// # Errors
