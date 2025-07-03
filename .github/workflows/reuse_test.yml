@@ -51,8 +51,8 @@ jobs:
           source environment
 
           # Run unit tests
-          (cd optee-utee && cargo test --lib --features no_panic_handler -vv)
-          (cd optee-teec && cargo test --lib -vv)
+          (cd optee-utee && cargo test --features no_panic_handler -vv)
+          (cd optee-teec && cargo test -vv)
           (cd optee-utee-build && cargo test -vv)
 
           # Build Rust optee-utee and optee-teec
