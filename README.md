@@ -94,7 +94,7 @@ complete TrustZone development environment with QEMU emulation, pre-built toolch
 and monitoring tools - no manual configuration required.
 
 We highly recommend starting here for the fastest and most reliable setup experience.
-- 🚀 [Quick Emulation And Development in Docker](emulate-and-dev-in-docker.md)
+- 🚀 [Quick Emulation And Development in Docker](docs/emulate-and-dev-in-docker.md)
 
 ## Use the SDK as submodule in OP-TEE Repo
 
