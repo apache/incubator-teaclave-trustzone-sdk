@@ -33,6 +33,7 @@ RUN . ./environment && ./build_optee_libraries.sh
 
 # Set up shell environment and link useful scripts
 COPY scripts/runtime/bin ${TEACLAVE_TOOLCHAIN_BASE}/bin
+COPY scripts/runtime/config ${TEACLAVE_TOOLCHAIN_BASE}/config
 COPY scripts/runtime/environment ${TEACLAVE_TOOLCHAIN_BASE}/environment
 
 RUN chmod +x ${TEACLAVE_TOOLCHAIN_BASE}/bin/* 

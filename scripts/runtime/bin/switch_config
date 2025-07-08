@@ -1,0 +1,132 @@
+#!/bin/bash
+
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+
+# Switch active configurations
+
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")/../config"
+
+# Function to show usage
+show_usage() {
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --ta <config>     Switch TA configuration only"
+    echo "  --host <config>   Switch Host configuration only"
+    echo "  --status          Show current active configuration"
+    echo "  --list            List all available configurations"
+    echo "  --help            Show this help message"
+    echo ""
+    echo "Examples:"
+    echo "  $0 --ta std/aarch64           # Switch TA only"
+    echo "  $0 --host aarch64             # Switch Host only"
+    echo "  $0 --status                   # Show current status"
+    echo "  $0 --list                     # List available configs"
+}
+
+# Function to show current status
+show_status() {
+    echo "=== Current Active Configuration ==="
+    echo "TA:   $(readlink "$SCRIPT_DIR/ta/active" 2>/dev/null || echo "NOT SET")"
+    echo "Host: $(readlink "$SCRIPT_DIR/host/active" 2>/dev/null || echo "NOT SET")"
+}
+
+# Function to get available configs for a directory
+get_available_configs() {
+    local config_dir="$1"
+    find "$config_dir" -type f ! -name "active" | sed "s|$config_dir/||" | sort
+}
+
+# Function to list available configurations
+list_configs() {
+    echo "Available TA configurations:"
+    get_available_configs "$SCRIPT_DIR/ta"
+    echo ""
+    echo "Available Host configurations:"
+    get_available_configs "$SCRIPT_DIR/host"
+}
+
+# Function to check if config exists
+check_existence() {
+    local config_path="$1"
+    [ -n "$config_path" ] && [ -f "$SCRIPT_DIR/$config_path" ]
+}
+
+# Function to switch config
+switch_config() {
+    local config_type="$1"
+    local config_name="$2"
+    echo "Switching $config_type to: $config_name"
+    (cd "$SCRIPT_DIR/$config_type" && ln -sf "$config_name" active)
+}
+
+# Function to show config error
+show_config_error() {
+    local config_type="$1"
+    local config_name="$2"
+    if [ -z "$config_name" ]; then
+        echo "Error: --$config_type requires a configuration argument" >&2
+    else
+        echo "Error: $config_type config '$config_name' not found" >&2
+    fi
+    echo "Run '$0 --list' to see available configurations" >&2
+    exit 1
+}
+
+# Parse command line arguments
+case "$1" in
+    --ta)
+        if check_existence "ta/$2"; then
+            switch_config "ta" "$2"
+            echo ""
+            show_status
+        else
+            show_config_error "ta" "$2"
+        fi
+        ;;
+    --host)
+        if check_existence "host/$2"; then
+            switch_config "host" "$2"
+            echo ""
+            show_status
+        else
+            show_config_error "host" "$2"
+        fi
+        ;;
+    --status)
+        show_status
+        ;;
+    --list)
+        list_configs
+        ;;
+    --help|-h)
+        show_usage
+        ;;
+    "")
+        echo "Error: No option specified" >&2
+        echo "" >&2
+        show_usage >&2
+        exit 1
+        ;;
+    *)
+        echo "Error: Unknown option '$1'" >&2
+        echo "" >&2
+        show_usage >&2
+        exit 1
+        ;;
+esac
