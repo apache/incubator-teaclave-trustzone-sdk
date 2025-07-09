@@ -15,13 +15,12 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use crate::{Attribute, Error, ObjHandle, Result, TransientObject};
-use optee_utee_sys as raw;
+use alloc::{boxed::Box, vec::Vec};
 use core::{mem, ptr};
-#[cfg(not(target_os = "optee"))]
-use alloc::boxed::Box;
-#[cfg(not(target_os = "optee"))]
-use alloc::vec::Vec;
+
+use optee_utee_sys as raw;
+
+use crate::{Attribute, Error, GenericObject, Result, TransientObject};
 
 /// Specify one of the available cryptographic operations.
 #[repr(u32)]
@@ -216,7 +215,7 @@ impl OperationHandle {
         }
     }
 
-    fn set_key<T: ObjHandle>(&self, object: &T) -> Result<()> {
+    fn set_key<T: GenericObject>(&self, object: &T) -> Result<()> {
         match unsafe { raw::TEE_SetOperationKey(self.handle(), object.handle()) } {
             raw::TEE_SUCCESS => return Ok(()),
             code => Err(Error::from_raw_error(code)),
@@ -713,7 +712,7 @@ impl Cipher {
     /// 6) If operation is not in initial state.
     /// 7) Hardware or cryptographic algorithm failure.
     /// 8) If the Implementation detects any other error.
-    pub fn set_key<T: ObjHandle>(&self, object: &T) -> Result<()> {
+    pub fn set_key<T: GenericObject>(&self, object: &T) -> Result<()> {
         self.0.set_key(object)
     }
 
@@ -743,7 +742,7 @@ impl Cipher {
     /// 6) If operation is not in initial state.
     /// 7) Hardware or cryptographic algorithm failure.
     /// 8) If the Implementation detects any other error.
-    pub fn set_key_2<T: ObjHandle, D: ObjHandle>(&self, object1: &T, object2: &D) -> Result<()> {
+    pub fn set_key_2<T: GenericObject, D: GenericObject>(&self, object1: &T, object2: &D) -> Result<()> {
         match unsafe {
             raw::TEE_SetOperationKey2(self.handle(), object1.handle(), object2.handle())
         } {
@@ -948,7 +947,7 @@ impl Mac {
     }
 
     /// Function usage is similar to [Cipher::set_key](Cipher::set_key).
-    pub fn set_key<T: ObjHandle>(&self, object: &T) -> Result<()> {
+    pub fn set_key<T: GenericObject>(&self, object: &T) -> Result<()> {
         self.0.set_key(object)
     }
 
@@ -1031,9 +1030,7 @@ impl AE {
     /// 5) Hardware or cryptographic algorithm failure.
     /// 6) If the Implementation detects any other error.
     pub fn update_aad(&self, aad_data: &[u8]) {
-        unsafe {
-            raw::TEE_AEUpdateAAD(self.handle(), aad_data.as_ptr() as _, aad_data.len())
-        };
+        unsafe { raw::TEE_AEUpdateAAD(self.handle(), aad_data.as_ptr() as _, aad_data.len()) };
     }
 
     /// Accumulate data for an Authentication Encryption operation.
@@ -1237,7 +1234,7 @@ impl AE {
     }
 
     /// Function usage is similar to [Cipher::set_key](Cipher::set_key).
-    pub fn set_key<T: ObjHandle>(&self, object: &T) -> Result<()> {
+    pub fn set_key<T: GenericObject>(&self, object: &T) -> Result<()> {
         self.0.set_key(object)
     }
 
@@ -1495,7 +1492,7 @@ impl Asymmetric {
     }
 
     /// Function usage is similar to [Cipher::set_key](Cipher::set_key).
-    pub fn set_key<T: ObjHandle>(&self, object: &T) -> Result<()> {
+    pub fn set_key<T: GenericObject>(&self, object: &T) -> Result<()> {
         self.0.set_key(object)
     }
 
@@ -1529,7 +1526,7 @@ impl DeriveKey {
     ///
     /// ``` rust,no_run
     /// # use optee_utee::{AttributeMemref, AttributeId, TransientObject, TransientObjectType};
-    /// # use optee_utee::{DeriveKey, AlgorithmId};
+    /// # use optee_utee::{DeriveKey, AlgorithmId, GenericObject};
     /// # fn example1() -> optee_utee::Result<()> {
     ///
     /// let attr_prime = AttributeMemref::from_ref(AttributeId::DhPrime, &[23u8]);
@@ -1620,7 +1617,7 @@ impl DeriveKey {
     }
 
     /// Function usage is similar to [Cipher::set_key](Cipher::set_key).
-    pub fn set_key<T: ObjHandle>(&self, object: &T) -> Result<()> {
+    pub fn set_key<T: GenericObject>(&self, object: &T) -> Result<()> {
         self.0.set_key(object)
     }
 

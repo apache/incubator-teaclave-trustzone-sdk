@@ -15,20 +15,15 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use alloc::boxed::Box;
-use core::ptr;
-
 use optee_utee_sys as raw;
 
-use super::{
-    AttributeId, DataFlag, ObjHandle, ObjectHandle, ObjectInfo, ObjectStorageConstants, UsageFlag,
-    Whence,
-};
+use super::{DataFlag, GenericObject, ObjectHandle, ObjectStorageConstants, Whence};
 use crate::{Error, Result};
 
 /// An object identified by an Object Identifier and including a Data Stream.
 ///
 /// Contrast [TransientObject](TransientObject).
+#[derive(Debug)]
 pub struct PersistentObject(ObjectHandle);
 
 impl PersistentObject {
@@ -82,26 +77,21 @@ impl PersistentObject {
         object_id: &[u8],
         flags: DataFlag,
     ) -> Result<Self> {
-        let raw_handle: *mut raw::TEE_ObjectHandle = Box::into_raw(Box::new(ptr::null_mut()));
+        let mut handle: raw::TEE_ObjectHandle = core::ptr::null_mut();
+        // Move as much code as possible out of unsafe blocks to maximize Rust’s
+        // safety checks.
+        let handle_mut = &mut handle;
         match unsafe {
             raw::TEE_OpenPersistentObject(
                 storage_id as u32,
                 object_id.as_ptr() as _,
                 object_id.len(),
                 flags.bits(),
-                raw_handle as *mut _,
+                handle_mut,
             )
         } {
-            raw::TEE_SUCCESS => {
-                let handle = ObjectHandle::from_raw(raw_handle);
-                Ok(Self(handle))
-            }
-            code => {
-                unsafe {
-                    drop(Box::from_raw(raw_handle));
-                }
-                Err(Error::from_raw_error(code))
-            }
+            raw::TEE_SUCCESS => Ok(Self(ObjectHandle::from_raw(handle)?)),
+            code => Err(Error::from_raw_error(code)),
         }
     }
 
@@ -166,10 +156,13 @@ impl PersistentObject {
         attributes: Option<ObjectHandle>,
         initial_data: &[u8],
     ) -> Result<Self> {
-        let raw_handle: *mut raw::TEE_ObjectHandle = Box::into_raw(Box::new(ptr::null_mut()));
+        let mut handle: raw::TEE_ObjectHandle = core::ptr::null_mut();
+        // Move as much code as possible out of unsafe blocks to maximize Rust’s
+        // safety checks.
+        let handle_mut = &mut handle;
         let attributes = match attributes {
             Some(a) => a.handle(),
-            None => ptr::null_mut(),
+            None => core::ptr::null_mut(),
         };
         match unsafe {
             raw::TEE_CreatePersistentObject(
@@ -180,19 +173,11 @@ impl PersistentObject {
                 attributes,
                 initial_data.as_ptr() as _,
                 initial_data.len(),
-                raw_handle as *mut _,
+                handle_mut,
             )
         } {
-            raw::TEE_SUCCESS => {
-                let handle = ObjectHandle::from_raw(raw_handle);
-                Ok(Self(handle))
-            }
-            code => {
-                unsafe {
-                    drop(Box::from_raw(raw_handle));
-                }
-                Err(Error::from_raw_error(code))
-            }
+            raw::TEE_SUCCESS => Ok(Self(ObjectHandle::from_raw(handle)?)),
+            code => Err(Error::from_raw_error(code)),
         }
     }
 
@@ -211,7 +196,6 @@ impl PersistentObject {
     ///     Ok(mut object) =>
     ///     {
     ///         object.close_and_delete()?;
-    ///         std::mem::forget(object);
     ///         Ok(())
     ///     }
     ///     Err(e) => Err(e),
@@ -221,26 +205,47 @@ impl PersistentObject {
     ///
     /// # Errors
     ///
-    /// 1) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
-    ///    currently inaccessible.
+    /// 1) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage
+    ///    area which is currently inaccessible.
     ///
     /// # Panics
     ///
     /// 1) If object is not a valid opened object.
     /// 2) If the Implementation detects any other error associated with this function which is not
     ///    explicitly associated with a defined return code for this function.
-    // this function is conflicted with Drop implementation, when use this one to avoid panic:
-    // Call `mem::forget` for this structure to avoid double drop the object
-    pub fn close_and_delete(&mut self) -> Result<()> {
-        match unsafe { raw::TEE_CloseAndDeletePersistentObject1(self.0.handle()) } {
-            raw::TEE_SUCCESS => {
-                unsafe {
-                    drop(Box::from_raw(self.0.raw));
-                }
-                return Ok(());
-            }
+    ///
+    /// # Breaking Changes
+    ///
+    /// Now we no longer need to call `core::mem::forget` after successfully calling
+    /// `close_and_delete`, and code like this will now produce a compilation error.
+    /// ``` rust,compile_fail
+    /// # use optee_utee::{PersistentObject, ObjectStorageConstants, DataFlag};
+    /// # fn main() -> optee_utee::Result<()> {
+    /// # let obj_id = [0_u8];
+    /// let mut obj = PersistentObject::open (
+    ///         ObjectStorageConstants::Private,
+    ///         &obj_id,
+    ///         DataFlag::ACCESS_READ,
+    /// )?;
+    /// obj.close_and_delete()?;
+    /// core::mem::forget(obj); // will get compilation error in this line
+    /// //                ^^^ value used here after move
+    /// # Ok(())
+    /// # }
+    pub fn close_and_delete(self) -> Result<()> {
+        let result = match unsafe { raw::TEE_CloseAndDeletePersistentObject1(self.0.handle()) } {
+            raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
-        }
+        };
+        // According to `GPD_TEE_Internal_Core_API_Specification_v1.3.1`:
+        // At 5.7.4 TEE_CloseAndDeletePersistentObject1:
+        // Deleting an object is atomic; once this function returns, the object
+        // is definitely deleted and no more open handles for the object exist.
+        //
+        // So we must forget the raw_handle to prevent calling TEE_CloseObject
+        // on it (no matter the result of TEE_CloseAndDeletePersistentObject1).
+        self.0.forget();
+        return result;
     }
 
     /// Changes the identifier of an object.
@@ -293,53 +298,6 @@ impl PersistentObject {
             raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
         }
-    }
-    /// Return the characteristics of an object.
-    /// Function is similar to [TransientObject::info](TransientObject::info) besides extra errors.
-    ///
-    /// # Errors
-    ///
-    /// 1) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
-    /// 2) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
-    ///    currently inaccessible.
-    pub fn info(&self) -> Result<ObjectInfo> {
-        self.0.info()
-    }
-
-    /// Restrict the object usage flags of an object handle to contain at most the flags passed in the obj_usage parameter.
-    /// Function is similar to [TransientObject::restrict_usage](TransientObject::restrict_usage) besides extra errors.
-    ///
-    /// # Errors
-    ///
-    /// 1) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
-    /// 2) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
-    ///    currently inaccessible.
-    pub fn restrict_usage(&mut self, obj_usage: UsageFlag) -> Result<()> {
-        self.0.restrict_usage(obj_usage)
-    }
-
-    /// Extract one buffer attribute from an object. The attribute is identified by the argument id.
-    /// Function is similar to [TransientObject::ref_attribute](TransientObject::ref_attribute) besides extra errors.
-    ///
-    /// # Errors
-    ///
-    /// 1) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
-    /// 2) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
-    ///    currently inaccessible.
-    pub fn ref_attribute(&self, id: AttributeId, buffer: &mut [u8]) -> Result<usize> {
-        self.0.ref_attribute(id, buffer)
-    }
-
-    /// Extract one value attribute from an object. The attribute is identified by the argument id.
-    /// Function is similar to [TransientObject::value_attribute](TransientObject::value_attribute) besides extra errors.
-    ///
-    /// # Errors
-    ///
-    /// 1) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
-    /// 2) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
-    ///    currently inaccessible.
-    pub fn value_attribute(&self, id: u32) -> Result<(u32, u32)> {
-        self.0.value_attribute(id)
     }
 
     /// Read requested size from the data stream associate with the object into the buffer.
@@ -529,26 +487,120 @@ impl PersistentObject {
     }
 }
 
-impl ObjHandle for PersistentObject {
+impl GenericObject for PersistentObject {
     fn handle(&self) -> raw::TEE_ObjectHandle {
         self.0.handle()
     }
 }
 
-impl Drop for PersistentObject {
-    /// Close an opened [PersistentObject](PersistentObject).
-    ///
-    /// # Panics
-    ///
-    /// 1) If object is not a valid opened object.
-    /// 2) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
-    fn drop(&mut self) {
-        unsafe {
-            if self.0.raw != Box::into_raw(Box::new(ptr::null_mut())) {
-                raw::TEE_CloseObject(self.0.handle());
-            }
-            drop(Box::from_raw(self.0.raw));
-        }
+#[cfg(test)]
+mod tests {
+    use optee_utee_mock::{
+        object::{set_global_object_mock, MockObjectController, SERIAL_TEST_LOCK},
+        raw,
+    };
+
+    use super::*;
+
+    #[test]
+    // If a persistent object is successfully created, TEE_CloseObject will be
+    // called when it is dropped.
+    fn test_create_and_drop() {
+        let _lock = SERIAL_TEST_LOCK.lock();
+
+        let mut mock = MockObjectController::new();
+        let mut handle_struct = MockObjectController::new_valid_test_handle_struct();
+        let handle = MockObjectController::new_valid_test_handle(&mut handle_struct);
+
+        mock.expect_TEE_CreatePersistentObject_success_once(handle.clone());
+        mock.expect_TEE_CloseObject_once(handle);
+
+        set_global_object_mock(mock);
+
+        let _obj = PersistentObject::create(
+            ObjectStorageConstants::Private,
+            &[],
+            DataFlag::ACCESS_WRITE,
+            None,
+            &[],
+        )
+        .expect("it should be ok");
+    }
+
+    #[test]
+    fn test_create_failed() {
+        let _lock = SERIAL_TEST_LOCK.lock();
+
+        static RETURN_CODE: raw::TEE_Result = raw::TEE_ERROR_BAD_STATE;
+
+        let mut mock = MockObjectController::new();
+        mock.expect_TEE_CreatePersistentObject_fail_once(RETURN_CODE);
+
+        set_global_object_mock(mock);
+
+        let err = PersistentObject::create(
+            ObjectStorageConstants::Private,
+            &[],
+            DataFlag::ACCESS_WRITE,
+            None,
+            &[],
+        )
+        .expect_err("it should be err");
+
+        assert_eq!(err.raw_code(), RETURN_CODE);
+    }
+
+    #[test]
+    // If a persistent object successfully `close_and_delete`, it should not
+    // call `TEE_CloseObject` anymore.
+    fn test_create_and_successfully_close_delete() {
+        let _lock = SERIAL_TEST_LOCK.lock();
+
+        let mut mock = MockObjectController::new();
+        let mut handle_struct = MockObjectController::new_valid_test_handle_struct();
+        let handle = MockObjectController::new_valid_test_handle(&mut handle_struct);
+
+        mock.expect_TEE_CreatePersistentObject_success_once(handle.clone());
+        mock.expect_TEE_CloseAndDeletePersistentObject1_success_once(handle);
+
+        set_global_object_mock(mock);
+
+        let obj = PersistentObject::create(
+            ObjectStorageConstants::Private,
+            &[],
+            DataFlag::ACCESS_WRITE,
+            None,
+            &[],
+        )
+        .expect("it should be ok");
+
+        obj.close_and_delete().expect("it should be ok");
+    }
+
+    #[test]
+    // Even a persistent object failed at `close_and_delete`, `TEE_CloseObject`
+    // should not be called.
+    fn test_create_and_failed_close_delete() {
+        let _lock = SERIAL_TEST_LOCK.lock();
+
+        let mut mock = MockObjectController::new();
+        let mut handle_struct = MockObjectController::new_valid_test_handle_struct();
+        let handle = MockObjectController::new_valid_test_handle(&mut handle_struct);
+
+        mock.expect_TEE_CreatePersistentObject_success_once(handle.clone());
+        mock.expect_TEE_CloseAndDeletePersistentObject1_fail_once(raw::TEE_ERROR_BAD_STATE);
+
+        set_global_object_mock(mock);
+
+        let obj = PersistentObject::create(
+            ObjectStorageConstants::Private,
+            &[],
+            DataFlag::ACCESS_WRITE,
+            None,
+            &[],
+        )
+        .expect("it should be ok");
+
+        obj.close_and_delete().expect_err("it should be err");
     }
 }

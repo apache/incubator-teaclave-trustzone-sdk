@@ -16,7 +16,6 @@
 // under the License.
 
 use alloc::boxed::Box;
-use core::ptr;
 
 use optee_utee_sys as raw;
 
@@ -34,7 +33,7 @@ impl ObjectEnumHandle {
     /// Allocate an object enumerator.
     /// Once an object enumerator has been allocated, it can be reused for multiple enumerations.
     pub fn allocate() -> Result<Self> {
-        let raw_handle: *mut raw::TEE_ObjectEnumHandle = Box::into_raw(Box::new(ptr::null_mut()));
+        let raw_handle: *mut raw::TEE_ObjectEnumHandle = Box::into_raw(Box::new(core::ptr::null_mut()));
         match unsafe { raw::TEE_AllocatePersistentObjectEnumerator(raw_handle) } {
             raw::TEE_SUCCESS => Ok(Self { raw: raw_handle }),
             code => {

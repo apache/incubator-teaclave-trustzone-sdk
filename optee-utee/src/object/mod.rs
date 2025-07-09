@@ -17,6 +17,7 @@
 
 mod attribute;
 mod enum_handle;
+mod generic_object;
 mod object_define;
 mod object_handle;
 mod object_info;
@@ -25,8 +26,9 @@ mod transient_object;
 
 pub use attribute::*;
 pub use enum_handle::ObjectEnumHandle;
+pub use generic_object::GenericObject;
 pub use object_define::*;
-pub use object_handle::{ObjHandle, ObjectHandle};
+pub use object_handle::ObjectHandle;
 pub use object_info::ObjectInfo;
 pub use persistent_object::PersistentObject;
 pub use transient_object::{TransientObject, TransientObjectType};
