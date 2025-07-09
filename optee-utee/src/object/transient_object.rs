@@ -15,12 +15,11 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use alloc::{boxed::Box, vec::Vec};
-use core::ptr;
+use alloc::vec::Vec;
 
 use optee_utee_sys as raw;
 
-use super::{Attribute, AttributeId, ObjHandle, ObjectHandle, ObjectInfo, UsageFlag};
+use super::{Attribute, GenericObject, ObjectHandle};
 use crate::{Error, Result};
 
 /// Define types of [TransientObject](TransientObject) with predefined maximum sizes.
@@ -102,12 +101,17 @@ pub enum TransientObjectType {
 /// Transient objects are used to hold a cryptographic object (key or key-pair).
 ///
 /// Contrast [PersistentObject](PersistentObject).
+#[derive(Debug)]
 pub struct TransientObject(ObjectHandle);
 
 impl TransientObject {
     /// Create a [TransientObject](TransientObject) with a null handle which points to nothing.
+    //
+    // TODO: This function is only used in examples and should be removed when
+    // TransientObject is fully refactored in the future. Keep it for now and
+    // leave it for future PR.
     pub fn null_object() -> Self {
-        Self(ObjectHandle::from_raw(ptr::null_mut()))
+        Self(ObjectHandle::new_null())
     }
 
     /// Check if current object is created with null handle.
@@ -158,14 +162,14 @@ impl TransientObject {
     /// 1) If the Implementation detects any error associated with this function which is not
     ///    explicitly associated with a defined return code for this function.
     pub fn allocate(object_type: TransientObjectType, max_object_size: usize) -> Result<Self> {
-        let raw_handle: *mut raw::TEE_ObjectHandle = Box::into_raw(Box::new(ptr::null_mut()));
+        let mut handle: raw::TEE_ObjectHandle = core::ptr::null_mut();
+        // Move as much code as possible out of unsafe blocks to maximize Rust’s
+        // safety checks.
+        let handle_mut = &mut handle;
         match unsafe {
-            raw::TEE_AllocateTransientObject(object_type as u32, max_object_size as u32, raw_handle)
+            raw::TEE_AllocateTransientObject(object_type as u32, max_object_size as u32, handle_mut)
         } {
-            raw::TEE_SUCCESS => {
-                let handle = ObjectHandle::from_raw(raw_handle);
-                Ok(Self(handle))
-            }
+            raw::TEE_SUCCESS => Ok(Self(ObjectHandle::from_raw(handle)?)),
             code => Err(Error::from_raw_error(code)),
         }
     }
@@ -233,154 +237,6 @@ impl TransientObject {
         }
     }
 
-    /// Return the characteristics of an object.
-    ///
-    /// # Example
-    ///
-    /// ``` rust,no_run
-    /// # use optee_utee::{TransientObject, TransientObjectType};
-    /// # fn main() -> optee_utee::Result<()> {
-    /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
-    ///     Ok(object) => {
-    ///         match object.info() {
-    ///             Ok(info) => {
-    ///                 // ...
-    ///                 Ok(())
-    ///             }
-    ///             Err(e) => Err(e),
-    ///         }
-    ///     }
-    ///     Err(e) => Err(e),
-    /// }
-    /// # }
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// 1) If object is not a valid opened object.
-    /// 2) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
-    pub fn info(&self) -> Result<ObjectInfo> {
-        self.0.info()
-    }
-
-    /// Restrict the object usage flags of an object handle to contain at most the flags passed in the obj_usage parameter.
-    ///
-    /// The initial value of the key usage contains all usage flags.
-    ///
-    /// # Parameters
-    ///
-    /// 1) `obj_usage`: New object usage, an OR combination of one or more of the [UsageFlag](UsageFlag).
-    ///
-    /// # Example
-    ///
-    /// ``` rust,no_run
-    /// # use optee_utee::{TransientObject, TransientObjectType, UsageFlag};
-    /// # fn main() -> optee_utee::Result<()> {
-    /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
-    ///     Ok(mut object) =>
-    ///     {
-    ///         object.restrict_usage(UsageFlag::ENCRYPT)?;
-    ///         Ok(())
-    ///     }
-    ///     Err(e) => Err(e),
-    /// }
-    /// # }
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// 1) If object is not a valid opened object.
-    /// 2) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
-    pub fn restrict_usage(&mut self, obj_usage: UsageFlag) -> Result<()> {
-        self.0.restrict_usage(obj_usage)
-    }
-
-    /// Extract one buffer attribute from an object. The attribute is identified by the argument id.
-    ///
-    /// # Parameters
-    ///
-    /// 1) `id`: Identifier of the attribute to retrieve.
-    /// 2) `ref_attr`: Output buffer to get the content of the attribute.
-    ///
-    /// # Example
-    ///
-    /// ``` rust,no_run
-    /// # use optee_utee::{TransientObject, TransientObjectType, AttributeId};
-    /// # fn main() -> optee_utee::Result<()> {
-    /// # let id = AttributeId::SecretValue;
-    /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
-    ///     Ok(object) => {
-    ///         let mut attr = [0u8; 16];
-    ///         match object.ref_attribute(id, &mut attr) {
-    ///             Ok(size) => {
-    ///                 // ...
-    ///                 Ok(())
-    ///             }
-    ///             Err(e) => Err(e),
-    ///         }
-    ///     }
-    ///     Err(e) => Err(e),
-    /// }
-    /// # }
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// 1) `ItemNotFound`: If the attribute is not found on this object.
-    /// 2) `ShortBuffer`: If buffer is NULL or too small to contain the key part.
-    ///
-    /// # Panics
-    ///
-    /// 1) If object is not a valid opened object.
-    /// 2) If the object is not initialized.
-    /// 3) If the Attribute is not a buffer attribute.
-    pub fn ref_attribute(&self, id: AttributeId, buffer: &mut [u8]) -> Result<usize> {
-        self.0.ref_attribute(id, buffer)
-    }
-
-    /// Extract one value attribute from an object. The attribute is identified by the argument id.
-    ///
-    /// # Parameters
-    ///
-    /// 1) `id`: Identifier of the attribute to retrieve.
-    /// 2) `value_attr`: Two value placeholders to get the content of the attribute.
-    ///
-    /// # Example
-    ///
-    /// ``` rust,no_run
-    /// # use optee_utee::{TransientObject, TransientObjectType};
-    /// # fn main() -> optee_utee::Result<()> {
-    /// # let id = 0_u32;
-    /// match TransientObject::allocate(TransientObjectType::Aes, 128) {
-    ///     Ok(object) => {
-    ///         match object.value_attribute(id) {
-    ///             Ok((a,b)) => {
-    ///                 // ...
-    ///                 Ok(())
-    ///             }
-    ///             Err(e) => Err(e),
-    ///         }
-    ///     }
-    ///     Err(e) => Err(e),
-    /// }
-    /// # }
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// 1) `ItemNotFound`: If the attribute is not found on this object.
-    ///
-    /// # Panics
-    ///
-    /// 1) If object is not a valid opened object.
-    /// 2) If the object is not initialized.
-    /// 3) If the Attribute is not a value attribute.
-    pub fn value_attribute(&self, id: u32) -> Result<(u32, u32)> {
-        self.0.value_attribute(id)
-    }
-
     /// Populates an uninitialized object handle with the attributes of another object handle;
     /// that is, it populates the attributes of this handle with the attributes of src_handle.
     /// It is most useful in the following situations:
@@ -425,7 +281,7 @@ impl TransientObject {
     /// 3) If the type and size of src_object and self are not compatible.
     /// 4) If the Implementation detects any other error associated with this function which is not
     ///    explicitly associated with a defined return code for this function.
-    pub fn copy_attribute_from<T: ObjHandle>(&mut self, src_object: &T) -> Result<()> {
+    pub fn copy_attribute_from<T: GenericObject>(&mut self, src_object: &T) -> Result<()> {
         match unsafe { raw::TEE_CopyObjectAttributes1(self.handle(), src_object.handle()) } {
             raw::TEE_SUCCESS => Ok(()),
             code => Err(Error::from_raw_error(code)),
@@ -485,28 +341,60 @@ impl TransientObject {
     }
 }
 
-impl ObjHandle for TransientObject {
+impl GenericObject for TransientObject {
     fn handle(&self) -> raw::TEE_ObjectHandle {
         self.0.handle()
     }
 }
 
-impl Drop for TransientObject {
-    /// Deallocates a [TransientObject](TransientObject) previously allocated.
-    /// After this function has been called, the object handle is no longer valid and all resources
-    /// associated with the [TransientObject](TransientObject) SHALL have been reclaimed.
-    ///
-    /// # Panics
-    ///
-    /// 1) If object is not a valid opened object.
-    /// 2) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
-    fn drop(&mut self) {
-        unsafe {
-            if self.0.raw != ptr::null_mut() {
-                raw::TEE_FreeTransientObject(self.0.handle());
-            }
-            drop(Box::from_raw(self.0.raw));
-        }
+#[cfg(test)]
+mod tests {
+    use optee_utee_mock::{
+        object::{set_global_object_mock, MockObjectController, SERIAL_TEST_LOCK},
+        raw,
+    };
+
+    use super::*;
+
+    #[test]
+    // If a transient object is successfully allocated, TEE_CloseObject will be
+    // called when it is dropped.
+    //
+    // According to `GPD_TEE_Internal_Core_API_Specification_v1.3.1`:
+    // At 5.5.5 TEE_CloseObject:
+    // The `TEE_CloseObject` function closes an opened object handle. The object
+    // can be persistent or transient.
+    // For transient objects, `TEE_CloseObject` is equivalent to
+    // `TEE_FreeTransientObject`.
+    fn test_allocate_and_drop() {
+        let _lock = SERIAL_TEST_LOCK.lock();
+
+        let mut mock = MockObjectController::new();
+        let mut handle_struct = MockObjectController::new_valid_test_handle_struct();
+        let handle = MockObjectController::new_valid_test_handle(&mut handle_struct);
+
+        mock.expect_TEE_AllocateTransientObject_success_once(handle.clone());
+        mock.expect_TEE_CloseObject_once(handle);
+
+        set_global_object_mock(mock);
+
+        let _obj =
+            TransientObject::allocate(TransientObjectType::Aes, 128).expect("it should be ok");
+    }
+
+    #[test]
+    fn test_allocate_fail() {
+        let _lock = SERIAL_TEST_LOCK.lock();
+
+        let mut mock = MockObjectController::new();
+        static RETURN_CODE: raw::TEE_Result = raw::TEE_ERROR_BAD_STATE;
+
+        mock.expect_TEE_AllocateTransientObject_fail_once(RETURN_CODE);
+        set_global_object_mock(mock);
+
+        let err =
+            TransientObject::allocate(TransientObjectType::Aes, 128).expect_err("it should be err");
+
+        assert_eq!(err.raw_code(), RETURN_CODE);
     }
 }
