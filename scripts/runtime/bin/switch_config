@@ -37,6 +37,9 @@ show_usage() {
     echo "  $0 --host aarch64             # Switch Host only"
     echo "  $0 --status                   # Show current status"
     echo "  $0 --list                     # List available configs"
+    echo ""
+    echo "Note: In Docker containers, use the wrapper function 'switch_config'"
+    echo "which automatically reloads the environment in your current shell."
 }
 
 # Function to show current status

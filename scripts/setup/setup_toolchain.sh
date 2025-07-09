@@ -19,11 +19,6 @@
 
 set -xe
 
-##########################################
-# move to project root
-cd "$(dirname "$0")"
-
-##########################################
 export CARGO_NET_GIT_FETCH_WITH_CLI=true
 
 # install rustup and stable Rust if needed

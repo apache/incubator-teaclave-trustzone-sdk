@@ -15,7 +15,7 @@
 # specific language governing permissions and limitations
 # under the License.
 
-FROM ubuntu:24.04 
+FROM ubuntu:24.04 AS no-std-build-env
 
 # Base environment
 ENV TEACLAVE_TOOLCHAIN_BASE=/opt/teaclave
@@ -27,22 +27,60 @@ COPY scripts/setup ${TEACLAVE_TOOLCHAIN_BASE}/setup
 WORKDIR ${TEACLAVE_TOOLCHAIN_BASE}/setup
 
 RUN ./install_dependencies.sh 
-RUN . ./environment && ./prepare_emulator_images.sh 
-RUN . ./environment && ./setup_toolchain.sh 
-RUN . ./environment && ./build_optee_libraries.sh 
+RUN . ./bootstrap_env && ./prepare_emulator_images.sh 
+
+# Copy rust-toolchain.toml to root so it applies container-wide
+COPY rust-toolchain.toml /rust-toolchain.toml
+RUN . ./bootstrap_env && ./setup_toolchain.sh 
+
+RUN . ./bootstrap_env && ./build_optee_libraries.sh 
 
 # Set up shell environment and link useful scripts
 COPY scripts/runtime/bin ${TEACLAVE_TOOLCHAIN_BASE}/bin
-COPY scripts/runtime/config ${TEACLAVE_TOOLCHAIN_BASE}/config
+COPY scripts/runtime/config/host ${TEACLAVE_TOOLCHAIN_BASE}/config/host
+COPY scripts/runtime/config/ta/no-std ${TEACLAVE_TOOLCHAIN_BASE}/config/ta/no-std
 COPY scripts/runtime/environment ${TEACLAVE_TOOLCHAIN_BASE}/environment
 
-RUN chmod +x ${TEACLAVE_TOOLCHAIN_BASE}/bin/* 
-RUN echo "source ${HOME}/.cargo/env" >> "${HOME}/.profile" && \
-    echo "source ${TEACLAVE_TOOLCHAIN_BASE}/setup/environment" >> "${HOME}/.profile" && \
-    echo "source ${TEACLAVE_TOOLCHAIN_BASE}/environment" >> "${HOME}/.profile" && \
-    echo "export PATH=${TEACLAVE_TOOLCHAIN_BASE}/bin:\$PATH" >> "${HOME}/.profile"
+# Copy and set up entrypoint
+COPY scripts/entrypoint.sh /entrypoint.sh
+
 
 WORKDIR "/root"
 
-# Default interactive shell, use bash -l to load the environment variables
-CMD ["/bin/bash", "-l"]
+# Set default shell to bash
+SHELL ["/bin/bash", "-c"]
+
+# Set entrypoint
+ENTRYPOINT ["/entrypoint.sh"]
+
+# Default command for interactive use
+CMD []
+
+########### std build env ###########
+From no-std-build-env AS std-build-env
+
+ENV TEACLAVE_TOOLCHAIN_BASE=/opt/teaclave
+ENV RUST_STD_DIR=${TEACLAVE_TOOLCHAIN_BASE}/std
+
+# Add std TA configurations to the inherited no-std environment
+COPY scripts/runtime/config/ta/std ${TEACLAVE_TOOLCHAIN_BASE}/config/ta/std
+
+COPY scripts/setup-std ${TEACLAVE_TOOLCHAIN_BASE}/setup-std
+
+WORKDIR ${TEACLAVE_TOOLCHAIN_BASE}/setup-std
+
+# setup rust-std
+RUN . ${HOME}/.cargo/env && . ./setup_rust_std.sh 
+
+# copy customized-target.json to $RUST_STD_DIR for std development use
+COPY arm-unknown-optee.json $RUST_STD_DIR
+COPY aarch64-unknown-optee.json $RUST_STD_DIR
+
+# set default TA configuration to std for this build variant
+RUN cd ${TEACLAVE_TOOLCHAIN_BASE}/config/ta && ln -sf "std/aarch64" active
+
+# export rust-std root env for std build variant only
+RUN echo "export RUST_STD_DIR=${RUST_STD_DIR}" >> "${HOME}/.profile"
+
+# switch to root directory for bash interactive use
+WORKDIR "/root"
