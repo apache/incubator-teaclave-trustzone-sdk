@@ -94,7 +94,10 @@ complete TrustZone development environment with QEMU emulation, pre-built toolch
 and monitoring tools - no manual configuration required.
 
 We highly recommend starting here for the fastest and most reliable setup experience.
-- 🚀 [Quick Emulation And Development in Docker](docs/emulate-and-dev-in-docker.md)
+
+**Choose your development mode:**
+- 🚀 [Quick Emulation And Development in Docker](docs/emulate-and-dev-in-docker.md) - **No-std TA development** (recommended for most users)
+- 🚀 [Developing TAs with Rust Standard Library](docs/emulate-and-dev-in-docker-std.md) - **Std TA development** with Docker std environment
 
 ## Use the SDK as submodule in OP-TEE Repo
 

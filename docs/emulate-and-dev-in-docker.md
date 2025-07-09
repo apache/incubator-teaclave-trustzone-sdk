@@ -1,5 +1,5 @@
 ---
-permalink: /trustzone-sdk-docs/dev-and-emulate-in-docker.md
+permalink: /trustzone-sdk-docs/emulate-and-dev-in-docker.md
 ---
 
 # 🚀 Quick Start For QEMU Emulation
