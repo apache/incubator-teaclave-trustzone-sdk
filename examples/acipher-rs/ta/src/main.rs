@@ -26,7 +26,7 @@ use optee_utee::{
 };
 use optee_utee::{AlgorithmId, Asymmetric, OperationMode};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
-use optee_utee::{TransientObject, TransientObjectType};
+use optee_utee::{GenericObject, TransientObject, TransientObjectType};
 use proto::Command;
 
 pub struct RsaCipher {

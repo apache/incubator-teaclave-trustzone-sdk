@@ -16,7 +16,7 @@
 // under the License.
 
 use anyhow::{anyhow, bail, Result};
-use optee_utee::{DataFlag, ObjectStorageConstants, PersistentObject};
+use optee_utee::{DataFlag, GenericObject, ObjectStorageConstants, PersistentObject};
 
 // Wrapper functions for OP-TEE raw API
 
@@ -75,9 +75,8 @@ pub fn delete_from_secure_storage(obj_id: &[u8]) -> Result<()> {
             bail!("[-] {:?}: failed to open object: {:?}", &obj_id, e);
         }
 
-        Ok(mut object) => {
+        Ok(object) => {
             object.close_and_delete()?;
-            std::mem::forget(object);
             Ok(())
         }
     }
