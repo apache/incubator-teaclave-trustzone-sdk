@@ -22,16 +22,17 @@ use optee_utee_sys as raw;
 use super::ObjectInfo;
 use crate::{Error, Result};
 
-// TODO: The examples and detailed function explanation will be added after we test this struct and its
-// functions.
-/// An enumerator for [PersistentObject](PersistentObject)s.
+// TODO: The examples and detailed function explanation will be added after we
+// test this struct and its functions.
+/// An enumerator for [PersistentObject](crate::PersistentObject)s.
 pub struct ObjectEnumHandle {
     raw: *mut raw::TEE_ObjectEnumHandle,
 }
 
 impl ObjectEnumHandle {
     /// Allocate an object enumerator.
-    /// Once an object enumerator has been allocated, it can be reused for multiple enumerations.
+    /// Once an object enumerator has been allocated, it can be reused for
+    /// multiple enumerations.
     pub fn allocate() -> Result<Self> {
         let raw_handle: *mut raw::TEE_ObjectEnumHandle = Box::into_raw(Box::new(core::ptr::null_mut()));
         match unsafe { raw::TEE_AllocatePersistentObjectEnumerator(raw_handle) } {
@@ -53,9 +54,11 @@ impl ObjectEnumHandle {
         }
     }
 
-    /// Start the enumeration of all the [PersistentObject](PersistentObject)s in a given Trusted Storage.
+    /// Start the enumeration of all the
+    /// [PersistentObject](crate::PersistentObject)s in a given Trusted Storage.
     /// The object information can be retrieved by calling the function
-    /// [ObjectEnumHandle::get_next](ObjectEnumHandle::get_next) repeatedly.
+    /// [ObjectEnumHandle::get_next](crate::ObjectEnumHandle::get_next)
+    /// repeatedly.
     pub fn start(&mut self, storage_id: u32) -> Result<()> {
         match unsafe { raw::TEE_StartPersistentObjectEnumerator(*self.raw, storage_id) } {
             raw::TEE_SUCCESS => Ok(()),
@@ -63,7 +66,8 @@ impl ObjectEnumHandle {
         }
     }
 
-    /// Get the next object in an enumeration and returns information about the object: type, size, identifier, etc.
+    /// Get the next object in an enumeration and returns information about the
+    /// object: type, size, identifier, etc.
     pub fn get_next<T>(
         &mut self,
         object_info: &mut ObjectInfo,
@@ -85,7 +89,8 @@ impl ObjectEnumHandle {
 }
 
 impl Drop for ObjectEnumHandle {
-    /// Deallocates all resources associated with an object enumerator handle. After this function is called, the handle is no longer valid.
+    /// Deallocates all resources associated with an object enumerator handle.
+    /// After this function is called, the handle is no longer valid.
     ///
     /// # Panics
     ///
