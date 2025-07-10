@@ -25,9 +25,9 @@ use alloc::boxed::Box;
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
-use optee_utee::{is_algorithm_supported};
+use optee_utee::is_algorithm_supported;
 use optee_utee::{AlgorithmId, ElementId, Cipher, OperationMode};
-use optee_utee::{AttributeId, AttributeMemref, TransientObject, TransientObjectType};
+use optee_utee::{AttributeId, AttributeMemref, GenericObject, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::{Algo, Command, KeySize, Mode};
 

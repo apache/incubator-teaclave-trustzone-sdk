@@ -24,9 +24,9 @@ use alloc::vec;
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
-use optee_utee::{DataFlag, ObjectStorageConstants, PersistentObject};
+use optee_utee::{DataFlag, GenericObject, ObjectStorageConstants, PersistentObject};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
-use proto::{Command};
+use proto::Command;
 
 #[ta_create]
 fn create() -> Result<()> {
@@ -84,9 +84,8 @@ pub fn delete_object(params: &mut Parameters) -> Result<()> {
             return Err(e);
         }
 
-        Ok(mut object) => {
+        Ok(object) => {
             object.close_and_delete()?;
-            mem::forget(object);
             return Ok(());
         }
     }
@@ -125,7 +124,6 @@ pub fn create_raw_object(params: &mut Parameters) -> Result<()> {
             }
             Err(e_write) => {
                 object.close_and_delete()?;
-                mem::forget(object);
                 return Err(e_write);
             }
         },
