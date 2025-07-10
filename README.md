@@ -331,6 +331,17 @@ we aim to create a project that is maintained and owned by the community. All
 kinds of contributions are welcome.
 Thanks to our [contributors](https://teaclave.apache.org/contributors/).
 
+Teaclave follows the Apache Software Foundation (ASF) model, which does not 
+require `Signed-off-by` or other commit trailers. While such tags 
+(e.g., DCO-style trailers like `Signed-off-by`, `Reviewed-by`) are welcome, 
+they are optional and not enforced. Pull requests with or without them are 
+equally welcome.
+
+However, DCO-style tags cannot substitute for the Contributor License 
+Agreement (CLA). Major contributions and all committers must have a signed 
+CLA on file, as [required by the ASF](https://www.apache.org/licenses/contributor-agreements.html#clas).
+
+
 ## Community
 
 - Join us on our [mailing
