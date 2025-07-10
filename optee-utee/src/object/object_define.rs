@@ -18,7 +18,8 @@
 use bitflags::bitflags;
 use optee_utee_sys as raw;
 
-/// Indicate the possible start offset when moving a data position in the data stream associated with a [PersistentObject](PersistentObject).
+/// Indicate the possible start offset when moving a data position in the data
+/// stream associated with a [PersistentObject](crate::PersistentObject).
 pub enum Whence {
     /// The data position is set to offset bytes from the beginning of the data stream.
     DataSeekSet,
@@ -57,7 +58,8 @@ bitflags! {
         const ACCESS_WRITE = 0x00000002;
         /// The object is opened with the write-meta access right. This allows
         /// the Trusted Application to call the functions
-        /// `TEE_CloseAndDeletePersistentObject1` and `TEE_RenamePersistentObject`.
+        /// `TEE_CloseAndDeletePersistentObject1` and
+        /// `TEE_RenamePersistentObject`.
         const ACCESS_WRITE_META = 0x00000004;
         /// The caller allows another handle on the object to be created with
         /// read access.
@@ -66,8 +68,8 @@ bitflags! {
         /// write access.
         const SHARE_WRITE = 0x00000020;
         /// * If this flag is present and the object exists, then the object is
-        ///   deleted and re-created as an atomic operation: that is, the TA sees
-        ///   either the old object or the new one.
+        ///   deleted and re-created as an atomic operation: that is, the TA
+        ///   sees either the old object or the new one.
         /// * If the flag is absent and the object exists, then the function
         ///   SHALL return `TEE_ERROR_ACCESS_CONFLICT`.
         const OVERWRITE = 0x00000400;
@@ -106,17 +108,20 @@ pub enum MiscellaneousConstants {
 bitflags! {
     /// A set of flags that defines Handle features.
     pub struct HandleFlag: u32{
-        /// Set for a [PersistentObject](PersistentObject).
+        /// Set for a [PersistentObject](crate::PersistentObject).
         const PERSISTENT = 0x00010000;
-        /// 1) For a [PersistentObject](PersistentObject), always set.
-        /// 2) For a [TransientObject](TransientObject), initially cleared, then set when the object becomes initialized.
+        /// 1) For a [PersistentObject](crate::PersistentObject), always set.
+        /// 2) For a [TransientObject](crate::TransientObject), initially
+        ///    cleared, then set when the object becomes initialized.
         const INITIALIZED = 0x00020000;
         /// Following two flags are for crypto operation handles:
         /// 1) Set if the required operation key has been set.
         /// 2) Always set for digest operations.
         const KEY_SET = 0x00040000;
-        /// Set if the algorithm expects two keys to be set, using `TEE_SetOperationKey2`.
-        /// This happens only if algorithm is set to [AesXts](../crypto_op/enum.AlgorithmId.html#variant.AesXts)
+        /// Set if the algorithm expects two keys to be set, using
+        /// `TEE_SetOperationKey2`.
+        /// This happens only if algorithm is set to
+        /// [AesXts](crate::AlgorithmId::AesXts)
         /// or `TEE_ALG_SM2_KEP`(not supported now).
         const EXPECT_TWO_KEYS = 0x00080000;
     }

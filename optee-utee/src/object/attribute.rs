@@ -32,14 +32,16 @@ impl Attribute {
     }
 }
 
-/// Convert the buffer attribute [AttributeMemref](AttributeMemref) to the general attribute.
+/// Convert the buffer attribute [AttributeMemref](crate::AttributeMemref) to
+/// the general attribute.
 impl<'attrref> From<AttributeMemref<'attrref>> for Attribute {
     fn from(attr: AttributeMemref) -> Self {
         Self { raw: attr.raw() }
     }
 }
 
-/// Convert the value attribute [AttributeValue](AttributeValue) to the general attribute.
+/// Convert the value attribute [AttributeValue](crate::AttributeValue) to
+/// the general attribute.
 impl From<AttributeValue> for Attribute {
     fn from(attr: AttributeValue) -> Self {
         Self { raw: attr.raw() }
@@ -79,7 +81,8 @@ impl<'attrref> AttributeMemref<'attrref> {
     ///
     /// # Parameters
     ///
-    /// 1) `id`: The AttributeId[AttributeId] is an identifier of the attribute to populate.
+    /// 1) `id`: The [AttributeId](crate::AttributeId) is an identifier of the
+    ///    attribute to populate.
     /// 2) `buffer`: Input buffer that holds the content of the attribute.
     ///
     /// # Example
@@ -127,7 +130,8 @@ impl AttributeValue {
     ///
     /// # Parameters
     ///
-    /// 1) `id`: The AttributeId[AttributeId] is an identifier of the attribute to populate.
+    /// 1) `id`: The [AttributeId](crate::AttributeId) is an identifier of the
+    ///    attribute to populate.
     /// 2) `a`, `b`: u32 values to assign to the members of the value attribute.
     ///
     /// # Example

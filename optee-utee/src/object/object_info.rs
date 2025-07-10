@@ -18,36 +18,45 @@
 use optee_utee_sys as raw;
 
 /// Represent the characteristics of an object.
-/// This info can be returned by [TransientObject](TransientObject) function
-/// [info](TransientObject::info)
-/// or [PersistentObject](PersistentObject) function
-/// [info](PersistentObject::info).
+/// This info can be returned by [GenericObject](crate::GenericObject) function
+/// [info](crate::GenericObject::info)
 pub struct ObjectInfo {
     pub(crate) raw: raw::TEE_ObjectInfo,
 }
 
-// Since raw struct is not implemented Copy attribute yet, every item in raw struct needs a function to extract.
+// Since raw struct is not implemented Copy attribute yet, every item in raw
+// struct needs a function to extract.
 impl ObjectInfo {
-    /// Return an [ObjectInfo](ObjectInfo) struct based on the raw structure `TEE_ObjectInfo`.
+    /// Return an [ObjectInfo](crate::ObjectInfo) struct based on the raw
+    /// structure `TEE_ObjectInfo`.
     /// The raw structure contains following fields:
     ///
     /// 1) `objectType`: The parameter represents one of the
-    ///    [TransientObjectType](TransientObjectType).
-    /// 2) `objectSize`: The current size in bits of the object as determined by its attributes.
-    /// This will always be less than or equal to maxObjectSize. Set to 0 for uninitialized and data only objects.
-    /// 3) `maxObjectSize`: The maximum objectSize which this object can represent.
-    /// 3.1) For a [PersistentObject](PersistentObject), set to `objectSize`.
-    /// 3.2) For a [TransientObject](TransientObject), set to the parameter `maxObjectSize` passed to
-    /// [allocate](TransientObject::allocate).
+    ///    [TransientObjectType](crate::TransientObjectType).
+    /// 2) `objectSize`: The current size in bits of the object as determined
+    ///    by its attributes.
+    ///    This will always be less than or equal to maxObjectSize. Set to 0 for
+    ///    uninitialized and data only objects.
+    /// 3) `maxObjectSize`: The maximum objectSize which this object can
+    ///    represent.
+    ///     * For a [PersistentObject](crate::PersistentObject), set to
+    ///       `objectSize`.
+    ///     * For a [TransientObject](crate::TransientObject), set to the
+    ///       parameter `maxObjectSize` passed to
+    ///       [allocate](crate::TransientObject::allocate).
     /// 4) `objectUsage`: A bit vector of UsageFlag.
     /// 5) `dataSize`:
-    /// 5.1) For a [PersistentObject](PersistentObject), set to the current size of the data associated with the object.
-    /// 5.2) For a [TransientObject](TransientObject), always set to 0.
+    ///     * For a [PersistentObject](crate::PersistentObject), set to the
+    ///       current size of the data associated with the object.
+    ///     * For a [TransientObject](crate::TransientObject), always set to 0.
     /// 6) `dataPosition`:
-    /// 6.1) For a [PersistentObject](PersistentObject), set to the current position in the data for this handle.
-    /// Data positions for different handles on the same object may differ.
-    /// 6.2) For a [TransientObject](TransientObject), set to 0.
-    /// 7) `handleFlags`: A bit vector containing one or more [HandleFlag](HandleFlag) or [DataFlag](DataFlag).
+    ///     * For a [PersistentObject](crate::PersistentObject), set to the
+    ///       current position in the data for this handle.
+    ///       Data positions for different handles on the same object may
+    ///       differ.
+    ///     * For a [TransientObject](crate::TransientObject), set to 0.
+    /// 7) `handleFlags`: A bit vector containing one or more
+    ///    [HandleFlag](crate::HandleFlag) or [DataFlag](crate::DataFlag).
     pub fn from_raw(raw: raw::TEE_ObjectInfo) -> Self {
         Self { raw }
     }
