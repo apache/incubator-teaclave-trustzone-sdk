@@ -22,19 +22,21 @@ use crate::{Error, Result};
 
 /// An object identified by an Object Identifier and including a Data Stream.
 ///
-/// Contrast [TransientObject](TransientObject).
+/// Contrast [TransientObject](crate::TransientObject).
 #[derive(Debug)]
 pub struct PersistentObject(ObjectHandle);
 
 impl PersistentObject {
-    /// Open an existing [PersistentObject](PersistentObject).
+    /// Open an existing persistent object.
     ///
     /// # Parameters
     ///
     /// 1) `storage_id`: The storage to use which is defined in
-    ///    [ObjectStorageConstants](ObjectStorageConstants).
-    /// 2) `object_id`: The object identifier. Note that this buffer cannot reside in shared memory.
-    /// 3) `flags`: The [DataFlag](DataFlag) which determine the settings under which the object is opened.
+    ///    [ObjectStorageConstants](crate::ObjectStorageConstants).
+    /// 2) `object_id`: The object identifier. Note that this buffer cannot
+    ///    reside in shared memory.
+    /// 3) `flags`: The [DataFlag](crate::DataFlag) which determine the settings
+    ///    under which the object is opened.
     ///
     /// # Example
     ///
@@ -58,20 +60,25 @@ impl PersistentObject {
     ///
     /// # Errors
     ///
-    /// 1) `ItemNotFound`: If the storage denoted by storage_id does not exist or if the object
-    ///    identifier cannot be found in the storage.
-    /// 2) `Access_Conflict`: If an access right conflict was detected while opening the object.
-    /// 3) `OutOfMemory`: If there is not enough memory to complete the operation.
-    /// 4) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
-    /// 5) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
-    ///    currently inaccessible.
+    /// 1) `ItemNotFound`: If the storage denoted by storage_id does not exist
+    ///    or if the object identifier cannot be found in the storage.
+    /// 2) `Access_Conflict`: If an access right conflict was detected while
+    ///    opening the object.
+    /// 3) `OutOfMemory`: If there is not enough memory to complete the
+    ///    operation.
+    /// 4) `CorruptObject`: If the object is corrupt. The object handle SHALL
+    ///    behave based on the `gpd.ta.doesNotCloseHandleOnCorruptObject`
+    ///    property.
+    /// 5) `StorageNotAvailable`: If the object is stored in a storage area
+    ///    which is currently inaccessible.
     ///
     /// # Panics
     ///
     /// 1) If object_id.len() >
-    ///    [MiscellaneousConstants::TeeObjectIdMaxLen](MiscellaneousConstants::TeeObjectIdMaxLen)
-    /// 2) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
+    ///    [MiscellaneousConstants::TeeObjectIdMaxLen](crate::MiscellaneousConstants::TeeObjectIdMaxLen)
+    /// 2) If the Implementation detects any other error associated with this
+    ///    function which is not explicitly associated with a defined return
+    ///    code for this function.
     pub fn open(
         storage_id: ObjectStorageConstants,
         object_id: &[u8],
@@ -95,18 +102,23 @@ impl PersistentObject {
         }
     }
 
-    /// Create a [PersistentObject](PersistentObject) with initial attributes and an initial data stream content.
+    /// Create an object with initial attributes and an initial data stream
+    /// content.
     ///
     /// # Parameters
     ///
     /// 1) `storage_id`: The storage to use which is defined in
-    ///    [ObjectStorageConstants](ObjectStorageConstants).
-    /// 2) `object_id`: The object identifier. Note that this buffer cannot reside in shared memory.
-    /// 3) `flags`: The [DataFlag](DataFlag) which determine the settings under which the object is opened.
-    /// 4) `attributes`: A handle on a [PersistentObject](PersistentObject) or an initialized [TransientObject](TransientObject)
-    /// from which to take the [PersistentObject](PersistentObject) attributes.
-    /// Can be NONE if the [PersistentObject](PersistentObject) contains no attribute.
-    /// For example,if  it is a pure data object.
+    ///    [ObjectStorageConstants](crate::ObjectStorageConstants).
+    /// 2) `object_id`: The object identifier. Note that this buffer cannot
+    ///    reside in shared memory.
+    /// 3) `flags`: The [DataFlag](crate::DataFlag) which determine the settings
+    ///    under which the object is opened.
+    /// 4) `attributes`: A handle on a
+    ///    [PersistentObject](crate::PersistentObject) or an initialized
+    ///    [TransientObject](crate::TransientObject) from which to take the
+    ///    [PersistentObject](crate::PersistentObject) attributes.
+    ///    Can be NONE if the [PersistentObject](crate::PersistentObject)
+    ///    contains no attribute. For example,if it is a pure data object.
     ///
     /// # Example
     ///
@@ -133,22 +145,26 @@ impl PersistentObject {
     ///
     /// # Errors
     ///
-    /// 1) `ItemNotFound`: If the storage denoted by storage_id does not exist or if the object
-    ///    identifier cannot be found in the storage.
-    /// 2) `Access_Conflict`: If an access right conflict was detected while opening the object.
-    /// 3) `OutOfMemory`: If there is not enough memory to complete the operation.
-    /// 4) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
-    /// 5) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
-    ///    currently inaccessible.
+    /// 1) `ItemNotFound`: If the storage denoted by storage_id does not exist.
+    /// 2) `Access_Conflict`: If an access right conflict was detected while
+    ///    opening the object.
+    /// 3) `OutOfMemory`: If there is not enough memory to complete the
+    ///    operation.
+    /// 4) `StorageNoSpace`: If insufficient space is available to create the
+    ///    persistent object.
+    /// 5) `CorruptObject`: If the storage is corrupt.
+    /// 6) `StorageNotAvailable`: If the object is stored in a storage area
+    ///    which is currently inaccessible.
     ///
     /// # Panics
     ///
     /// 1) If object_id.len() >
-    ///    [MiscellaneousConstants::TeeObjectIdMaxLen](MiscellaneousConstants::TeeObjectIdMaxLen).
-    /// 2) If attributes is not NONE and is not a valid handle on an initialized object containing
-    ///    the type and attributes of the [PersistentObject](PersistentObject) to create.
-    /// 3) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
+    ///    [MiscellaneousConstants::TeeObjectIdMaxLen](crate::MiscellaneousConstants::TeeObjectIdMaxLen).
+    /// 2) If attributes is not NONE and is not a valid handle on an initialized
+    ///    object containing the type and attributes of the object to create.
+    /// 3) If the Implementation detects any other error associated with this
+    ///    function which is not explicitly associated with a defined return
+    ///    code for this function.
     pub fn create(
         storage_id: ObjectStorageConstants,
         object_id: &[u8],
@@ -205,14 +221,15 @@ impl PersistentObject {
     ///
     /// # Errors
     ///
-    /// 1) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage
-    ///    area which is currently inaccessible.
+    /// 1) `StorageNotAvailable`: If the object is stored in a storage area
+    ///    which is currently inaccessible.
     ///
     /// # Panics
     ///
     /// 1) If object is not a valid opened object.
-    /// 2) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
+    /// 2) If the Implementation detects any other error associated with this
+    ///    function which is not explicitly associated with a defined return
+    ///    code for this function.
     ///
     /// # Breaking Changes
     ///
@@ -249,7 +266,9 @@ impl PersistentObject {
     }
 
     /// Changes the identifier of an object.
-    /// The object SHALL have been opened with the [DataFlag::ACCESS_WRITE_META](DataFlag::ACCESS_WRITE_META) right, which means access to the object is exclusive.
+    /// The object SHALL have been opened with the
+    /// [DataFlag::ACCESS_WRITE_META](crate::DataFlag::ACCESS_WRITE_META) right,
+    /// which means access to the object is exclusive.
     ///
     /// # Example
     ///
@@ -274,19 +293,24 @@ impl PersistentObject {
     ///
     /// # Errors
     ///
-    /// 1) `Access_Conflict`: If an access right conflict was detected while opening the object.
-    /// 2) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
-    /// 3) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
-    ///    currently inaccessible.
+    /// 1) `AccessConflict`: If an object with the same identifier already
+    ///    exists.
+    /// 2) `CorruptObject`: If the object is corrupt. The object handle SHALL
+    ///    behave based on the `gpd.ta.doesNotCloseHandleOnCorruptObject`
+    ///    property.
+    /// 3) `StorageNotAvailable`: If the object is stored in a storage area
+    ///    which is currently inaccessible.
     ///
     /// # Panics
     ///
-    /// 1) If object is not a valid opened object.
+    /// 1) If object is not a valid handle on a persistent object that has been
+    ///    opened with the write-meta access right.
     /// 2) If new_object_id resides in shared memory.
     /// 3) If new_object_id.len() >
-    ///    [MiscellaneousConstants::TeeObjectIdMaxLen](MiscellaneousConstants::TeeObjectIdMaxLen).
-    /// 4) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
+    ///    [MiscellaneousConstants::TeeObjectIdMaxLen](crate::MiscellaneousConstants::TeeObjectIdMaxLen).
+    /// 4) If the Implementation detects any other error associated with this
+    ///    function which is not explicitly associated with a defined return
+    ///    code for this function.
     pub fn rename(&mut self, new_object_id: &[u8]) -> Result<()> {
         match unsafe {
             raw::TEE_RenamePersistentObject(
@@ -300,7 +324,8 @@ impl PersistentObject {
         }
     }
 
-    /// Read requested size from the data stream associate with the object into the buffer.
+    /// Read requested size from the data stream associate with the object into
+    /// the buffer.
     ///
     /// # Parameters
     ///
@@ -329,15 +354,19 @@ impl PersistentObject {
     ///
     /// # Errors
     ///
-    /// 1) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
-    /// 2) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
-    ///    currently inaccessible.
+    /// 1) `CorruptObject`: If the object is corrupt. The object handle SHALL
+    ///    behave based on the `gpd.ta.doesNotCloseHandleOnCorruptObject`
+    ///    property.
+    /// 2) `StorageNotAvailable`: If the object is stored in a storage area
+    ///    which is currently inaccessible.
     ///
     /// # Panics
     ///
-    /// 1) If object is not a valid opened object.
-    /// 2) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
+    /// 1) If object is not a valid handle on a persistent object opened with
+    ///    the read access right.
+    /// 2) If the Implementation detects any other error associated with this
+    ///    function which is not explicitly associated with a defined return
+    ///    code for this function.
     pub fn read(&self, buf: &mut [u8]) -> Result<u32> {
         let mut count: usize = 0;
         match unsafe {
@@ -348,7 +377,8 @@ impl PersistentObject {
         }
     }
 
-    /// Write the passed in buffer data into from the data stream associate with the object.
+    /// Write the passed in buffer data into from the data stream associate with
+    /// the object.
     ///
     /// # Parameters
     ///
@@ -378,18 +408,22 @@ impl PersistentObject {
     /// # Errors
     ///
     /// 1) `StorageNoSpace`: If insufficient storage space is available.
-    /// 2) `Overflow`: If the value of the data position indicator resulting from this operation
-    ///    would be greater than
-    ///    [MiscellaneousConstants::TeeDataMaxPosition](MiscellaneousConstants::TeeDataMaxPosition).
-    /// 3) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
-    /// 4) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
-    ///    currently inaccessible.
+    /// 2) `Overflow`: If the value of the data position indicator resulting
+    ///    from this operation would be greater than
+    ///    [MiscellaneousConstants::TeeDataMaxPosition](crate::MiscellaneousConstants::TeeDataMaxPosition).
+    /// 3) `CorruptObject`: If the object is corrupt. The object handle SHALL
+    ///    behave based on the `gpd.ta.doesNotCloseHandleOnCorruptObject`
+    ///    property.
+    /// 4) `StorageNotAvailable`: If the object is stored in a storage area
+    ///    which is currently inaccessible.
     ///
     /// # Panics
     ///
-    /// 1) If object is not a valid opened object.
-    /// 2) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
+    /// 1) If object is not a valid handle on a persistent object opened with
+    ///    the write access right
+    /// 2) If the Implementation detects any other error associated with this
+    ///    function which is not explicitly associated with a defined return
+    ///    code for this function.
     pub fn write(&mut self, buf: &[u8]) -> Result<()> {
         match unsafe { raw::TEE_WriteObjectData(self.handle(), buf.as_ptr() as _, buf.len()) } {
             raw::TEE_SUCCESS => Ok(()),
@@ -422,17 +456,19 @@ impl PersistentObject {
     /// # Errors
     ///
     /// 1) `StorageNoSpace`: If insufficient storage space is available.
-    ///    would be greater than
-    ///    [MiscellaneousConstants::TeeDataMaxPosition](MiscellaneousConstants::TeeDataMaxPosition).
-    /// 2) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
-    /// 3) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
-    ///    currently inaccessible.
+    /// 2) `CorruptObject`: If the object is corrupt. The object handle SHALL
+    ///    behave based on the `gpd.ta.doesNotCloseHandleOnCorruptObject`
+    ///    property.
+    /// 3) `StorageNotAvailable`: If the object is stored in a storage area
+    ///    which is currently inaccessible.
     ///
     /// # Panics
     ///
-    /// 1) If object is not a valid opened object.
-    /// 2) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
+    /// 1) If object is not a valid handle on a persistent object opened with
+    ///    the write access right.
+    /// 2) If the Implementation detects any other error associated with this
+    ///    function which is not explicitly associated with a defined return
+    ///    code for this function.
     pub fn truncate(&self, size: u32) -> Result<()> {
         match unsafe { raw::TEE_TruncateObjectData(self.handle(), size as usize) } {
             raw::TEE_SUCCESS => Ok(()),
@@ -443,7 +479,7 @@ impl PersistentObject {
     /// Set the data position indicator associate with the object.
     ///
     /// # Parameters
-    /// 1) `whence`: Defined in [Whence](Whence).
+    /// 1) `whence`: Defined in [Whence](crate::Whence).
     /// 2) `offset`: The bytes shifted based on `whence`.
     ///
     /// # Example
@@ -469,16 +505,19 @@ impl PersistentObject {
     /// # Errors
     ///
     /// 1) `Overflow`: If data position indicator is greater than
-    ///    [MiscellaneousConstants::TeeDataMaxPosition](MiscellaneousConstants::TeeDataMaxPosition).
-    /// 2) `CorruptObject`: If the [PersistentObject](PersistentObject) is corrupt. The object handle is closed.
-    /// 3) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
-    ///    currently inaccessible.
+    ///    [MiscellaneousConstants::TeeDataMaxPosition](crate::MiscellaneousConstants::TeeDataMaxPosition).
+    /// 2) `CorruptObject`: If the object is corrupt. The object handle SHALL
+    ///    behave based on the `gpd.ta.doesNotCloseHandleOnCorruptObject`
+    ///    property.
+    /// 3) `StorageNotAvailable`: If the object is stored in a storage area
+    ///    which is currently inaccessible.
     ///
     /// # Panics
     ///
-    /// 1) If object is not a valid opened object.
-    /// 2) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
+    /// 1) If object is not a valid handle on a persistent object.
+    /// 2) If the Implementation detects any other error associated with this
+    ///    function which is not explicitly associated with a defined return
+    ///    code for this function.
     pub fn seek(&self, offset: i32, whence: Whence) -> Result<()> {
         match unsafe { raw::TEE_SeekObjectData(self.handle(), offset.into(), whence.into()) } {
             raw::TEE_SUCCESS => Ok(()),

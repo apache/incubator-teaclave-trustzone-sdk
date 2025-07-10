@@ -22,14 +22,17 @@ use optee_utee_sys as raw;
 use super::{Attribute, GenericObject, ObjectHandle};
 use crate::{Error, Result};
 
-/// Define types of [TransientObject](TransientObject) with predefined maximum sizes.
+/// Define types of [TransientObject](crate::TransientObject) with
+/// predefined maximum sizes.
 #[repr(u32)]
 pub enum TransientObjectType {
     /// 128, 192, or 256 bits
     Aes = 0xA0000010,
-    /// Always 64 bits including the parity bits. This gives an effective key size of 56 bits
+    /// Always 64 bits including the parity bits. This gives an effective key
+    /// size of 56 bits
     Des = 0xA0000011,
-    /// 128 or 192 bits including the parity bits. This gives effective key sizes of 112 or 168 bits
+    /// 128 or 192 bits including the parity bits. This gives effective key
+    /// sizes of 112 or 168 bits
     Des3 = 0xA0000013,
     /// Between 64 and 512 bits, multiple of 8 bits
     HmacMd5 = 0xA0000001,
@@ -43,19 +46,22 @@ pub enum TransientObjectType {
     HmacSha384 = 0xA0000005,
     /// Between 256 and 1024 bits, multiple of 8 bits
     HmacSha512 = 0xA0000006,
-    /// The number of bits in the modulus. 256, 512, 768, 1024, 1536 and 2048-bit keys SHALL be supported.
+    /// The number of bits in the modulus. 256, 512, 768, 1024, 1536 and
+    /// 2048-bit keys SHALL be supported.
     /// Support for other key sizes including bigger key sizes is
     /// implementation-dependent. Minimum key size is 256 bits
     RsaPublicKey = 0xA0000030,
-    /// Same as [RsaPublicKey](TransientObjectType::RsaPublicKey) key size.
+    /// Same as [RsaPublicKey](crate::TransientObjectType::RsaPublicKey) key
+    /// size.
     RsaKeypair = 0xA1000030,
     /// Depends on Algorithm:
-    /// 1) [DsaSha1](../crypto_op/enum.AlgorithmId.html#variant.DsaSha1):
+    /// 1) [DsaSha1](crate::AlgorithmId::DsaSha1):
     /// Between 512 and 1024 bits, multiple of 64 bits
-    /// 2) [DsaSha224](../crypto_op/enum.AlgorithmId.html#variant.DsaSha224): 2048 bits
-    /// 3) [DsaSha256](../crypto_op/enum.AlgorithmId.html#variant.DsaSha256): 2048 or 3072 bits
+    /// 2) [DsaSha224](crate::AlgorithmId::DsaSha224): 2048 bits
+    /// 3) [DsaSha256](crate::AlgorithmId::DsaSha256): 2048 or 3072 bits
     DsaPublicKey = 0xA0000031,
-    /// Same as [DsaPublicKey](TransientObjectType::DsaPublicKey) key size.
+    /// Same as [DsaPublicKey](crate::TransientObjectType::DsaPublicKey) key
+    /// size.
     DsaKeypair = 0xA1000031,
     /// From 256 to 2048 bits, multiple of 8 bits.
     DhKeypair = 0xA1000032,
@@ -100,12 +106,12 @@ pub enum TransientObjectType {
 /// when closed or when the TA instance is destroyed.
 /// Transient objects are used to hold a cryptographic object (key or key-pair).
 ///
-/// Contrast [PersistentObject](PersistentObject).
+/// Contrast [PersistentObject](crate::PersistentObject).
 #[derive(Debug)]
 pub struct TransientObject(ObjectHandle);
 
 impl TransientObject {
-    /// Create a [TransientObject](TransientObject) with a null handle which points to nothing.
+    /// Create an object with a null handle which points to nothing.
     //
     // TODO: This function is only used in examples and should be removed when
     // TransientObject is fully refactored in the future. Keep it for now and
@@ -123,18 +129,20 @@ impl TransientObject {
         self.0.is_null()
     }
 
-    /// Allocate an uninitialized [TransientObject](TransientObject), i.e. a container for attributes.
+    /// Allocate an uninitialized object, i.e. a container for attributes.
     ///
     /// As allocated, the object is uninitialized.
-    /// It can be initialized by subsequently importing the object material, generating an object,
-    /// deriving an object, or loading an object from the Trusted Storage.
+    /// It can be initialized by subsequently importing the object material,
+    /// generating an object, deriving an object, or loading an object from the
+    /// Trusted Storage.
     ///
     /// # Parameters
     ///
-    /// 1) `object_type`: Type of uninitialized object container to be created as defined in
-    /// [TransientObjectType](TransientObjectType).
-    /// 2) `max_object_size`: Key Size of the object. Valid values depend on the object type and are
-    ///    defined in [TransientObjectType](TransientObjectType).
+    /// 1) `object_type`: Type of uninitialized object container to be created
+    ///    as defined in [TransientObjectType](crate::TransientObjectType).
+    /// 2) `max_object_size`: Key Size of the object. Valid values depend on the
+    ///    object type and are defined in
+    ///    [TransientObjectType](crate::TransientObjectType).
     ///
     /// # Example
     ///
@@ -154,13 +162,16 @@ impl TransientObject {
     ///
     /// # Errors
     ///
-    /// 1) `OutOfMemory`: If not enough resources are available to allocate the object handle.
-    /// 2) `NotSupported`: If the key size is not supported or the object type is not supported.
+    /// 1) `OutOfMemory`: If not enough resources are available to allocate the
+    ///    object handle.
+    /// 2) `NotSupported`: If the key size is not supported or the object type
+    ///    is not supported.
     ///
     /// # Panics
     ///
-    /// 1) If the Implementation detects any error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
+    /// 1) If the Implementation detects any error associated with this function
+    ///    which is not explicitly associated with a defined return code for
+    ///    this function.
     pub fn allocate(object_type: TransientObjectType, max_object_size: usize) -> Result<Self> {
         let mut handle: raw::TEE_ObjectHandle = core::ptr::null_mut();
         // Move as much code as possible out of unsafe blocks to maximize Rust’s
@@ -174,19 +185,23 @@ impl TransientObject {
         }
     }
 
-    ///Reset a [TransientObject](TransientObject) to its initial state after allocation.
-    ///If the object is currently initialized, the function clears the object of all its material.
-    ///The object is then uninitialized again.
+    /// Reset the object to its initial state after allocation.
+    /// If the object is currently initialized, the function clears the object
+    /// of all its material.
+    /// The object is then uninitialized again.
     pub fn reset(&mut self) {
         unsafe {
             raw::TEE_ResetTransientObject(self.handle());
         }
     }
 
-    /// Populate an uninitialized object container with object attributes passed by the TA in the `attrs` parameter.
+    /// Populate an uninitialized object container with object attributes passed
+    /// by the TA in the `attrs` parameter.
     /// When this function is called, the object SHALL be uninitialized.
-    /// If the object is initialized, the caller SHALL first clear it using the function reset.
-    /// Note that if the object type is a key-pair, then this function sets both the private and public attributes of the keypair.
+    /// If the object is initialized, the caller SHALL first clear it using the
+    /// function reset.
+    /// Note that if the object type is a key-pair, then this function sets both
+    /// the private and public attributes of the keypair.
     ///
     /// # Parameters
     ///
@@ -216,17 +231,22 @@ impl TransientObject {
     ///
     /// # Errors
     ///
-    /// 1) `BadParameters`: If an incorrect or inconsistent attribute value is detected. In this case,
-    /// the content of the object SHALL remain uninitialized.
+    /// 1) `BadParameters`: If an incorrect or inconsistent attribute value is
+    ///    detected. In this case, the content of the object SHALL remain
+    ///    uninitialized.
     ///
     /// # Panics
     ///
-    /// 1) If object is not a valid opened object that is transient and uninitialized.
+    /// 1) If object is not a valid opened object that is transient and
+    ///    uninitialized.
     /// 2) If some mandatory attribute is missing.
-    /// 3) If an attribute which is not defined for the object’s type is present in attrs.
-    /// 4) If an attribute value is too big to fit within the maximum object size specified when the object was created.
-    /// 5) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
+    /// 3) If an attribute which is not defined for the object’s type is
+    ///    present in attrs.
+    /// 4) If an attribute value is too big to fit within the maximum object
+    ///    size specified when the object was created.
+    /// 5) If the Implementation detects any other error associated with this
+    ///    function which is not explicitly associated with a defined return
+    ///    code for this function.
     pub fn populate(&mut self, attrs: &[Attribute]) -> Result<()> {
         let p: Vec<raw::TEE_Attribute> = attrs.iter().map(|p| p.raw()).collect();
         match unsafe {
@@ -237,15 +257,21 @@ impl TransientObject {
         }
     }
 
-    /// Populates an uninitialized object handle with the attributes of another object handle;
-    /// that is, it populates the attributes of this handle with the attributes of src_handle.
+    /// Populates an uninitialized object handle with the attributes of another
+    /// object handle;
+    /// that is, it populates the attributes of this handle with the attributes
+    /// of src_handle.
     /// It is most useful in the following situations:
     /// 1) To extract the public key attributes from a key-pair object.
-    /// 2) To copy the attributes from a [PersistentObject](PersistentObject) into a [TransientObject](TransientObject).
+    /// 2) To copy the attributes from a
+    ///    [PersistentObject](crate::PersistentObject) into a
+    ///    [TransientObject](crate::TransientObject).
     ///
     /// # Parameters
     ///
-    /// 1) `src_object`: Can be either a [TransientObject](TransientObject) or [PersistentObject](PersistentObject).
+    /// 1) `src_object`: Can be either a
+    ///    [TransientObject](crate::TransientObject) or
+    ///    [PersistentObject](crate::PersistentObject).
     ///
     /// # Example
     ///
@@ -270,17 +296,20 @@ impl TransientObject {
     ///
     /// # Errors
     ///
-    /// 1) `CorruptObject`: If the persistent` object is corrupt. The object handle is closed.
-    /// 2) `StorageNotAvailable`: If the [PersistentObject](PersistentObject) is stored in a storage area which is
-    ///    currently inaccessible.
+    /// 1) `CorruptObject`: If the persistent object is corrupt. The object
+    ///    handle SHALL behave based on the
+    ///    `gpd.ta.doesNotCloseHandleOnCorruptObject` property.
+    /// 2) `StorageNotAvailable`: If the persistent object is stored in a
+    ///    storage area which is currently inaccessible.
     ///
     /// # Panics
     ///
     /// 1) If src_object is not initialized.
     /// 2) If self is initialized.
     /// 3) If the type and size of src_object and self are not compatible.
-    /// 4) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
+    /// 4) If the Implementation detects any other error associated with this
+    ///    function which is not explicitly associated with a defined return
+    ///    code for this function.
     pub fn copy_attribute_from<T: GenericObject>(&mut self, src_object: &T) -> Result<()> {
         match unsafe { raw::TEE_CopyObjectAttributes1(self.handle(), src_object.handle()) } {
             raw::TEE_SUCCESS => Ok(()),
@@ -288,12 +317,14 @@ impl TransientObject {
         }
     }
 
-    /// Generates a random key or a key-pair and populates a transient key object with the generated key material.
+    /// Generates a random key or a key-pair and populates a transient key
+    /// object with the generated key material.
     ///
     /// # Parameters
     ///
-    /// 1) `key_size`: the size of the desired key. It SHALL be less than or equal to
-    /// the maximum key size specified when the [TransientObject](TransientObject) was created.
+    /// 1) `key_size`: the size of the desired key. It SHALL be less than or
+    ///    equal to the maximum key size specified when the transient object
+    ///    was created.
     ///
     /// # Example
     ///
@@ -320,11 +351,13 @@ impl TransientObject {
     ///
     /// 1) If object is not a valid opened object.
     /// 2) If some mandatory attribute is missing.
-    /// 3) If an attribute which is not defined for the object’s type is present in attrs.
-    /// 4) If an attribute value is too big to fit within the maximum object size specified when
-    /// the object was created.
-    /// 5) If the Implementation detects any other error associated with this function which is not
-    ///    explicitly associated with a defined return code for this function.
+    /// 3) If an attribute which is not defined for the object’s type is present
+    ///    in attrs.
+    /// 4) If an attribute value is too big to fit within the maximum object
+    ///    size specified when the object was created.
+    /// 5) If the Implementation detects any other error associated with this
+    ///    function which is not explicitly associated with a defined return
+    ///    code for this function.
     pub fn generate_key(&self, key_size: usize, params: &[Attribute]) -> Result<()> {
         let p: Vec<raw::TEE_Attribute> = params.iter().map(|p| p.raw()).collect();
         unsafe {
