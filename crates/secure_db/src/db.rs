@@ -17,7 +17,8 @@
 
 use crate::{delete_from_secure_storage, load_from_secure_storage, save_in_secure_storage};
 use anyhow::{bail, ensure, Result};
-use std::collections::{HashMap, HashSet};
+use hashbrown::HashSet;
+use std::collections::HashMap;
 
 // SecureStorageDb is a key-value storage for TA to easily store and retrieve data.
 // First we store the key list in the secure storage, named as db_name.
@@ -40,6 +41,10 @@ impl SecureStorageDb {
                 // create new db
                 Ok(Self {
                     name,
+                    // Note: `std::collections::HashSet` was replaced with
+                    // `hashbrown::HashSet`, due to a write permission fault
+                    // observed during testing. The exact cause of the issue is
+                    // unclear, but using `hashbrown::HashSet` resolves it.
                     key_list: HashSet::new(),
                 })
             }
