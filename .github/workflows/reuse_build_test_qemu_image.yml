@@ -53,10 +53,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Get Output Name
-        id: output_name
-        run: echo "name=$(uname -m)-optee-qemuv8-ubuntu-24.04${{ inputs.expand-memory && '-expand-ta-memory' || ''}}" > $GITHUB_OUTPUT
-
       - name: Install OP-TEE dependencies
         run: |
           ./setup_optee_dependencies.sh
@@ -68,13 +64,21 @@ jobs:
           repo init -u https://github.com/OP-TEE/manifest.git -m qemu_v8.xml &&
           repo sync -j4 --no-clone-bundle
 
+      - name: Get Output Name
+        id: output_name
+        run: |
+          cd ${{ env.QEMUV8_BUILD_FOLDER }}/optee_os && \
+            OPTEE_TAG=optee-$(git tag -l | grep -E '^v?[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -1)
+          OS_VERSION_TAG="ubuntu-24.04"
+          ARCH_TAG=$(uname -m)
+          SUFFIX_TAG=${{ inputs.expand-memory && '-expand-ta-memory' || '' }}
+          OUTPUT_NAME=$ARCH_TAG-$OPTEE_TAG-qemuv8-$OS_VERSION_TAG$SUFFIX_TAG
+
+          echo "name=$OUTPUT_NAME" > $GITHUB_OUTPUT
+
       - name: Apply patches for Disabling WatchDog Test
         run: |
           (cd ${{ env.QEMUV8_BUILD_FOLDER }}/build && git apply $GITHUB_WORKSPACE/.patches/test_qemu/optee-build_disable_wd_test.patch)
-
-      - name: Apply patches for IPV6 support
-        run: |
-          (cd ${{ env.QEMUV8_BUILD_FOLDER }}/build && git apply $GITHUB_WORKSPACE/.patches/test_qemu/optee-build_ipv6_support.patch)
 
       - name: Apply patches to expand memory
         if: ${{ inputs.expand-memory == true }}

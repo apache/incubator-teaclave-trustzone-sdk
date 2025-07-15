@@ -19,7 +19,7 @@
 
 set -e
 
-OPTEE_VERSION=4.6.0
+OPTEE_VERSION=$(cat ./optee-version.txt)
 OPTEE_DIR=$1
 
 # check arguments

@@ -21,9 +21,10 @@ set -xe
 
 # Default value for NEED_EXPANDED_MEM
 : ${NEED_EXPANDED_MEM:=false}
+OPTEE_TAG=optee-$(cat ../optee-version.txt)
 
 # Define IMG_VERSION
-IMG_VERSION="$(uname -m)-optee-qemuv8-ubuntu-24.04"
+IMG_VERSION="$(uname -m)-$OPTEE_TAG-qemuv8-ubuntu-24.04"
 
 # Set IMG based on NEED_EXPANDED_MEM
 if [ "$NEED_EXPANDED_MEM" = true ]; then
