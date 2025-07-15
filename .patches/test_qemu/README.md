@@ -13,19 +13,6 @@ Relevant Patch File:
 1. optee-build_disable_wd_test.patch: Updates build configurations to disable
     the watch dog test.
 
-## Patches for IPV6 Support
-
-The official QEMUv8 configuration in OP-TEE does not currently support IPv6,
-which is required for our IPv6 tests.
-
-We temporarily use a patch to enable IPv6 support.
-This patch can be removed once Issue [#174](https://github.com/apache/incubator-teaclave-trustzone-sdk/issues/174)
-is resolved.
-
-Relevant Patch File:
-
-1. optee-build_ipv6_support.patch: Enables IPv6 support in the Linux kernel.
-
 ## Patches for Expand Memory
 
 Some of our tests require more Trusted Application (TA) memory than the default
