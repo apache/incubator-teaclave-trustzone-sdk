@@ -49,7 +49,7 @@ also necessary.  For detailed instructions on customizing your build environment
 please refer to the [Advanced Setup Documentation](docs/advanced-setup.md).
 
 For other tips regarding the support Rust Examples, TA debugging, expanding 
-secure memory please refer to the [docs/ directory](docs/README.md).
+secure memory, please refer to the [docs/ directory](docs/README.md).
 
 ## Publication
 

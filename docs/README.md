@@ -11,3 +11,6 @@ permalink: /trustzone-sdk-docs
 * [Expanding TA Secure Memory on QEMUv8](expanding-ta-secure-memory-on-qemuv8.md)
 * [Building Rust CA as Android ELF](building-rust-ca-as-android-elf.md)
 * [Writing Rust TAs using optee-utee-build](writing-rust-tas-using-optee-utee-build.md)
+* [Advanced Setup](advanced-setup.md)
+* [TA Development Modes](ta-development-modes.md)
+* [Migrating to New Building Environment](migrating-to-new-building-env.md)
