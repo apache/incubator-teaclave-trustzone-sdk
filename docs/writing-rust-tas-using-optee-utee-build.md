@@ -2,6 +2,8 @@
 permalink: /trustzone-sdk-docs/writing-rust-tas-using-optee-utee-build.md
 ---
 
+# Writing Rust TAs Using optee-utee-build
+
 Currently we provide a `optee-utee-build` crate to simplify the compilcated
 building process of TA, and we recommend everyone use it in future developement.
 

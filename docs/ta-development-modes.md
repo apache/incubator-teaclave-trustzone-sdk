@@ -1,3 +1,7 @@
+---
+permalink: /trustzone-sdk-docs/ta-development-modes.md
+---
+
 # TA Development Modes
 
 ## Comparison

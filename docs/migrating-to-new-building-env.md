@@ -2,6 +2,8 @@
 permalink: /trustzone-sdk-docs/migrating-to-new-building-env.md
 ---
 
+# Migrating To New Building ENV
+
 > After optee-utee-build release, this doc is keeping for developers 
 who intend to know the detail of building process, we suggest use 
 [optee-utee-build](./writing-rust-tas-using-optee-utee-build.md) for building 
