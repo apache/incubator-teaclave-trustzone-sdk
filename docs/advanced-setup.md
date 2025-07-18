@@ -1,3 +1,7 @@
+---
+permalink: /trustzone-sdk-docs/advanced-setup.md
+---
+
 # Advanced Setup: Customize Your Build Environment
 
 ## Platforms
