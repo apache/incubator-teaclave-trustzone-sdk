@@ -1,22 +1,20 @@
-# Teaclave TrustZone SDK
+# Apache Teaclave™ (incubating) TrustZone SDK
 
 [![License](https://img.shields.io/badge/license-Apache-green.svg)](LICENSE)
 [![Release](https://img.shields.io/github/v/tag/apache/incubator-teaclave-trustzone-sdk?label=release&sort=semver)](https://github.com/apache/incubator-teaclave-trustzone-sdk/releases)
 [![Homepage](https://img.shields.io/badge/site-homepage-blue)](https://teaclave.apache.org/)
 
-Teaclave TrustZone SDK (Rust OP-TEE TrustZone SDK) provides abilities to build
+Apache Teaclave™ (incubating) TrustZone SDK (Rust OP-TEE TrustZone SDK) provides abilities to build
 safe TrustZone applications in Rust. The SDK is based on the
 [OP-TEE](https://www.op-tee.org/) project which follows
 [GlobalPlatform](https://globalplatform.org/) [TEE
 specifications](https://globalplatform.org/specs-library/tee-internal-core-api-specification/)
 and provides ergonomic APIs. In addition, it enables the capability to write
 TrustZone applications with Rust's standard library (std) and many third-party
-libraries (i.e., crates). Teaclave TrustZone SDK is a sub-project of [Apache
-Teaclave (incubating)](https://teaclave.apache.org/).
+libraries (i.e., crates). 
 
-Teaclave TrustZone SDK provides two development modes for Rust TAs: `no-std`
-and `std`. 
-We recommend using `no-std` by default. For a detailed comparison, please refer
+Apache Teaclave™ (incubating) TrustZone SDK provides two development modes for Rust TAs: `no-std`
+and `std`.  We recommend using `no-std` by default. For a detailed comparison, please refer
 to [Comparison](docs/ta-development-modes.md).
 
 **UPDATES:** We have developed a new build environment on the `main` branch, 
@@ -74,13 +72,13 @@ Conference",
 
 ## Contributing
 
-Teaclave is open source in [The Apache
+Apache Teaclave™ (incubating) is open source in [The Apache
 Way](https://www.apache.org/theapacheway/),
 we aim to create a project that is maintained and owned by the community. All
 kinds of contributions are welcome.
 Thanks to our [contributors](https://teaclave.apache.org/contributors/).
 
-Teaclave follows the Apache Software Foundation (ASF) model, which does not 
+Apache Teaclave™ (incubating) follows the Apache Software Foundation (ASF) model, which does not 
 require `Signed-off-by` or other commit trailers. While such tags 
 (e.g., DCO-style trailers like `Signed-off-by`, `Reviewed-by`) are welcome, 
 they are optional and not enforced. Pull requests with or without them are 
