@@ -27,12 +27,7 @@ TA_SIGN_KEY ?= $(TA_DEV_KIT_DIR)/keys/default_ta.pem
 SIGN := $(TA_DEV_KIT_DIR)/scripts/sign_encrypt.py
 OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 
-ifeq ($(STD),)
 all: ta strip sign
-else
-all:
-	@echo "Please \`unset STD\` then rerun \`source environment\` to build the No-STD version"
-endif
 
 ta:
 	@cargo build --target $(TARGET) --release --config $(LINKER_CFG) $(EXTRA_FLAGS)
