@@ -25,7 +25,7 @@ cd "$(dirname "$0")"
 
 ##########################################
 # install Xargo if not exist
-which xargo || cargo +stable install xargo
+which xargo || cargo install xargo
 
 ##########################################
 # initialize submodules: rust / libc

@@ -22,6 +22,8 @@ target/
 /out
 Cargo.lock
 
+rust/
+
 # Allow tracking Cargo.lock in std examples
 !examples/message_passing_interface-rs/ta/Cargo.lock
 !examples/secure_db_abstraction-rs/ta/Cargo.lock

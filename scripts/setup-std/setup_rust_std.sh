@@ -32,7 +32,7 @@ mkdir -p $RUST_STD_DIR
 cd $RUST_STD_DIR
 
 # install Xargo if not exist
-which xargo || cargo +stable install xargo
+which xargo || cargo install xargo
 
 # initialize submodules: rust / libc with pinned versions for reproducible builds
 RUST_BRANCH=optee-xargo
