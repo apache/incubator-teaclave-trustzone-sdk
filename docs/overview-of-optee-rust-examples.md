@@ -21,10 +21,13 @@ To compile one of the examples, run `make -C examples/EXAMPLE_DIR`.
 | big_int-rs                   | `0bef16a2-bdab-11eb-94be-6f9815f37c21` | Do mathematical operations of big integers, such as addition, subtraction, multiplication, division, etc. | both |
 | diffie_hellman-rs            | `0e6bf4fe-bdab-11eb-9bc5-3f4ecb50aee7` | Run Diffie-Hellman key exchange to derive shared secrets.    | both |
 | digest-rs                    | `10de87e2-bdab-11eb-b73c-63fec73e597c` | Calculate the hash of the message using SHA256 digest algorithm. | both |
+| error_handling-rs            | `ec59c1fc-b9e0-4c3c-8756-0a3cc48f0088` | Demonstrate error handling patterns in Trusted Applications.   | both |
 | hello_world-rs               | `133af0ca-bdab-11eb-9130-43bf7873bf67` | Increment and decrement an integer value.                    | both |
 | hotp-rs                      | `1585d412-bdab-11eb-ba91-3b085fd2601f` | Generate HMAC based One Time Password which is  described in [RFC4226](https://www.ietf.org/rfc/rfc4226.txt). | both |
+| inter_ta-rs                  | `fa9ea860-ef3b-4d59-8457-5564a60c0379` | Demonstrate inter-TA communication patterns.                   | both |
 | message_passing_interface-rs | `17556a46-bdab-11eb-b325-d38c9a9af725` | Passing serde json message between host application and TA, which is more convenient to send structured data. | std |
 | random-rs                    | `197c710c-bdab-11eb-8f3f-17a5f698d23b` | Generate a random UUID.                                      | both |
+| property-rs                  | `a3859d33-b540-4a69-8d29-696dde9115cc` | Demonstrate property-based testing in Trusted Applications.   | both |
 | secure_storage-rs            | `1cd6d392-bdab-11eb-9082-abc902ac5cd4` | Read / write / delete raw data from / into the OP-TEE secure storage. | both |
 | serde-rs                     | `1ed47816-bdab-11eb-9ebd-3ffe0648da93` | Invoke third party crate `serde` for serialization and deserialization. | std |
 | supp_plugin-rs               | `255fc838-de89-42d3-9a8e-d044c50fa57c` | TA actively invokes a command defined in normal world plugins. Do interaction between host <-> TA <-> plugin. The plugin is identified by UUID: ef620757-fa2b-4f19-a1c4-6e51cfe4c0f9. | both |
