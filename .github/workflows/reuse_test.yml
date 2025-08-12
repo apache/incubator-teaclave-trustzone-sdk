@@ -88,25 +88,25 @@ jobs:
           export ARCH_HOST=arm
           export ARCH_TA=arm
           source environment
-          make -j`nproc`
+          make examples -j`nproc`
 
           # Build OP-TEE Rust examples for Arm 32-bit host and 64-bit TA
           export ARCH_HOST=arm
           unset ARCH_TA
           source environment
-          make clean && make -j`nproc`
+          make clean && make examples -j`nproc`
 
           # Build OP-TEE Rust examples for Arm 64-bit host and 32-bit TA
           unset ARCH_HOST
           export ARCH_TA=arm
           source environment
-          make clean && make -j`nproc`
+          make clean && make examples -j`nproc`
 
           # Build OP-TEE Rust examples for Arm 64-bit both host and TA
           unset ARCH_TA
           unset ARCH_HOST
           source environment
-          make clean && make -j`nproc`
+          make clean && make examples -j`nproc`
       - name: Run tests for Arm 64-bit both host and TA
         run: |
           source environment
@@ -137,7 +137,7 @@ jobs:
           source environment
 
           # Build OP-TEE Rust examples for Arm 64-bit both host and TA
-          make -j2
+          make std-examples -j2
 
           # Build project
           (cd projects/web3/eth_wallet && make)
@@ -173,7 +173,7 @@ jobs:
           source environment
 
           # Build OP-TEE Rust examples for Arm 64-bit both host and TA
-          make -j2
+          make std-examples -j2
 
           # Build project
           (cd projects/web3/eth_wallet && make)

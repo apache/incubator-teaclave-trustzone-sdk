@@ -34,9 +34,6 @@ endif
 # export 'q', used by sub-makefiles.
 export q
 
-EXAMPLES = $(wildcard examples/*)
-EXAMPLES_CLEAN  = $(EXAMPLES:%=%-clean)
-
 TARGET ?= aarch64-unknown-linux-gnu
 CROSS_COMPILE ?= aarch64-linux-gnu-
 
@@ -47,7 +44,9 @@ CROSS_COMPILE_TA ?= $(CROSS_COMPILE)
 TARGET_HOST ?= $(TARGET)
 TARGET_TA ?= $(TARGET)
 
-.PHONY: all examples $(EXAMPLES) install clean
+.PHONY: all examples std-examples no-std-examples \
+	install clean examples-clean help
+
 ifneq ($(wildcard $(TA_DEV_KIT_DIR)/host_include/conf.mk),)
 all: examples
 else
@@ -55,9 +54,12 @@ all:
 	$(q)echo "TA_DEV_KIT_DIR is not correctly defined" && false
 endif
 
-examples: $(EXAMPLES)
-$(EXAMPLES):
-	$(q)make -C $@ TARGET_HOST=$(TARGET_HOST) \
+# Default examples target - builds no-std examples for backward compatibility
+examples: no-std-examples
+
+# Delegate all examples-related targets to examples/Makefile
+std-examples no-std-examples:
+	$(q)$(MAKE) -C examples $@ TARGET_HOST=$(TARGET_HOST) \
 		TARGET_TA=$(TARGET_TA) \
 		CROSS_COMPILE_HOST=$(CROSS_COMPILE_HOST) \
 		CROSS_COMPILE_TA=$(CROSS_COMPILE_TA) \
@@ -75,11 +77,19 @@ install: examples
 	$(q)mkdir -p ${out-dir}${libdir}/tee-supplicant/plugins/
 	$(q)find examples/*/plugin/target/$(TARGET_HOST)/ -name *.plugin.so -exec cp {} ${out-dir}${libdir}/tee-supplicant/plugins/ \;
 
-examples-clean: $(EXAMPLES_CLEAN) out-clean
-$(EXAMPLES_CLEAN):
-	$(q)make -C $(@:-clean=) clean
+clean: examples-clean out-clean
+
+examples-clean:
+	$(q)$(MAKE) -C examples clean
 
 out-clean:
 	rm -rf out
 
-clean: $(EXAMPLES_CLEAN) out-clean
+help:
+	@echo "Available targets:"
+	@echo "  examples              - Build no-std examples (default, backward compatible)"
+	@echo "  std-examples          - Build std examples (std-only + common)"
+	@echo "  no-std-examples       - Build no-std examples (no-std-only + common)"
+	@echo "  install               - Install built examples to out directory"
+	@echo "  clean                 - Clean all examples and output directory"
+	@echo ""
