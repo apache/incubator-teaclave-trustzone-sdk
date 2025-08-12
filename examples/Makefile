@@ -37,8 +37,11 @@ COMMON_EXAMPLES = \
 	big_int-rs \
 	diffie_hellman-rs \
 	digest-rs \
+	error_handling-rs \
 	hello_world-rs \
 	hotp-rs \
+	inter_ta-rs \
+	property-rs \
 	random-rs \
 	secure_storage-rs \
 	supp_plugin-rs \
