@@ -26,16 +26,18 @@ source setup.sh
 # Copy TA and host binary
 cp ../examples/tls_server-rs/ta/target/$TARGET_TA/release/*.ta shared
 cp ../examples/tls_server-rs/host/target/$TARGET_HOST/release/tls_server-rs shared
+cp ../examples/tls_server-rs/ta/test-ca/ecdsa/ca.cert shared
 
 # Run script specific commands in QEMU
 run_in_qemu "cp *.ta /lib/optee_armtz/\n"
 run_in_qemu "./tls_server-rs\n"
-echo "Q" | openssl s_client -connect 127.0.0.1:54433 -debug > openssl.log 2>&1
+# Outside the QEMU: connect the server using openssl, accept the self-signed CA cert
+echo "Q" | openssl s_client -connect 127.0.0.1:54433 -CAfile shared/ca.cert -debug > openssl.log 2>&1
 run_in_qemu "^C"
 
 # Script specific checks
 {
-	grep -q "DONE" openssl.log &&
+	grep -q "Verification: OK" openssl.log &&
 	grep -q "close session" screenlog.0
 } || {
 	cat -v screenlog.0

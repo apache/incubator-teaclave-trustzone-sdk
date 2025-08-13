@@ -23,9 +23,11 @@ use optee_utee::{
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::Command;
 
+use anyhow::Context;
 use lazy_static::lazy_static;
+use rustls::pki_types::{pem::PemObject, CertificateDer, PrivateKeyDer};
 use std::collections::HashMap;
-use std::io::{BufReader, Cursor, Read, Write};
+use std::io::{Cursor, Read, Write};
 use std::sync::{Arc, Mutex, RwLock};
 
 lazy_static! {
@@ -92,12 +94,23 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
 }
 
 pub fn new_tls_session(session_id: u32) {
-    let tls_config = make_config();
-    let tls_session = rustls::ServerConnection::new(tls_config).unwrap();
-    TLS_SESSIONS
-        .write()
-        .unwrap()
-        .insert(session_id, Mutex::new(tls_session));
+    match make_config() {
+        Ok(tls_config) => match rustls::ServerConnection::new(tls_config) {
+            Ok(tls_session) => {
+                TLS_SESSIONS
+                    .write()
+                    .unwrap()
+                    .insert(session_id, Mutex::new(tls_session));
+                trace_println!("[+] TLS session {} created successfully", session_id);
+            }
+            Err(e) => {
+                trace_println!("[-] Failed to create TLS connection: {:?}", e);
+            }
+        },
+        Err(e) => {
+            trace_println!("[-] Failed to create TLS config: {:?}", e);
+        }
+    }
 }
 
 pub fn close_tls_session(session_id: u32) {
@@ -131,36 +144,44 @@ pub fn do_tls_write(session_id: u32, buf: &mut [u8]) -> usize {
     rc
 }
 
-fn make_config() -> Arc<rustls::ServerConfig> {
-    let certs = load_certs();
-    let privkey = load_private_key();
-    let config = rustls::ServerConfig::builder()
-        .with_safe_defaults()
+fn make_config() -> anyhow::Result<Arc<rustls::ServerConfig>> {
+    trace_println!("[+] Creating crypto provider");
+    let crypto_provider = Arc::new(rustls_provider::optee_crypto_provider());
+
+    trace_println!("[+] Creating time provider");
+    let time_provider = Arc::new(rustls_provider::optee_time_provider());
+
+    let certs = load_certs().context("Failed to load certificates")?;
+    trace_println!("[+] Loaded {} certificates", certs.len());
+
+    let private_key = load_private_key().context("Failed to load private key")?;
+    trace_println!(
+        "[+] Private key loaded: {} bytes",
+        private_key.secret_der().len()
+    );
+
+    let config = rustls::ServerConfig::builder_with_details(crypto_provider, time_provider)
+        .with_safe_default_protocol_versions()
+        .context("Inconsistent cipher-suite/versions selected")?
         .with_no_client_auth()
-        .with_single_cert(certs, privkey)
-        .unwrap();
+        .with_single_cert(certs, private_key)
+        .context("Failed to create server config with certificate")?;
 
-    Arc::new(config)
+    Ok(Arc::new(config))
 }
 
-fn load_certs() -> Vec<rustls::Certificate> {
-    let bytes = include_bytes!("../test-ca/ecdsa/end.fullchain").to_vec();
-    let cursor = std::io::Cursor::new(bytes);
-    let mut reader = BufReader::new(cursor);
-    let certs = rustls_pemfile::certs(&mut reader).unwrap();
-    certs
-        .iter()
-        .map(|v| rustls::Certificate(v.clone()))
-        .collect()
+fn load_certs() -> anyhow::Result<Vec<CertificateDer<'static>>> {
+    let pem_data = include_bytes!("../test-ca/ecdsa/end.fullchain");
+    let cursor = std::io::Cursor::new(pem_data);
+    CertificateDer::pem_reader_iter(cursor)
+        .collect::<std::result::Result<Vec<_>, _>>()
+        .context("Failed to parse certificate PEM data")
 }
 
-fn load_private_key() -> rustls::PrivateKey {
-    let bytes = include_bytes!("../test-ca/ecdsa/end.key").to_vec();
-    let cursor = std::io::Cursor::new(bytes);
-    let mut reader = BufReader::new(cursor);
-    let keys = rustls_pemfile::pkcs8_private_keys(&mut reader).unwrap();
-    assert_eq!(keys.len(), 1);
-    rustls::PrivateKey(keys[0].clone())
+fn load_private_key() -> anyhow::Result<PrivateKeyDer<'static>> {
+    let pem_data = include_bytes!("../test-ca/ecdsa/end.key");
+    let cursor = std::io::Cursor::new(pem_data);
+    PrivateKeyDer::from_pem_reader(cursor).context("Failed to parse private key PEM data")
 }
 
 include!(concat!(env!("OUT_DIR"), "/user_ta_header.rs"));

@@ -23,10 +23,9 @@ use optee_utee::{
 };
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::Command;
-use rustls::{OwnedTrustAnchor, RootCertStore};
+use rustls::RootCertStore;
 use std::convert::TryInto;
-use std::io::Read;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::sync::Arc;
 
 #[ta_create]
@@ -64,34 +63,35 @@ fn invoke_command(cmd_id: u32, _params: &mut Parameters) -> Result<()> {
 }
 
 // This code is based on the Rustls example:
-// https://github.com/rustls/rustls/blob/v/0.21.0/examples/src/bin/simpleclient.rs
+// https://github.com/rustls/rustls/blob/v/0.23.12/examples/src/bin/simpleclient.rs
 // with modifications by Teaclave to demonstrate Rustls usage in the TA.
 // Licensed under the Apache License, Version 2.0.
 fn tls_client() {
-    let mut root_store = RootCertStore::empty();
-    root_store.add_server_trust_anchors(webpki_roots::TLS_SERVER_ROOTS.0.iter().map(|ta| {
-        OwnedTrustAnchor::from_subject_spki_name_constraints(
-            ta.subject,
-            ta.spki,
-            ta.name_constraints,
-        )
-    }));
-    trace_println!("[+] root_store added");
+    // Create our custom providers
+    let crypto_provider = Arc::new(rustls_provider::optee_crypto_provider());
+    let time_provider = Arc::new(rustls_provider::optee_time_provider());
 
-    let config = rustls::ClientConfig::builder()
-        .with_safe_defaults()
+    let root_store = RootCertStore {
+        roots: webpki_roots::TLS_SERVER_ROOTS.into(),
+    };
+
+    let mut config = rustls::ClientConfig::builder_with_details(crypto_provider, time_provider)
+        .with_safe_default_protocol_versions()
+        .expect("inconsistent cipher-suite/versions selected")
         .with_root_certificates(root_store)
         .with_no_client_auth();
-    trace_println!("[+] config created");
 
-    let server_name = "google.com".try_into().unwrap();
+    // Allow using SSLKEYLOGFILE.
+    config.key_log = Arc::new(rustls::KeyLogFile::new());
+
+    let server_name = "www.rust-lang.org".try_into().unwrap();
     let mut conn = rustls::ClientConnection::new(Arc::new(config), server_name).unwrap();
-    let mut sock = TcpStream::connect("google.com", 443).unwrap();
+    let mut sock = TcpStream::connect("www.rust-lang.org", 443).unwrap();
     let mut tls = rustls::Stream::new(&mut conn, &mut sock);
     tls.write_all(
         concat!(
             "GET / HTTP/1.1\r\n",
-            "Host: google.com\r\n",
+            "Host: www.rust-lang.org\r\n",
             "Connection: close\r\n",
             "Accept-Encoding: identity\r\n",
             "\r\n"
