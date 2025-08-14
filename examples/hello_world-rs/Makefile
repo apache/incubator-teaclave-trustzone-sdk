@@ -34,9 +34,11 @@ ta:
 	$(q)make -C ta TARGET=$(TARGET_TA) \
 		CROSS_COMPILE=$(CROSS_COMPILE_TA)
 
-emulate: all
-	$(q)make -C host emulate 
-	$(q)make -C ta emulate 
+emulate:
+	$(q)make -C host emulate TARGET=$(TARGET_HOST) \
+		CROSS_COMPILE=$(CROSS_COMPILE_HOST)
+	$(q)make -C ta emulate TARGET=$(TARGET_TA) \
+		CROSS_COMPILE=$(CROSS_COMPILE_TA)
 
 clean:
 	$(q)make -C host clean
