@@ -32,6 +32,7 @@ optee-utee = { path = "../../../optee-utee" }
 rustls_provider = { path = "../../../crates/rustls_provider" }
 rustls = { version = "0.23.12", default-features = false, features = ["std"] }
 webpki-roots = "1"
+anyhow = "1.0"
 
 [build-dependencies]
 proto = { path = "../proto" }

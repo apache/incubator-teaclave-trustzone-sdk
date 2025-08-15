@@ -65,83 +65,146 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
     match Command::from(cmd_id) {
         Command::NewTlsSession => {
             trace_println!("[+] new_tls_session");
-            new_tls_session(session_id);
-            Ok(())
+            match new_tls_session(session_id) {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    trace_println!("[-] Failed to create TLS session: {:?}", e);
+                    Err(Error::new(ErrorKind::Generic))
+                }
+            }
         }
         Command::DoTlsRead => {
             let mut p1 = unsafe { params.1.as_memref().unwrap() };
             let buffer = p1.buffer();
             trace_println!("[+] do_tls_read");
-            do_tls_read(session_id, buffer);
-            Ok(())
+            match do_tls_read(session_id, buffer) {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    trace_println!("[-] Failed to read TLS data: {:?}", e);
+                    Err(Error::new(ErrorKind::Generic))
+                }
+            }
         }
         Command::DoTlsWrite => {
             trace_println!("[+] do_tls_write");
             let mut p1 = unsafe { params.1.as_memref().unwrap() };
             let mut p2 = unsafe { params.2.as_value().unwrap() };
-            let mut buffer = p1.buffer();
-            let n = do_tls_write(session_id, &mut buffer);
-            p2.set_a(n as u32);
-            Ok(())
+            let buffer = p1.buffer();
+            match do_tls_write(session_id, buffer) {
+                Ok(n) => {
+                    p2.set_a(n as u32);
+                    Ok(())
+                }
+                Err(e) => {
+                    trace_println!("[-] Failed to write TLS data: {:?}", e);
+                    Err(Error::new(ErrorKind::Generic))
+                }
+            }
         }
         Command::CloseTlsSession => {
             trace_println!("[+] close_tls_session");
-            close_tls_session(session_id);
-            Ok(())
+            match close_tls_session(session_id) {
+                Ok(_) => Ok(()),
+                Err(e) => {
+                    trace_println!("[-] Failed to close TLS session: {:?}", e);
+                    Err(Error::new(ErrorKind::Generic))
+                }
+            }
         }
         _ => Err(Error::new(ErrorKind::BadParameters)),
     }
 }
 
-pub fn new_tls_session(session_id: u32) {
-    match make_config() {
-        Ok(tls_config) => match rustls::ServerConnection::new(tls_config) {
-            Ok(tls_session) => {
-                TLS_SESSIONS
-                    .write()
-                    .unwrap()
-                    .insert(session_id, Mutex::new(tls_session));
-                trace_println!("[+] TLS session {} created successfully", session_id);
-            }
-            Err(e) => {
-                trace_println!("[-] Failed to create TLS connection: {:?}", e);
-            }
-        },
-        Err(e) => {
-            trace_println!("[-] Failed to create TLS config: {:?}", e);
-        }
+pub fn new_tls_session(session_id: u32) -> anyhow::Result<()> {
+    let tls_config = make_config().context("Failed to create TLS config")?;
+    let tls_session =
+        rustls::ServerConnection::new(tls_config).context("Failed to create TLS connection")?;
+
+    TLS_SESSIONS
+        .write()
+        .map_err(|_| anyhow::anyhow!("Failed to acquire write lock on TLS sessions"))?
+        .insert(session_id, Mutex::new(tls_session));
+
+    trace_println!("[+] TLS session {} created successfully", session_id);
+    Ok(())
+}
+
+pub fn close_tls_session(session_id: u32) -> anyhow::Result<()> {
+    let mut sessions = TLS_SESSIONS.write().map_err(|_| {
+        anyhow::anyhow!(
+            "Failed to acquire write lock to close TLS session {}",
+            session_id
+        )
+    })?;
+
+    if sessions.remove(&session_id).is_some() {
+        trace_println!("[+] TLS session {} closed", session_id);
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!(
+            "TLS session {} not found for closing",
+            session_id
+        ))
     }
 }
 
-pub fn close_tls_session(session_id: u32) {
-    TLS_SESSIONS.write().unwrap().remove(&session_id);
-}
-
-pub fn do_tls_read(session_id: u32, buf: &[u8]) {
+pub fn do_tls_read(session_id: u32, buf: &[u8]) -> anyhow::Result<()> {
     let mut rd = Cursor::new(buf);
-    let ts_guard = TLS_SESSIONS.read().unwrap();
-    let mut tls_session = ts_guard.get(&session_id).unwrap().lock().unwrap();
-    let _rc = tls_session.read_tls(&mut rd).unwrap();
-    let _processed = tls_session.process_new_packets().unwrap();
+    let ts_guard = TLS_SESSIONS
+        .read()
+        .map_err(|_| anyhow::anyhow!("Failed to acquire read lock on TLS sessions"))?;
+
+    let session = ts_guard
+        .get(&session_id)
+        .ok_or_else(|| anyhow::anyhow!("TLS session {} not found", session_id))?;
+
+    let mut tls_session = session
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to acquire lock on TLS session {}", session_id))?;
+
+    tls_session
+        .read_tls(&mut rd)
+        .context("Failed to read TLS data")?;
+
+    tls_session
+        .process_new_packets()
+        .context("Failed to process TLS packets")?;
 
     // Read and process all available plaintext.
     let mut buf = Vec::new();
     let _rc = tls_session.reader().read_to_end(&mut buf);
     if !buf.is_empty() {
-        tls_session.writer().write_all(&buf).unwrap();
+        tls_session
+            .writer()
+            .write_all(&buf)
+            .context("Failed to write response data")?;
     }
+
+    Ok(())
 }
 
-pub fn do_tls_write(session_id: u32, buf: &mut [u8]) -> usize {
-    let ts_guard = TLS_SESSIONS.read().unwrap();
-    let mut tls_session = ts_guard.get(&session_id).unwrap().lock().unwrap();
+pub fn do_tls_write(session_id: u32, buf: &mut [u8]) -> anyhow::Result<usize> {
+    let ts_guard = TLS_SESSIONS
+        .read()
+        .map_err(|_| anyhow::anyhow!("Failed to acquire read lock on TLS sessions"))?;
+
+    let session = ts_guard
+        .get(&session_id)
+        .ok_or_else(|| anyhow::anyhow!("TLS session {} not found", session_id))?;
+
+    let mut tls_session = session
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to acquire lock on TLS session {}", session_id))?;
+
     let mut wr = Cursor::new(buf);
     let mut rc = 0;
     while tls_session.wants_write() {
-        rc += tls_session.write_tls(&mut wr).unwrap();
+        rc += tls_session
+            .write_tls(&mut wr)
+            .context("Failed to write TLS data")?;
     }
 
-    rc
+    Ok(rc)
 }
 
 fn make_config() -> anyhow::Result<Arc<rustls::ServerConfig>> {
@@ -155,10 +218,7 @@ fn make_config() -> anyhow::Result<Arc<rustls::ServerConfig>> {
     trace_println!("[+] Loaded {} certificates", certs.len());
 
     let private_key = load_private_key().context("Failed to load private key")?;
-    trace_println!(
-        "[+] Private key loaded: {} bytes",
-        private_key.secret_der().len()
-    );
+    trace_println!("[+] Private key loaded successfully");
 
     let config = rustls::ServerConfig::builder_with_details(crypto_provider, time_provider)
         .with_safe_default_protocol_versions()
