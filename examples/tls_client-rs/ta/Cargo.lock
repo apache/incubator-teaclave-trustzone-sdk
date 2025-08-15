@@ -317,11 +317,10 @@ dependencies = [
 [[package]]
 name = "getrandom"
 version = "0.2.16"
-source = "git+https://github.com/DemesneGH/incubator-teaclave-crates.git#45f68c983a071c9dd6273e42956e552fa1cc9c2e"
+source = "git+https://github.com/DemesneGH/incubator-teaclave-crates.git#1b5288861bc0b3d2cbff143e52362b389e338157"
 dependencies = [
  "cfg-if",
  "libc",
- "optee-utee",
  "wasi",
 ]
 
@@ -345,6 +344,12 @@ dependencies = [
  "rand_core",
  "subtle",
 ]
+
+[[package]]
+name = "heck"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "hex"
@@ -510,23 +515,20 @@ checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
 
 [[package]]
 name = "optee-utee"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6d6b16e1c1e5e80eccbb73d7bab01e58b24df7087584a34e796e925345db50d"
+version = "0.5.0"
 dependencies = [
  "bitflags",
  "hex",
  "libc_alloc",
  "optee-utee-macros",
  "optee-utee-sys",
+ "strum_macros",
  "uuid 0.8.2",
 ]
 
 [[package]]
 name = "optee-utee-build"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89214f2ac19b8884a2b81f9f85e35a66b1935a76035ccd7a91a0bc4b12ffa0fe"
+version = "0.5.0"
 dependencies = [
  "litemap",
  "prettyplease",
@@ -539,9 +541,7 @@ dependencies = [
 
 [[package]]
 name = "optee-utee-macros"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a48b417affeae8b66491889c368047a1691300bb65e9df711b31639d91007ced"
+version = "0.5.0"
 dependencies = [
  "litemap",
  "quote 0.6.13",
@@ -551,9 +551,10 @@ dependencies = [
 
 [[package]]
 name = "optee-utee-sys"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b54e4bae9a674ed6e8d51e12729cc654ec41c9b3edab98924d3e24bc40320b1"
+version = "0.5.0"
+dependencies = [
+ "libc",
+]
 
 [[package]]
 name = "p256"
@@ -981,6 +982,19 @@ checksum = "d91ed6c858b01f942cd56b37a94b3e0a1798290327d1236e4d9cf4eaca44d29d"
 dependencies = [
  "base64ct",
  "der",
+]
+
+[[package]]
+name = "strum_macros"
+version = "0.26.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c6bee85a5a24955dc440386795aa378cd9cf82acd5f764469152d2270e581be"
+dependencies = [
+ "heck",
+ "proc-macro2 1.0.95",
+ "quote 1.0.40",
+ "rustversion",
+ "syn 2.0.104",
 ]
 
 [[package]]

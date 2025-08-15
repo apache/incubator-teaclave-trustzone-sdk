@@ -25,7 +25,7 @@ description = "Custom Rustls providers for OP-TEE TrustZone SDK."
 edition = "2018"
 
 [dependencies]
-optee-utee = "0.4.0"
+optee-utee = { path = "../../optee-utee" }
 rustls = { version = "0.23.12", default-features = false, features = ["std"] }
 rustls-rustcrypto = "0.0.2-alpha"
 

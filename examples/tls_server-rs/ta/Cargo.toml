@@ -25,10 +25,9 @@ description = "An example of Rust OP-TEE TrustZone SDK."
 edition = "2018"
 
 [dependencies]
-libc = { path = "../../../rust/libc" }
 proto = { path = "../proto" }
-optee-utee-sys = "0.4.0"
-optee-utee = "0.4.0"
+optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys" }
+optee-utee = { path = "../../../optee-utee" }
 
 rustls_provider = { path = "../../../crates/rustls_provider" }
 rustls = { version = "0.23.12", default-features = false, features = ["std"] }
@@ -37,7 +36,7 @@ anyhow = "1.0"
 
 [build-dependencies]
 proto = { path = "../proto" }
-optee-utee-build = "0.4.0"
+optee-utee-build = { path = "../../../optee-utee-build" }
 
 [profile.release]
 panic = "abort"
