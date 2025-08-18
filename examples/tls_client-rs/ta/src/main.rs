@@ -29,6 +29,16 @@ use std::convert::TryInto;
 use std::io::{Read, Write};
 use std::sync::Arc;
 
+// Register the custom getrandom implementation.
+//
+// In getrandom 0.2 there is no built-in OP-TEE target, so we rely on the
+// `custom` feature to provide an OP-TEE RNG.
+// Reference: https://docs.rs/getrandom/0.2.16/getrandom/macro.register_custom_getrandom.html
+//
+// For this example, the shared `optee_getrandom` function is defined in the
+// `rustls_provider` crate and registered here.
+getrandom::register_custom_getrandom!(rustls_provider::optee_getrandom);
+
 #[ta_create]
 fn create() -> Result<()> {
     trace_println!("[+] TA create");

@@ -323,7 +323,8 @@ dependencies = [
 [[package]]
 name = "getrandom"
 version = "0.2.16"
-source = "git+https://github.com/apache/incubator-teaclave-crates.git#0e0b1fe5daedcff4d4eed18bd1bb9736559cfebd"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "335ff9f135e4384c8150d6f27c6daed433577f86b4750418338c01a1a2528592"
 dependencies = [
  "cfg-if",
  "libc",
@@ -890,6 +891,7 @@ version = "0.1.0"
 dependencies = [
  "base64ct",
  "ed25519-dalek",
+ "getrandom",
  "optee-utee",
  "rustls",
  "rustls-rustcrypto",
@@ -1036,6 +1038,7 @@ name = "ta"
 version = "0.5.0"
 dependencies = [
  "anyhow",
+ "getrandom",
  "optee-utee",
  "optee-utee-build",
  "optee-utee-sys",
