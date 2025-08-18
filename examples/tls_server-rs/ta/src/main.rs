@@ -23,9 +23,11 @@ use optee_utee::{
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::Command;
 
+use anyhow::Context;
 use lazy_static::lazy_static;
+use rustls::pki_types::{pem::PemObject, CertificateDer, PrivateKeyDer};
 use std::collections::HashMap;
-use std::io::{BufReader, Cursor, Read, Write};
+use std::io::{Cursor, Read, Write};
 use std::sync::{Arc, Mutex, RwLock};
 
 lazy_static! {
@@ -58,109 +60,177 @@ fn destroy() {
 #[ta_invoke_command]
 fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
-    let session_id = unsafe { params.0.as_value().unwrap().a() };
+    let session_id = unsafe { params.0.as_value()?.a() };
     trace_println!("[+] session id: {}", session_id);
     match Command::from(cmd_id) {
         Command::NewTlsSession => {
             trace_println!("[+] new_tls_session");
-            new_tls_session(session_id);
-            Ok(())
+            new_tls_session(session_id).map_err(|e| {
+                trace_println!("[-] Failed to create TLS session: {:?}", e);
+                Error::new(ErrorKind::Generic)
+            })
         }
         Command::DoTlsRead => {
-            let mut p1 = unsafe { params.1.as_memref().unwrap() };
+            let mut p1 = unsafe { params.1.as_memref()? };
             let buffer = p1.buffer();
             trace_println!("[+] do_tls_read");
-            do_tls_read(session_id, buffer);
-            Ok(())
+            do_tls_read(session_id, buffer).map_err(|e| {
+                trace_println!("[-] Failed to read TLS data: {:?}", e);
+                Error::new(ErrorKind::Generic)
+            })
         }
         Command::DoTlsWrite => {
             trace_println!("[+] do_tls_write");
-            let mut p1 = unsafe { params.1.as_memref().unwrap() };
-            let mut p2 = unsafe { params.2.as_value().unwrap() };
-            let mut buffer = p1.buffer();
-            let n = do_tls_write(session_id, &mut buffer);
-            p2.set_a(n as u32);
-            Ok(())
+            let mut p1 = unsafe { params.1.as_memref()? };
+            let mut p2 = unsafe { params.2.as_value()? };
+            let buffer = p1.buffer();
+            do_tls_write(session_id, buffer)
+                .map(|n| {
+                    p2.set_a(n as u32);
+                })
+                .map_err(|e| {
+                    trace_println!("[-] Failed to write TLS data: {:?}", e);
+                    Error::new(ErrorKind::Generic)
+                })
         }
         Command::CloseTlsSession => {
             trace_println!("[+] close_tls_session");
-            close_tls_session(session_id);
-            Ok(())
+            close_tls_session(session_id).map_err(|e| {
+                trace_println!("[-] Failed to close TLS session: {:?}", e);
+                Error::new(ErrorKind::Generic)
+            })
         }
         _ => Err(Error::new(ErrorKind::BadParameters)),
     }
 }
 
-pub fn new_tls_session(session_id: u32) {
-    let tls_config = make_config();
-    let tls_session = rustls::ServerConnection::new(tls_config).unwrap();
+pub fn new_tls_session(session_id: u32) -> anyhow::Result<()> {
+    let tls_config = make_config().context("Failed to create TLS config")?;
+    let tls_session =
+        rustls::ServerConnection::new(tls_config).context("Failed to create TLS connection")?;
+
     TLS_SESSIONS
         .write()
-        .unwrap()
+        .map_err(|_| anyhow::anyhow!("Failed to acquire write lock on TLS sessions"))?
         .insert(session_id, Mutex::new(tls_session));
+
+    trace_println!("[+] TLS session {} created successfully", session_id);
+    Ok(())
 }
 
-pub fn close_tls_session(session_id: u32) {
-    TLS_SESSIONS.write().unwrap().remove(&session_id);
+pub fn close_tls_session(session_id: u32) -> anyhow::Result<()> {
+    let mut sessions = TLS_SESSIONS.write().map_err(|_| {
+        anyhow::anyhow!(
+            "Failed to acquire write lock to close TLS session {}",
+            session_id
+        )
+    })?;
+
+    if sessions.remove(&session_id).is_some() {
+        trace_println!("[+] TLS session {} closed", session_id);
+        Ok(())
+    } else {
+        Err(anyhow::anyhow!(
+            "TLS session {} not found for closing",
+            session_id
+        ))
+    }
 }
 
-pub fn do_tls_read(session_id: u32, buf: &[u8]) {
+pub fn do_tls_read(session_id: u32, buf: &[u8]) -> anyhow::Result<()> {
     let mut rd = Cursor::new(buf);
-    let ts_guard = TLS_SESSIONS.read().unwrap();
-    let mut tls_session = ts_guard.get(&session_id).unwrap().lock().unwrap();
-    let _rc = tls_session.read_tls(&mut rd).unwrap();
-    let _processed = tls_session.process_new_packets().unwrap();
+    let ts_guard = TLS_SESSIONS
+        .read()
+        .map_err(|_| anyhow::anyhow!("Failed to acquire read lock on TLS sessions"))?;
+
+    let session = ts_guard
+        .get(&session_id)
+        .ok_or_else(|| anyhow::anyhow!("TLS session {} not found", session_id))?;
+
+    let mut tls_session = session
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to acquire lock on TLS session {}", session_id))?;
+
+    tls_session
+        .read_tls(&mut rd)
+        .context("Failed to read TLS data")?;
+
+    tls_session
+        .process_new_packets()
+        .context("Failed to process TLS packets")?;
 
     // Read and process all available plaintext.
     let mut buf = Vec::new();
     let _rc = tls_session.reader().read_to_end(&mut buf);
     if !buf.is_empty() {
-        tls_session.writer().write_all(&buf).unwrap();
+        tls_session
+            .writer()
+            .write_all(&buf)
+            .context("Failed to write response data")?;
     }
+
+    Ok(())
 }
 
-pub fn do_tls_write(session_id: u32, buf: &mut [u8]) -> usize {
-    let ts_guard = TLS_SESSIONS.read().unwrap();
-    let mut tls_session = ts_guard.get(&session_id).unwrap().lock().unwrap();
+pub fn do_tls_write(session_id: u32, buf: &mut [u8]) -> anyhow::Result<usize> {
+    let ts_guard = TLS_SESSIONS
+        .read()
+        .map_err(|_| anyhow::anyhow!("Failed to acquire read lock on TLS sessions"))?;
+
+    let session = ts_guard
+        .get(&session_id)
+        .ok_or_else(|| anyhow::anyhow!("TLS session {} not found", session_id))?;
+
+    let mut tls_session = session
+        .lock()
+        .map_err(|_| anyhow::anyhow!("Failed to acquire lock on TLS session {}", session_id))?;
+
     let mut wr = Cursor::new(buf);
     let mut rc = 0;
     while tls_session.wants_write() {
-        rc += tls_session.write_tls(&mut wr).unwrap();
+        rc += tls_session
+            .write_tls(&mut wr)
+            .context("Failed to write TLS data")?;
     }
 
-    rc
+    Ok(rc)
 }
 
-fn make_config() -> Arc<rustls::ServerConfig> {
-    let certs = load_certs();
-    let privkey = load_private_key();
-    let config = rustls::ServerConfig::builder()
-        .with_safe_defaults()
+fn make_config() -> anyhow::Result<Arc<rustls::ServerConfig>> {
+    trace_println!("[+] Creating crypto provider");
+    let crypto_provider = Arc::new(rustls_provider::optee_crypto_provider());
+
+    trace_println!("[+] Creating time provider");
+    let time_provider = Arc::new(rustls_provider::optee_time_provider());
+
+    let certs = load_certs().context("Failed to load certificates")?;
+    trace_println!("[+] Loaded {} certificates", certs.len());
+
+    let private_key = load_private_key().context("Failed to load private key")?;
+    trace_println!("[+] Private key loaded successfully");
+
+    let config = rustls::ServerConfig::builder_with_details(crypto_provider, time_provider)
+        .with_safe_default_protocol_versions()
+        .context("Inconsistent cipher-suite/versions selected")?
         .with_no_client_auth()
-        .with_single_cert(certs, privkey)
-        .unwrap();
+        .with_single_cert(certs, private_key)
+        .context("Failed to create server config with certificate")?;
 
-    Arc::new(config)
+    Ok(Arc::new(config))
 }
 
-fn load_certs() -> Vec<rustls::Certificate> {
-    let bytes = include_bytes!("../test-ca/ecdsa/end.fullchain").to_vec();
-    let cursor = std::io::Cursor::new(bytes);
-    let mut reader = BufReader::new(cursor);
-    let certs = rustls_pemfile::certs(&mut reader).unwrap();
-    certs
-        .iter()
-        .map(|v| rustls::Certificate(v.clone()))
-        .collect()
+fn load_certs() -> anyhow::Result<Vec<CertificateDer<'static>>> {
+    let pem_data = include_bytes!("../test-ca/ecdsa/end.fullchain");
+    let cursor = std::io::Cursor::new(pem_data);
+    CertificateDer::pem_reader_iter(cursor)
+        .collect::<std::result::Result<Vec<_>, _>>()
+        .context("Failed to parse certificate PEM data")
 }
 
-fn load_private_key() -> rustls::PrivateKey {
-    let bytes = include_bytes!("../test-ca/ecdsa/end.key").to_vec();
-    let cursor = std::io::Cursor::new(bytes);
-    let mut reader = BufReader::new(cursor);
-    let keys = rustls_pemfile::pkcs8_private_keys(&mut reader).unwrap();
-    assert_eq!(keys.len(), 1);
-    rustls::PrivateKey(keys[0].clone())
+fn load_private_key() -> anyhow::Result<PrivateKeyDer<'static>> {
+    let pem_data = include_bytes!("../test-ca/ecdsa/end.key");
+    let cursor = std::io::Cursor::new(pem_data);
+    PrivateKeyDer::from_pem_reader(cursor).context("Failed to parse private key PEM data")
 }
 
 include!(concat!(env!("OUT_DIR"), "/user_ta_header.rs"));

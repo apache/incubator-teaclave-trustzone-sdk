@@ -16,32 +16,22 @@
 # under the License.
 
 [package]
-name = "ta"
-version = "0.5.0"
+name = "rustls_provider"
+version = "0.1.0"
 authors = ["Teaclave Contributors <dev@teaclave.apache.org>"]
 license = "Apache-2.0"
 repository = "https://github.com/apache/incubator-teaclave-trustzone-sdk.git"
-description = "An example of Rust OP-TEE TrustZone SDK."
+description = "Custom Rustls providers for OP-TEE TrustZone SDK."
 edition = "2018"
 
 [dependencies]
-proto = { path = "../proto" }
-optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys" }
-optee-utee = { path = "../../../optee-utee" }
-
-rustls_provider = { path = "../../../crates/rustls_provider" }
+optee-utee = { path = "../../optee-utee" }
 rustls = { version = "0.23.12", default-features = false, features = ["std"] }
-webpki-roots = "1"
-anyhow = "1.0"
+rustls-rustcrypto = "0.0.2-alpha"
 
-[build-dependencies]
-proto = { path = "../proto" }
-optee-utee-build = { path = "../../../optee-utee-build" }
-
-[profile.release]
-panic = "abort"
-lto = false
-opt-level = 3
+# Pin these crates for compatibility with our Rustc version nightly-2024-05-15
+base64ct = "=1.6.0"
+ed25519-dalek = "=2.1.0"
 
 [patch.crates-io]
 # For getrandom 0.2, we add the OP-TEE backend and maintain in teaclave crates
