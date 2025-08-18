@@ -17,7 +17,7 @@
 
 [package]
 name = "ta"
-version = "0.4.0"
+version = "0.5.0"
 authors = ["Teaclave Contributors <dev@teaclave.apache.org>"]
 license = "Apache-2.0"
 repository = "https://github.com/apache/incubator-teaclave-trustzone-sdk.git"
@@ -25,19 +25,14 @@ description = "An example of Rust OP-TEE TrustZone SDK."
 edition = "2018"
 
 [dependencies]
-libc = { path = "../../../rust/libc" }
 proto = { path = "../proto" }
 optee-utee-sys = { path = "../../../optee-utee/optee-utee-sys" }
 optee-utee = { path = "../../../optee-utee" }
 
-# use new ported version
-rustls = { git = "https://github.com/DemesneGH/rustls-optee.git", branch = "0.21.0-optee", features = ["dangerous_configuration"]}
-ring = "=0.16.20"
-webpki-roots = "0.21"
-webpki = "=0.21.0"
-rustls-pemfile = "1.0"
-sct = "=0.7.0"
+rustls_provider = { path = "../../../crates/rustls_provider" }
+rustls = { version = "0.23.12", default-features = false, features = ["std"] }
 lazy_static = { version = "1.4.0", features=["spin_no_std"] }
+anyhow = "1.0"
 
 [build-dependencies]
 proto = { path = "../proto" }
@@ -49,8 +44,5 @@ lto = false
 opt-level = 3
 
 [patch.crates-io]
-ring = { git = "https://github.com/DemesneGH/ring-optee.git", branch = "0.16.20-optee" }
-
-# Patch optee-utee for rustls
-[patch."https://github.com/apache/incubator-teaclave-trustzone-sdk.git"]
-optee-utee = { path = "../../../optee-utee" }
+# For getrandom 0.2, we add the OP-TEE backend and maintain in teaclave crates
+getrandom = { git = "https://github.com/apache/incubator-teaclave-crates.git" }
