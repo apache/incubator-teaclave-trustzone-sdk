@@ -30,6 +30,16 @@ use std::collections::HashMap;
 use std::io::{Cursor, Read, Write};
 use std::sync::{Arc, Mutex, RwLock};
 
+// Register the custom getrandom implementation.
+//
+// In getrandom 0.2 there is no built-in OP-TEE target, so we rely on the
+// `custom` feature to provide an OP-TEE RNG.
+// Reference: https://docs.rs/getrandom/0.2.16/getrandom/macro.register_custom_getrandom.html
+//
+// For this example, the shared `optee_getrandom` function is defined in the
+// `rustls_provider` crate and registered here.
+getrandom::register_custom_getrandom!(rustls_provider::optee_getrandom);
+
 lazy_static! {
     static ref TLS_SESSIONS: RwLock<HashMap<u32, Mutex<rustls::ServerConnection>>> =
         RwLock::new(HashMap::new());

@@ -15,11 +15,25 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use optee_utee::Time;
+use optee_utee::{Random, Time};
 use rustls::crypto::CryptoProvider;
 use rustls::pki_types::UnixTime;
 use rustls::time_provider::TimeProvider;
 use std::time::Duration;
+
+/// Custom getrandom function using OP-TEE UTEE Random API
+///
+/// In getrandom 0.2 there is no built-in OP-TEE target, so we rely on the
+/// `custom` feature to provide an OP-TEE RNG for the crypto provider.
+/// Reference: https://docs.rs/getrandom/0.2.16/getrandom/macro.register_custom_getrandom.html
+///
+/// The shared `optee_getrandom` function is defined in this crate and
+/// registered in the main.rs of tls client and server example.
+pub fn optee_getrandom(buf: &mut [u8]) -> Result<(), getrandom::Error> {
+    // Use OP-TEE's random number generator
+    Random::generate(buf);
+    Ok(())
+}
 
 /// CryptoProvider from rustls-rustcrypto, with the rng backend for OP-TEE in getrandom crate
 pub fn optee_crypto_provider() -> CryptoProvider {

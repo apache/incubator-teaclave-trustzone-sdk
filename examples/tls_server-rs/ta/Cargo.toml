@@ -34,6 +34,9 @@ rustls = { version = "0.23.12", default-features = false, features = ["std"] }
 lazy_static = { version = "1.4.0", features=["spin_no_std"] }
 anyhow = "1.0"
 
+# Add getrandom and enable its custom feature, see more details in main.rs
+getrandom = { version = "0.2", default-features = false, features = ["custom"] }
+
 [build-dependencies]
 proto = { path = "../proto" }
 optee-utee-build = { path = "../../../optee-utee-build" }
@@ -42,7 +45,3 @@ optee-utee-build = { path = "../../../optee-utee-build" }
 panic = "abort"
 lto = false
 opt-level = 3
-
-[patch.crates-io]
-# For getrandom 0.2, we add the OP-TEE backend and maintain in teaclave crates
-getrandom = { git = "https://github.com/apache/incubator-teaclave-crates.git" }
