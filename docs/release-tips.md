@@ -4,7 +4,7 @@ permalink: /trustzone-sdk-docs/release-tips.md
 
 # TrustZone SDK Release Tips
 
-For the complete workflow and operational details, please refer to the [Release Guide for the Teaclave Community](link).
+For the complete workflow and operational details, please refer to the [Release Guide for the Teaclave Community](https://teaclave.apache.org/release-guide).
 This documentation highlights items that are specific to the `TrustZone SDK`.
 
 ## Release Schedule & Stages
@@ -22,7 +22,7 @@ The upcoming release in 2025 is as follows:
 
 **Note:** The table outlines the planned release schedule under normal circumstances. However, if there are no updates to the optee-* crates in the SDK during a given quarter, the release will be skipped and deferred to the following quarter.
 
-According to the Release Documentation in Teaclave community (link), the approximate timeline for v0.6.0:
+According to the Release Documentation in [Teaclave community](https://teaclave.apache.org/release-guide), the approximate timeline for v0.6.0:
 
 - **July 11** – OP-TEE 4.7.0 released
 - **July 12–18** – Prepare the release
@@ -39,7 +39,7 @@ The timeline is flexible and can be adjusted based on the actual circumstances.
 
 We maintain the optee-* Rust crates at <https://crates.io/search?q=optee>, which are released in sync with Apache releases.
 
-If the release manager needs permission to publish these crates, please contact Yuan for access.
+If the release manager needs permission to publish these crates, please contact @DemesneGH for access.
 
 After the Apache release is finalized, we need to publish the crates:
 
