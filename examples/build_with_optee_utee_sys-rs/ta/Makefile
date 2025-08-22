@@ -22,15 +22,21 @@ CROSS_COMPILE ?= aarch64-linux-gnu-
 OBJCOPY := $(CROSS_COMPILE)objcopy
 # Configure the linker to use GCC, which works on both cross-compilation and ARM machines
 LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)gcc\"
+# fix for the error: "unwinding panics are not supported without std" reported by clippy
+RUSTFLAGS := -C panic=abort
 
 TA_SIGN_KEY ?= $(TA_DEV_KIT_DIR)/keys/default_ta.pem
 SIGN := $(TA_DEV_KIT_DIR)/scripts/sign_encrypt.py
 OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 
-all: ta strip sign
+all: clippy ta strip sign
 
-ta:
-	@cargo build --target $(TARGET) --release --config $(LINKER_CFG) $(EXTRA_FLAGS)
+clippy:
+	@cargo fmt
+	@RUSTFLAGS="$(RUSTFLAGS)" cargo clippy --target $(TARGET) -- -D warnings
+
+ta: clippy
+	@RUSTFLAGS="$(RUSTFLAGS)" cargo build --target $(TARGET) --release --config $(LINKER_CFG)
 
 strip: ta
 	@$(OBJCOPY) --strip-unneeded $(OUT_DIR)/ta $(OUT_DIR)/stripped_ta
