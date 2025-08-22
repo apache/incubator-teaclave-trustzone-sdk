@@ -66,15 +66,9 @@ fn destroy() {
 fn invoke_command(sess_ctx: &mut DigestOp, cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
     match Command::from(cmd_id) {
-        Command::Update => {
-            return update(sess_ctx, params);
-        }
-        Command::DoFinal => {
-            return do_final(sess_ctx, params);
-        }
-        _ => {
-            return Err(Error::new(ErrorKind::BadParameters));
-        }
+        Command::Update => update(sess_ctx, params),
+        Command::DoFinal => do_final(sess_ctx, params),
+        _ => Err(Error::new(ErrorKind::BadParameters)),
     }
 }
 

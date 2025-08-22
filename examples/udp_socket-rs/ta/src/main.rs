@@ -15,13 +15,19 @@
 // specific language governing permissions and limitations
 // under the License.
 
-#![cfg_attr(not(target_os = "optee"), no_std)]
+// Use feature flag to detect STD environment
+// - Feature "std" means std is available
+// - No feature means no-std environment
+// Check `feature`, not `target_os`, to avoid:
+// error: unexpected `cfg` value: `optee` reported by clippy
+// This occurs because `optee` is not an upstream Rust target_os.
+#![cfg_attr(not(feature = "std"), no_std)]
 #![no_main]
 
 cfg_block::cfg_block! {
-    // In Teaclave, if target_os = "optee", the codes is compiled with std.
+    // In Teaclave, if feature "std" is enabled, the codes is compiled with std.
     // Otherwise, no-std
-    if #[cfg(target_os = "optee")] {
+    if #[cfg(feature = "std")] {
         use std::io::{Read, Write};
     } else {
         extern crate alloc;

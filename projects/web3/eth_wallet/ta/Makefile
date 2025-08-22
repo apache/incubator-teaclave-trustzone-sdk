@@ -29,9 +29,13 @@ TA_SIGN_KEY ?= $(TA_DEV_KIT_DIR)/keys/default_ta.pem
 SIGN := $(TA_DEV_KIT_DIR)/scripts/sign_encrypt.py
 OUT_DIR := $(CURDIR)/target/$(TARGET_TA)/release
 
-all: ta strip sign
+all: clippy ta strip sign
 
-ta:
+clippy:
+	@cargo fmt
+	@xargo clippy --target $(TARGET) -- -D warnings
+
+ta: clippy
 	@xargo build --target $(TARGET) --release --config $(LINKER_CFG)
 
 strip: ta

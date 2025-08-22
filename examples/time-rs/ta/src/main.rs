@@ -67,11 +67,14 @@ fn time() -> Result<()> {
     Time::wait(1000)?;
     time.system_time();
     trace_println!("[+] Get system time {}.", time);
-    time.seconds = time.seconds + 5;
+    time.seconds += 5;
     time.set_ta_time()?;
     let mut time2 = Time::new();
     time2.ta_time()?;
-    trace_println!("[+] After set the TA time 5 seconds ahead of system time, new TA time {}.", time2);
+    trace_println!(
+        "[+] After set the TA time 5 seconds ahead of system time, new TA time {}.",
+        time2
+    );
     Ok(())
 }
 

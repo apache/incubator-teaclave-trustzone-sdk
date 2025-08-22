@@ -55,14 +55,11 @@ impl Wallet {
         )
         .into_uuid();
 
-        Ok(Self {
-            id: uuid,
-            entropy: entropy,
-        })
+        Ok(Self { id: uuid, entropy })
     }
 
     pub fn get_id(&self) -> Uuid {
-        self.id.clone()
+        self.id
     }
 
     pub fn get_mnemonic(&self) -> Result<String> {

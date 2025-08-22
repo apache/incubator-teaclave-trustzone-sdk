@@ -75,7 +75,7 @@ fn invoke_command(cmd_id: u32, params: &mut Parameters) -> Result<()> {
     let output = handle_invoke(Command::from(cmd_id), input).unwrap();
 
     let output_vec = proto::serde_json::to_vec(&output).unwrap();
-    p1.buffer().write(&output_vec).unwrap();
+    p1.buffer().write_all(&output_vec).unwrap();
     p2.set_a(output_vec.len() as u32);
 
     Ok(())

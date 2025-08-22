@@ -18,12 +18,12 @@
 #![no_std]
 #![no_main]
 
+use core::sync::atomic::{AtomicU32, Ordering};
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::Command;
-use core::sync::atomic::{AtomicU32, Ordering};
 
 static GLOBAL_VALUE: AtomicU32 = AtomicU32::new(0);
 

@@ -96,9 +96,12 @@ fn encrypt(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
         Err(e) => Err(e),
         Ok(cipher) => {
             cipher.set_key(&rsa.key)?;
-            match cipher.encrypt(&[], &plain_text) {
+            match cipher.encrypt(&[], plain_text) {
                 Err(e) => Err(e),
-                Ok(cipher_text) => Ok(p1.buffer().clone_from_slice(&cipher_text)),
+                Ok(cipher_text) => {
+                    p1.buffer().clone_from_slice(&cipher_text);
+                    Ok(())
+                }
             }
         }
     }
@@ -107,7 +110,7 @@ fn encrypt(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
 fn decrypt(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
     let key_info = rsa.key.info().unwrap();
     let mut p0 = unsafe { params.0.as_memref().unwrap() };
-    let mut cipher_text = p0.buffer();
+    let cipher_text = p0.buffer();
     let mut p1 = unsafe { params.1.as_memref().unwrap() };
     match Asymmetric::allocate(
         AlgorithmId::RsaesPkcs1V15,
@@ -117,9 +120,12 @@ fn decrypt(rsa: &mut RsaCipher, params: &mut Parameters) -> Result<()> {
         Err(e) => Err(e),
         Ok(cipher) => {
             cipher.set_key(&rsa.key)?;
-            match cipher.decrypt(&mut [], &mut cipher_text) {
+            match cipher.decrypt(&[], cipher_text) {
                 Err(e) => Err(e),
-                Ok(plain_text) => Ok(p1.buffer().clone_from_slice(&plain_text)),
+                Ok(plain_text) => {
+                    p1.buffer().clone_from_slice(&plain_text);
+                    Ok(())
+                }
             }
         }
     }

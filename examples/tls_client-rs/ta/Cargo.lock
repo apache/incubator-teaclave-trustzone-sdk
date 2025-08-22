@@ -522,7 +522,7 @@ checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
 
 [[package]]
 name = "optee-utee"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "bitflags",
  "hex",
@@ -535,7 +535,7 @@ dependencies = [
 
 [[package]]
 name = "optee-utee-build"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "litemap",
  "prettyplease",
@@ -548,7 +548,7 @@ dependencies = [
 
 [[package]]
 name = "optee-utee-macros"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "litemap",
  "quote 0.6.13",
@@ -558,7 +558,7 @@ dependencies = [
 
 [[package]]
 name = "optee-utee-sys"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "libc",
 ]

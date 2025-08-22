@@ -16,6 +16,13 @@
 // under the License.
 
 use num_enum::{FromPrimitive, IntoPrimitive};
+use serde::{Deserialize, Serialize};
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Point {
+    pub x: i32,
+    pub y: i32,
+}
 
 #[derive(FromPrimitive, IntoPrimitive)]
 #[repr(u32)]

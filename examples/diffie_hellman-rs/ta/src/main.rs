@@ -25,7 +25,9 @@ use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{AlgorithmId, DeriveKey};
-use optee_utee::{AttributeId, AttributeMemref, GenericObject, TransientObject, TransientObjectType};
+use optee_utee::{
+    AttributeId, AttributeMemref, GenericObject, TransientObject, TransientObjectType,
+};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::{Command, KEY_SIZE};
 
@@ -71,27 +73,27 @@ fn generate_key(dh: &mut DiffieHellman, params: &mut Parameters) -> Result<()> {
 
     // Extract prime and base from parameters
     let prime_base_vec = p0.buffer();
-    let prime_slice = &prime_base_vec[..KEY_SIZE/8];
-    let base_slice = &prime_base_vec[KEY_SIZE/8..];
+    let prime_slice = &prime_base_vec[..KEY_SIZE / 8];
+    let base_slice = &prime_base_vec[KEY_SIZE / 8..];
 
     let attr_prime = AttributeMemref::from_ref(AttributeId::DhPrime, prime_slice);
     let attr_base = AttributeMemref::from_ref(AttributeId::DhBase, base_slice);
 
     // Generate key pair
     dh.key = TransientObject::allocate(TransientObjectType::DhKeypair, KEY_SIZE).unwrap();
-    let mut public_buffer = p2.buffer();
-    let mut private_buffer = p3.buffer();
+    let public_buffer = p2.buffer();
+    let private_buffer = p3.buffer();
 
     dh.key
         .generate_key(KEY_SIZE, &[attr_prime.into(), attr_base.into()])?;
     let mut key_size = dh
         .key
-        .ref_attribute(AttributeId::DhPublicValue, &mut public_buffer)
+        .ref_attribute(AttributeId::DhPublicValue, public_buffer)
         .unwrap();
     p1.set_a(key_size as u32);
     key_size = dh
         .key
-        .ref_attribute(AttributeId::DhPrivateValue, &mut private_buffer)
+        .ref_attribute(AttributeId::DhPrivateValue, private_buffer)
         .unwrap();
     p1.set_b(key_size as u32);
     Ok(())
@@ -128,12 +130,8 @@ fn invoke_command(
 ) -> Result<()> {
     trace_println!("[+] TA invoke command");
     match Command::from(cmd_id) {
-        Command::GenerateKey => {
-            return generate_key(sess_ctx, params);
-        }
-        Command::DeriveKey => {
-            return derive_key(sess_ctx, params);
-        }
+        Command::GenerateKey => generate_key(sess_ctx, params),
+        Command::DeriveKey => derive_key(sess_ctx, params),
         _ => Err(Error::new(ErrorKind::BadParameters)),
     }
 }

@@ -3,6 +3,12 @@
 version = 3
 
 [[package]]
+name = "allocator-api2"
+version = "0.2.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
+
+[[package]]
 name = "anyhow"
 version = "1.0.95"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -22,6 +28,30 @@ name = "bitflags"
 version = "1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "228047a76f468627ca71776ecdebd732a3423081fcf5125585bcd7c49886ce12"
+
+[[package]]
+name = "equivalent"
+version = "1.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
+
+[[package]]
+name = "foldhash"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
+
+[[package]]
+name = "hashbrown"
+version = "0.15.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9229cfe53dfd69f0609a49f65461bd93001ea1ef889cd5529dd176593f5338a1"
+dependencies = [
+ "allocator-api2",
+ "equivalent",
+ "foldhash",
+ "serde",
+]
 
 [[package]]
 name = "heck"
@@ -75,7 +105,7 @@ dependencies = [
 
 [[package]]
 name = "optee-utee"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "bitflags",
  "hex",
@@ -88,7 +118,7 @@ dependencies = [
 
 [[package]]
 name = "optee-utee-build"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "litemap",
  "prettyplease",
@@ -101,7 +131,7 @@ dependencies = [
 
 [[package]]
 name = "optee-utee-macros"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "litemap",
  "quote 0.6.13",
@@ -111,7 +141,7 @@ dependencies = [
 
 [[package]]
 name = "optee-utee-sys"
-version = "0.5.0"
+version = "0.6.0"
 dependencies = [
  "libc",
 ]
@@ -181,6 +211,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "bincode",
+ "hashbrown",
  "optee-utee",
  "optee-utee-sys",
  "serde",

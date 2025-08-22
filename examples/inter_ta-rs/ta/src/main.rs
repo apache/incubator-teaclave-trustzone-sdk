@@ -143,9 +143,7 @@ fn invoke_command(cmd_id: u32, _params: &mut Parameters) -> Result<()> {
             trace_println!("[+] Test passed");
             Ok(())
         }
-        _ => {
-            return Err(Error::new(ErrorKind::NotSupported));
-        }
+        _ => Err(Error::new(ErrorKind::NotSupported)),
     }
 }
 
