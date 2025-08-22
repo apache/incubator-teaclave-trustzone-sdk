@@ -31,13 +31,13 @@ use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::Command;
 
 pub struct SessionContext {
-    stuff_on_heap: Vec<u8>,
+    _stuff_on_heap: Vec<u8>,
 }
 
 impl Default for SessionContext {
     fn default() -> Self {
         Self {
-            stuff_on_heap: vec![1, 2, 3, 4],
+            _stuff_on_heap: vec![1, 2, 3, 4],
         }
     }
 }
@@ -68,7 +68,7 @@ fn destroy() {
 fn invoke_command(
     _sess_ctx: &mut SessionContext,
     cmd_id: u32,
-    params: &mut Parameters,
+    _params: &mut Parameters,
 ) -> Result<()> {
     trace_println!("[+] TA invoke command");
     match Command::from(cmd_id) {

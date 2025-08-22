@@ -15,8 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use proto;
-use optee_utee_build::{TaConfig, RustEdition, Error};
+use optee_utee_build::{Error, RustEdition, TaConfig};
 
 fn main() -> Result<(), Error> {
     // For Rust editions 2018 and earlier, You must set workspace.resolver = "2"
@@ -29,12 +28,10 @@ fn main() -> Result<(), Error> {
     // For reference:
     // 1. resolver version 2: https://doc.rust-lang.org/cargo/reference/resolver.html#feature-resolver-version-2
     // 2. resolver versions: https://doc.rust-lang.org/cargo/reference/resolver.html#resolver-versions
-    let flags: u32 = optee_utee_sys::TA_FLAG_SINGLE_INSTANCE |
-        optee_utee_sys::TA_FLAG_MULTI_SESSION |
-        optee_utee_sys::TA_FLAG_INSTANCE_KEEP_ALIVE;
+    let flags: u32 = optee_utee_sys::TA_FLAG_SINGLE_INSTANCE
+        | optee_utee_sys::TA_FLAG_MULTI_SESSION
+        | optee_utee_sys::TA_FLAG_INSTANCE_KEEP_ALIVE;
 
-    let config = TaConfig::new_default_with_cargo_env(proto::UUID)?.
-        ta_flags(flags);
+    let config = TaConfig::new_default_with_cargo_env(proto::UUID)?.ta_flags(flags);
     optee_utee_build::build(RustEdition::Before2024, config)
-
 }

@@ -93,9 +93,12 @@ impl HeaderFileGenerator {
         #no_mangle_attribute
         pub static trace_ext_prefix: &[u8] = #trace_ext;
 
+        /// # Safety
+        /// This function is called by the OP-TEE framework to get the trace level.
+        /// It's safe to call as it only reads a static variable.
         #no_mangle_attribute
         pub unsafe extern "C" fn tahead_get_trace_level() -> c_int {
-            unsafe { return trace_level; }
+            unsafe { trace_level }
         }
                 })
     }
@@ -342,7 +345,7 @@ mod tests {
         let uuid = "26509cec-4a2b-4935-87ab-762d89fbf0b0";
         let conf = TaConfig::new_default(uuid, "0.1.0", "test_before_2024")
             .unwrap()
-            .ta_data_size(1 * 1024 * 1024);
+            .ta_data_size(1024 * 1024);
         let generator = HeaderFileGenerator::new(RustEdition::Before2024);
         let codes = generator.generate(&conf).unwrap();
         let exp_result = include_str!("../test_files/test_edition_before_2024_result.rs");

@@ -15,8 +15,7 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use proto;
-use optee_utee_build::{TaConfig, RustEdition, Error};
+use optee_utee_build::{Error, RustEdition, TaConfig};
 
 fn main() -> Result<(), Error> {
     let ta_config = TaConfig::new_default_with_cargo_env(proto::UUID)?;

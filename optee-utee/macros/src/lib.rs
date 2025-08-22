@@ -194,8 +194,10 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
             };
 
             quote!(
+                // To eliminate the clippy error: this public function might dereference a raw pointer but is not marked `unsafe`
+                // we just expand the unsafe block, but the session-related macros need refactoring in the future
                 #[no_mangle]
-                pub extern "C" fn TA_OpenSessionEntryPoint(
+                pub unsafe extern "C" fn TA_OpenSessionEntryPoint(
                     param_types: u32,
                     params: &mut [optee_utee_sys::TEE_Param; 4],
                     sess_ctx: *mut *mut c_void,
@@ -205,7 +207,7 @@ pub fn ta_open_session(_args: TokenStream, input: TokenStream) -> TokenStream {
                     match #ident(&mut parameters, &mut ctx) {
                         Ok(_) =>
                         {
-                            unsafe { *sess_ctx = Box::into_raw(Box::new(ctx)) as _; }
+                            *sess_ctx = Box::into_raw(Box::new(ctx)) as _;
                             optee_utee_sys::TEE_SUCCESS
                         }
                         Err(e) => e.raw_code()
@@ -287,12 +289,14 @@ pub fn ta_close_session(_args: TokenStream, input: TokenStream) -> TokenStream {
             };
 
             quote!(
+                // To eliminate the clippy error: this public function might dereference a raw pointer but is not marked `unsafe`
+                // we just expand the unsafe block, but the session-related macros need refactoring in the future
                 #[no_mangle]
-                pub extern "C" fn TA_CloseSessionEntryPoint(sess_ctx: *mut c_void) {
+                pub unsafe extern "C" fn TA_CloseSessionEntryPoint(sess_ctx: *mut c_void) {
                     if sess_ctx.is_null() {
                         panic!("sess_ctx is null");
                     }
-                    let mut b = unsafe {Box::from_raw(sess_ctx as *mut #t)};
+                    let mut b = Box::from_raw(sess_ctx as *mut #t);
                     #ident(&mut b);
                     drop(b);
                 }
@@ -379,8 +383,10 @@ pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream 
             };
 
             quote!(
+                // To eliminate the clippy error: this public function might dereference a raw pointer but is not marked `unsafe`
+                // we just expand the unsafe block, but the session-related macros need refactoring in the future
                 #[no_mangle]
-                pub extern "C" fn TA_InvokeCommandEntryPoint(
+                pub unsafe extern "C" fn TA_InvokeCommandEntryPoint(
                     sess_ctx: *mut c_void,
                     cmd_id: u32,
                     param_types: u32,
@@ -390,7 +396,7 @@ pub fn ta_invoke_command(_args: TokenStream, input: TokenStream) -> TokenStream 
                         return optee_utee_sys::TEE_ERROR_SECURITY;
                     }
                     let mut parameters = Parameters::from_raw(params, param_types);
-                    let mut b = unsafe {Box::from_raw(sess_ctx as *mut #t)};
+                    let mut b = Box::from_raw(sess_ctx as *mut #t);
                     match #ident(&mut b, cmd_id, &mut parameters) {
                         Ok(_) => {
                             core::mem::forget(b);

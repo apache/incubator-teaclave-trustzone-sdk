@@ -64,9 +64,7 @@ fn invoke_command(cmd_id: u32, _params: &mut Parameters) -> Result<()> {
                 Err(Error::new(ErrorKind::Generic))
             }
         },
-        _ => {
-            return Err(Error::new(ErrorKind::NotSupported));
-        }
+        _ => Err(Error::new(ErrorKind::NotSupported)),
     }
 }
 

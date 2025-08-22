@@ -25,7 +25,7 @@ use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{AlgorithmId, Mac};
-use optee_utee::{AttributeId, AttributeMemref, GenericObject, TransientObject, TransientObjectType};
+use optee_utee::{AttributeId, AttributeMemref, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::Command;
 
@@ -76,15 +76,9 @@ fn destroy() {
 fn invoke_command(sess_ctx: &mut HmacOtp, cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
     match Command::from(cmd_id) {
-        Command::RegisterSharedKey => {
-            return register_shared_key(sess_ctx, params);
-        }
-        Command::GetHOTP => {
-            return get_hotp(sess_ctx, params);
-        }
-        _ => {
-            return Err(Error::new(ErrorKind::BadParameters));
-        }
+        Command::RegisterSharedKey => register_shared_key(sess_ctx, params),
+        Command::GetHOTP => get_hotp(sess_ctx, params),
+        _ => Err(Error::new(ErrorKind::BadParameters)),
     }
 }
 
@@ -118,28 +112,22 @@ pub fn hmac_sha1(hotp: &mut HmacOtp, out: &mut [u8]) -> Result<usize> {
         return Err(Error::new(ErrorKind::BadParameters));
     }
 
-    match Mac::allocate(AlgorithmId::HmacSha1, hotp.key_len * 8) {
-        Err(e) => return Err(e),
-        Ok(mac) => {
-            match TransientObject::allocate(TransientObjectType::HmacSha1, hotp.key_len * 8) {
-                Err(e) => return Err(e),
-                Ok(mut key_object) => {
-                    //KEY size can be larger than hotp.key_len
-                    let mut tmp_key = hotp.key.to_vec();
-                    tmp_key.truncate(hotp.key_len);
-                    let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &tmp_key);
-                    key_object.populate(&[attr.into()])?;
-                    mac.set_key(&key_object)?;
-                }
-            }
-            let iv = [0u8; 0];
-            mac.init(&iv);
-            mac.update(&hotp.counter);
-            let message = [0u8; 0];
-            let out_len = mac.compute_final(&message, out)?;
-            Ok(out_len)
-        }
-    }
+    let mac = Mac::allocate(AlgorithmId::HmacSha1, hotp.key_len * 8)?;
+    let mut key_object =
+        TransientObject::allocate(TransientObjectType::HmacSha1, hotp.key_len * 8)?;
+    //KEY size can be larger than hotp.key_len
+    let mut tmp_key = hotp.key.to_vec();
+    tmp_key.truncate(hotp.key_len);
+    let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &tmp_key);
+    key_object.populate(&[attr.into()])?;
+    mac.set_key(&key_object)?;
+
+    let iv = [0u8; 0];
+    mac.init(&iv);
+    mac.update(&hotp.counter);
+    let message = [0u8; 0];
+    let out_len = mac.compute_final(&message, out)?;
+    Ok(out_len)
 }
 
 pub fn truncate(hmac_result: &mut [u8]) -> u32 {
@@ -147,12 +135,12 @@ pub fn truncate(hmac_result: &mut [u8]) -> u32 {
     let offset: usize = (hmac_result[19] & 0xf) as usize;
 
     bin_code = ((hmac_result[offset] & 0x7f) as u32) << 24
-        | ((hmac_result[offset + 1] & 0xff) as u32) << 16
-        | ((hmac_result[offset + 2] & 0xff) as u32) << 8
-        | ((hmac_result[offset + 3] & 0xff) as u32);
+        | (hmac_result[offset + 1] as u32) << 16
+        | (hmac_result[offset + 2] as u32) << 8
+        | (hmac_result[offset + 3] as u32);
 
     bin_code %= DBC2_MODULO;
-    return bin_code;
+    bin_code
 }
 
 include!(concat!(env!("OUT_DIR"), "/user_ta_header.rs"));

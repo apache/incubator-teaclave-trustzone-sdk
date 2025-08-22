@@ -21,8 +21,7 @@ use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
 use optee_utee::{Error, ErrorKind, Parameters, Result};
-use proto::Command;
-use serde::{Deserialize, Serialize};
+use proto::{Command, Point};
 use std::io::Write;
 
 #[ta_create]
@@ -45,12 +44,6 @@ fn close_session() {
 #[ta_destroy]
 fn destroy() {
     trace_println!("[+] TA destroy");
-}
-
-#[derive(Serialize, Deserialize, Debug)]
-struct Point {
-    x: i32,
-    y: i32,
 }
 
 #[ta_invoke_command]

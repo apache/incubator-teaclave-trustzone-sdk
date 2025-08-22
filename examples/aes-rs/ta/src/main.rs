@@ -20,14 +20,14 @@
 
 extern crate alloc;
 
-use alloc::vec;
 use alloc::boxed::Box;
+use alloc::vec;
+use optee_utee::is_algorithm_supported;
 use optee_utee::{
     ta_close_session, ta_create, ta_destroy, ta_invoke_command, ta_open_session, trace_println,
 };
-use optee_utee::is_algorithm_supported;
-use optee_utee::{AlgorithmId, ElementId, Cipher, OperationMode};
-use optee_utee::{AttributeId, AttributeMemref, GenericObject, TransientObject, TransientObjectType};
+use optee_utee::{AlgorithmId, Cipher, ElementId, OperationMode};
+use optee_utee::{AttributeId, AttributeMemref, TransientObject, TransientObjectType};
 use optee_utee::{Error, ErrorKind, Parameters, Result};
 use proto::{Algo, Command, KeySize, Mode};
 
@@ -73,21 +73,11 @@ fn destroy() {
 fn invoke_command(sess_ctx: &mut AesCipher, cmd_id: u32, params: &mut Parameters) -> Result<()> {
     trace_println!("[+] TA invoke command");
     match Command::from(cmd_id) {
-        Command::Prepare => {
-            return alloc_resources(sess_ctx, params);
-        }
-        Command::SetKey => {
-            return set_aes_key(sess_ctx, params);
-        }
-        Command::SetIV => {
-            return reset_aes_iv(sess_ctx, params);
-        }
-        Command::Cipher => {
-            return cipher_buffer(sess_ctx, params);
-        }
-        _ => {
-            return Err(Error::new(ErrorKind::BadParameters));
-        }
+        Command::Prepare => alloc_resources(sess_ctx, params),
+        Command::SetKey => set_aes_key(sess_ctx, params),
+        Command::SetIV => reset_aes_iv(sess_ctx, params),
+        Command::Cipher => cipher_buffer(sess_ctx, params),
+        _ => Err(Error::new(ErrorKind::BadParameters)),
     }
 }
 
@@ -123,7 +113,10 @@ pub fn alloc_resources(aes: &mut AesCipher, params: &mut Parameters) -> Result<(
     aes.key_size = ta2tee_key_size(key_size_value).unwrap();
 
     // check whether the algorithm is supported
-    is_algorithm_supported(ta2tee_algo_id(algo_value).unwrap() as u32, ElementId::ElementNone as u32)?;
+    is_algorithm_supported(
+        ta2tee_algo_id(algo_value).unwrap() as u32,
+        ElementId::ElementNone as u32,
+    )?;
 
     aes.cipher = Cipher::allocate(
         ta2tee_algo_id(algo_value).unwrap(),
@@ -132,7 +125,7 @@ pub fn alloc_resources(aes: &mut AesCipher, params: &mut Parameters) -> Result<(
     )
     .unwrap();
     aes.key_object = TransientObject::allocate(TransientObjectType::Aes, aes.key_size * 8).unwrap();
-    let key = vec![0u8; aes.key_size as usize];
+    let key = vec![0u8; aes.key_size];
     let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &key);
     aes.key_object.populate(&[attr.into()])?;
     aes.cipher.set_key(&aes.key_object)?;
@@ -148,7 +141,7 @@ pub fn set_aes_key(aes: &mut AesCipher, params: &mut Parameters) -> Result<()> {
         return Err(Error::new(ErrorKind::BadParameters));
     }
 
-    let attr = AttributeMemref::from_ref(AttributeId::SecretValue, &key);
+    let attr = AttributeMemref::from_ref(AttributeId::SecretValue, key);
 
     aes.key_object.reset();
     aes.key_object.populate(&[attr.into()])?;

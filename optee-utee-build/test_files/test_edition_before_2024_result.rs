@@ -27,11 +27,12 @@ const TA_DESCRIPTION: &[u8] = b"test_before_2024\0";
 pub static mut trace_level: c_int = 4i32;
 #[no_mangle]
 pub static trace_ext_prefix: &[u8] = b"TA\0";
+/// # Safety
+/// This function is called by the OP-TEE framework to get the trace level.
+/// It's safe to call as it only reads a static variable.
 #[no_mangle]
 pub unsafe extern "C" fn tahead_get_trace_level() -> c_int {
-    unsafe {
-        return trace_level;
-    }
+    unsafe { trace_level }
 }
 static FLAG_BOOL: bool = (TA_FLAGS & optee_utee_sys::TA_FLAG_SINGLE_INSTANCE) != 0;
 static FLAG_MULTI: bool = (TA_FLAGS & optee_utee_sys::TA_FLAG_MULTI_SESSION) != 0;
