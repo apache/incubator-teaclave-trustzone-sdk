@@ -79,7 +79,7 @@ pub fn execute(args: &Args) -> anyhow::Result<()> {
     // Export the model to the given path
     if let Some(output_path) = args.output.as_ref() {
         let record = trainer.export()?;
-        println!("Export record to \"{}\"", output_path);
+        println!("Export record to \"{output_path}\"");
         std::fs::write(output_path, &record)?;
     }
     println!("Train Success");
@@ -111,11 +111,8 @@ fn check_download_mnist_data() -> anyhow::Result<rust_mnist::Mnist> {
             continue;
         }
 
-        let url = format!(
-            "https://storage.googleapis.com/cvdf-datasets/mnist/{}.gz",
-            filename
-        );
-        println!("Download {} from {}", filename, url);
+        let url = format!("https://storage.googleapis.com/cvdf-datasets/mnist/{filename}.gz");
+        println!("Download {filename} from {url}");
         let body = ureq::get(&url).call()?.body_mut().read_to_vec()?;
 
         anyhow::ensure!(body.len() == *compressed_size as usize);

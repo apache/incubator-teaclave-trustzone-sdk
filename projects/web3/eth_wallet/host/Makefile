@@ -23,7 +23,6 @@ OBJCOPY := $(CROSS_COMPILE)objcopy
 LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)gcc\"
 
 OUT_DIR := $(CURDIR)/target/$(TARGET)/release
-
 all: host strip
 
 host:

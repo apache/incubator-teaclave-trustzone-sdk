@@ -16,14 +16,7 @@
 // under the License.
 
 use optee_teec::{Context, Operation, ParamNone, ParamTmpRef, Session, Uuid};
-use proto::{Command, UUID};
-use serde::Deserialize;
-
-#[derive(Deserialize, Debug)]
-struct Point {
-    x: i32,
-    y: i32,
-}
+use proto::{Command, Point, UUID};
 
 fn serde(session: &mut Session) -> optee_teec::Result<()> {
     let mut buffer = [0u8; 128];

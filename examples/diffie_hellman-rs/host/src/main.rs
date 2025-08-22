@@ -21,11 +21,11 @@ use proto::{Command, KEY_SIZE, UUID};
 
 fn generate_key(session: &mut Session) -> Result<(Vec<u8>, Vec<u8>)> {
     // Pass in the prime and base
-    let prime_base_vec = [0xB6, 0x73, 0x91, 0xB5, 0xD6, 0xBC, 0x95, 0x73, 
-                          0x0D, 0x53, 0x64, 0x13, 0xB0, 0x51, 0xC6, 0xB4, 
-                          0xEB, 0x9D, 0x74, 0x57, 0x8D, 0x65, 0x3A, 0x4B, 
-                          0x7A, 0xB2, 0x93, 0x27, 0xA6, 0xC1, 0xBC, 0xAB, 
-                          5];
+    let prime_base_vec = [
+        0xB6, 0x73, 0x91, 0xB5, 0xD6, 0xBC, 0x95, 0x73, 0x0D, 0x53, 0x64, 0x13, 0xB0, 0x51, 0xC6,
+        0xB4, 0xEB, 0x9D, 0x74, 0x57, 0x8D, 0x65, 0x3A, 0x4B, 0x7A, 0xB2, 0x93, 0x27, 0xA6, 0xC1,
+        0xBC, 0xAB, 5,
+    ];
     let p0 = ParamTmpRef::new_input(&prime_base_vec);
     // Save public and private key size
     let p1 = ParamValue::new(0, 0, ParamType::ValueOutput);
@@ -69,7 +69,7 @@ fn main() -> Result<()> {
     let uuid = Uuid::parse_str(UUID).unwrap();
     let mut session = ctx.open_session(uuid)?;
 
-    let (mut key0_public, key0_private) = generate_key(&mut session).unwrap();
+    let (key0_public, key0_private) = generate_key(&mut session).unwrap();
     let (key1_public, key1_private) = generate_key(&mut session).unwrap();
     println!(
         "get key 0 pair as public: {:?}, private: {:?}",
@@ -79,7 +79,7 @@ fn main() -> Result<()> {
         "get key 1 pair as public: {:?}, private: {:?}",
         key1_public, key1_private
     );
-    derive_key(&mut key0_public, &mut session)?;
+    derive_key(&key0_public, &mut session)?;
 
     println!("Success");
     Ok(())

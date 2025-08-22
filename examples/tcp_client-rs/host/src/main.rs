@@ -63,7 +63,7 @@ fn main() -> optee_teec::Result<()> {
     let port = listen_addr.port();
 
     let child = thread::spawn(move || {
-        for request in server.incoming_requests() {
+        if let Some(request) = server.incoming_requests().next() {
             println!(
                 "received request! method: {:?}, url: {:?}, headers: {:?}",
                 request.method(),
@@ -73,7 +73,6 @@ fn main() -> optee_teec::Result<()> {
 
             let response = tiny_http::Response::from_string("hello world");
             request.respond(response).unwrap();
-            break;
         }
     });
     // Use the IP address directly to ensure we're actually trying an IPv6

@@ -48,7 +48,7 @@ pub fn execute(args: &Args) -> anyhow::Result<()> {
             anyhow::ensure!(data.len() == IMAGE_SIZE);
 
             TryInto::<Image>::try_into(data)
-                .map_err(|err| anyhow::Error::msg(format!("cannot convert {:?} into Image", err)))
+                .map_err(|err| anyhow::Error::msg(format!("cannot convert {err:?} into Image")))
         })
         .collect::<Result<Vec<_>, anyhow::Error>>()?;
     let images: Vec<Image> = args
@@ -59,7 +59,7 @@ pub fn execute(args: &Args) -> anyhow::Result<()> {
             let bytes = img.as_bytes();
             anyhow::ensure!(bytes.len() == IMAGE_SIZE);
             TryInto::<Image>::try_into(bytes)
-                .map_err(|err| anyhow::Error::msg(format!("cannot convert {:?} into Image", err)))
+                .map_err(|err| anyhow::Error::msg(format!("cannot convert {err:?} into Image")))
         })
         .collect::<Result<Vec<_>, anyhow::Error>>()?;
     binaries.extend(images);

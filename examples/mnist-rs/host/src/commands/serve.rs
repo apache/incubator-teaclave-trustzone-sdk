@@ -40,17 +40,17 @@ pub fn execute(args: &Args) -> anyhow::Result<()> {
     let mut caller = crate::tee::InferenceTaConnector::new(&mut ctx, &record)?;
 
     let addr = format!("0.0.0.0:{}", args.port);
-    println!("Server runs on: {}", addr);
+    println!("Server runs on: {addr}");
 
     let server = Server::http(&addr)
-        .map_err(|err| anyhow::Error::msg(format!("cannot start server: {:?}", err)))?;
+        .map_err(|err| anyhow::Error::msg(format!("cannot start server: {err:?}")))?;
 
     loop {
         let mut request = server.recv()?;
         let response = match handle(&mut caller, &mut request) {
             Ok(v) => v,
             Err(err) => {
-                eprintln!("unexpected error: {:#?}", err);
+                eprintln!("unexpected error: {err:#?}");
                 Response::from_string("Internal Error").with_status_code(500)
             }
         };
@@ -88,7 +88,7 @@ fn handle_image(
     }
     let result = handle_infer(caller, img.as_bytes())?;
 
-    println!("Performing Inference with Image, Result is {}", result);
+    println!("Performing Inference with Image, Result is {result}");
     Ok(Response::from_data(result.to_string()))
 }
 
@@ -103,14 +103,11 @@ fn handle_binary(
     }
 
     let result = handle_infer(caller, &data)?;
-    println!("Performing Inference with Binary, Result is {}", result);
+    println!("Performing Inference with Binary, Result is {result}");
     Ok(Response::from_data(result.to_string()))
 }
 
-fn handle_infer(
-    caller: &mut crate::tee::InferenceTaConnector,
-    image: &[u8],
-) -> anyhow::Result<u8> {
+fn handle_infer(caller: &mut crate::tee::InferenceTaConnector, image: &[u8]) -> anyhow::Result<u8> {
     let result = caller.infer_batch(bytemuck::cast_slice(image))?;
     Ok(result[0])
 }

@@ -129,6 +129,10 @@ pub fn plugin_invoke(_args: TokenStream, input: TokenStream) -> TokenStream {
         .into_token_stream();
 
     quote!(
+        // temporary workaround for this error:
+        // error: this public function might dereference a raw pointer but is not marked `unsafe`
+        // should remove this allow macro when fix clippy errors of optee-* crates
+        #[allow(clippy::not_unsafe_ptr_arg_deref)]
         pub fn _plugin_invoke(
             cmd: u32,
             sub_cmd: u32,

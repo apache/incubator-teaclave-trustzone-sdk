@@ -17,7 +17,7 @@
 
 use optee_teec::{Context, Operation, ParamType, Session, Uuid};
 use optee_teec::{ParamNone, ParamValue};
-use proto::{UUID, Command};
+use proto::{Command, UUID};
 
 fn hello_world(session: &mut Session) -> optee_teec::Result<()> {
     let p0 = ParamValue::new(29, 0, ParamType::ValueInout);
