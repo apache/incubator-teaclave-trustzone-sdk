@@ -25,11 +25,15 @@ LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)gcc\"
 
 OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 
+all: clippy host
 
-all: host
+clippy:
+	@cargo fmt
+	@cargo clippy --target $(TARGET) -- -D warnings
 
-host:
+host: clippy
 	@cargo build --target $(TARGET) --release --config $(LINKER_CFG)
 	cp $(CURDIR)/target/$(TARGET)/release/lib$(NAME).so $(CURDIR)/target/$(TARGET)/release/$(PLUGIN_UUID).plugin.so 
+
 clean:
 	@cargo clean
