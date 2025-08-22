@@ -24,10 +24,13 @@ LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)gcc\"
 
 OUT_DIR := $(CURDIR)/target/$(TARGET)/release
 
+all: clippy host strip
 
-all: host strip
+clippy:
+	@cargo fmt
+	@cargo clippy --target $(TARGET) -- -D warnings
 
-host:
+host: clippy
 	@cargo build --target $(TARGET) --release --config $(LINKER_CFG)
 
 strip: host

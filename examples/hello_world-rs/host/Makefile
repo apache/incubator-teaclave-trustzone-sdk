@@ -23,12 +23,15 @@ OBJCOPY := $(CROSS_COMPILE)objcopy
 LINKER_CFG := target.$(TARGET).linker=\"$(CROSS_COMPILE)gcc\"
 
 OUT_DIR := $(CURDIR)/target/$(TARGET)/release
-
 .PHONY: all host strip clean emulate
 
-all: host strip
+all: clippy host strip
 
-host:
+clippy:
+	@cargo fmt
+	@cargo clippy --target $(TARGET) -- -D warnings
+
+host: clippy
 	@cargo build --target $(TARGET) --release --config $(LINKER_CFG)
 
 strip: host
