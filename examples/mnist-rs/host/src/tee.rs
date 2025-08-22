@@ -18,7 +18,7 @@
 use optee_teec::{Context, ErrorKind, Operation, ParamNone, ParamTmpRef, Session, Uuid};
 use proto::{inference, train, Image};
 
-const MAX_OUTPUT_SERIALIZE_SIZE: usize = 1 * 1024;
+const MAX_OUTPUT_SERIALIZE_SIZE: usize = 1024;
 const MAX_MODEL_RECORD_SIZE: usize = 10 * 1024 * 1024;
 
 pub struct TrainerTaConnector {
@@ -60,7 +60,7 @@ impl TrainerTaConnector {
             op.parameters().2.updated_size()
         };
         let result = serde_json::from_slice(&buffer[0..size]).map_err(|err| {
-            println!("proto error: {:?}", err);
+            println!("proto error: {err:?}");
             ErrorKind::BadFormat
         })?;
         Ok(result)
@@ -81,7 +81,7 @@ impl TrainerTaConnector {
             op.parameters().2.updated_size()
         };
         let result = serde_json::from_slice(&buffer[0..size]).map_err(|err| {
-            println!("proto error: {:?}", err);
+            println!("proto error: {err:?}");
             ErrorKind::BadFormat
         })?;
         Ok(result)

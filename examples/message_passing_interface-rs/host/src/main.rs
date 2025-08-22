@@ -16,8 +16,6 @@
 // under the License.
 
 use optee_teec::{Context, Operation, ParamNone, ParamTmpRef, ParamType, ParamValue, Uuid};
-use proto;
-use url;
 
 type Result<T> = optee_teec::Result<T>;
 
@@ -40,7 +38,7 @@ impl EnclaveClient {
         let context = Context::new()?;
         Ok(Self {
             uuid: uuid.to_string(),
-            context: context,
+            context,
             buffer: vec![0; 128],
         })
     }

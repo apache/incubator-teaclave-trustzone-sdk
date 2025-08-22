@@ -28,10 +28,10 @@ fn inc_value(session: &mut Session) -> optee_teec::Result<u32> {
 
 fn main() -> optee_teec::Result<()> {
     let mut ctx = Context::new()?;
-    let uuid = Uuid::parse_str(UUID).map_err(|_|ErrorKind::BadParameters)?;
+    let uuid = Uuid::parse_str(UUID).map_err(|_| ErrorKind::BadParameters)?;
     // Ensure that multiple sessions can be opened concurrently.
-    let mut session1= ctx.open_session(uuid.clone())?;
-    let mut session2= ctx.open_session(uuid)?;
+    let mut session1 = ctx.open_session(uuid.clone())?;
+    let mut session2 = ctx.open_session(uuid)?;
     // Ensure that each session can successfully perform a call.
     println!("result is: {}", inc_value(&mut session1)?);
     println!("result is: {}", inc_value(&mut session2)?);

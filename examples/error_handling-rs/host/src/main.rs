@@ -15,9 +15,9 @@
 // specific language governing permissions and limitations
 // under the License.
 
-use optee_teec::{Context, ErrorKind, Operation, ParamType, Session, Uuid};
 use optee_teec::ParamNone;
-use proto::{UUID, Command};
+use optee_teec::{Context, ErrorKind, Operation, Uuid};
+use proto::{Command, UUID};
 
 fn main() -> optee_teec::Result<()> {
     test_error_handling();
@@ -31,14 +31,20 @@ fn test_error_handling() {
     let mut operation = Operation::new(0, ParamNone, ParamNone, ParamNone, ParamNone);
 
     // Test successful invocation return Ok().
-    session.invoke_command(Command::ReturnSuccess as u32, &mut operation).expect("success");
+    session
+        .invoke_command(Command::ReturnSuccess as u32, &mut operation)
+        .expect("success");
 
     // Test error invocation returns the requested error.
-    let e = session.invoke_command(Command::ReturnGenericError as u32, &mut operation).expect_err("generic error");
+    let e = session
+        .invoke_command(Command::ReturnGenericError as u32, &mut operation)
+        .expect_err("generic error");
     assert_eq!(e.kind(), ErrorKind::Generic);
 
     // Test repeated error invocation also returns the requested error.
-    let e = session.invoke_command(Command::ReturnGenericError as u32, &mut operation).expect_err("generic error");
+    let e = session
+        .invoke_command(Command::ReturnGenericError as u32, &mut operation)
+        .expect_err("generic error");
     assert_eq!(e.kind(), ErrorKind::Generic);
 
     println!("Test passed");

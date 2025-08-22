@@ -65,11 +65,11 @@ fn main() -> optee_teec::Result<()> {
     let mut public_key = [0x00u8; PUBLIC_KEY_SIZE];
     let mut signature = [0x00u8; SIGNATURE_SIZE];
 
-    sign(&mut session, &message, &mut public_key, &mut signature)?;
+    sign(&mut session, message, &mut public_key, &mut signature)?;
     println!("CA: public key: {:?}", &public_key);
     println!("CA: signature: {:?}", &signature);
 
-    verify(&mut session, &message, &public_key, &signature)?;
+    verify(&mut session, message, &public_key, &signature)?;
     println!("Success");
 
     Ok(())

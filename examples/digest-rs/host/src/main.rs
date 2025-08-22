@@ -56,8 +56,8 @@ fn main() -> optee_teec::Result<()> {
     let mut hash: [u8; 32] = [0u8; 32];
     let mut session = ctx.open_session(uuid)?;
 
-    for i in 1..args_len - 1 {
-        update(&mut session, args[i].as_bytes())?;
+    for arg in &args[1..args_len - 1] {
+        update(&mut session, arg.as_bytes())?;
     }
 
     let hash_length = do_final(&mut session, args[args_len - 1].as_bytes(), &mut hash).unwrap();
